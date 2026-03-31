@@ -300,7 +300,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
   );
 }
 
-function RealReturn({ filters }: { filters: GlobalFilters }) {
+function RealReturn({ filters }: { filters: PerfFilters }) {
   const wfData = realReturnWaterfall[filters.timespan as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'];
 
   return (
