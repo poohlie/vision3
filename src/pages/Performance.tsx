@@ -209,13 +209,13 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
     <div className="space-y-4">
       {/* Row 1: Top charts — left bordered primary (compare), right bordered accent (breakdown) */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="border-l-2 border-primary/30 pl-3">
-          <ChartCard id="perf-1" title="Return Attribution (Waterfall)">
+        <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
+          <ChartCard id="perf-1" title="Return Attribution (Waterfall)" className="h-full">
             <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
           </ChartCard>
         </div>
-        <div className="border-l-2 border-accent/30 pl-3">
-          <ChartCard id="perf-2" title="Return Attribution (Time Series)">
+        <div className="border-l-2 border-accent/30 pl-3 min-h-[320px]">
+          <ChartCard id="perf-2" title="Return Attribution (Time Series)" className="h-full">
             <StackedTimeChart
               data={perfTimeSeries}
               categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
@@ -228,20 +228,20 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
 
       {/* Row 2 & 3: Bottom 4 charts — combined primary+accent border (TopN applies here) */}
       <div className="grid grid-cols-2 gap-4 border-l-2 pl-3 ml-1" style={{ borderImage: 'linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--accent))) 1' }}>
-        <ChartCard id="perf-3" title={`Contribution to ${target}`}>
+        <ChartCard id="perf-3" title={`Contribution to ${target}`} className="min-h-[280px]">
           <FinancialBarChart data={contribData} />
         </ChartCard>
-        <ChartCard id="perf-4" title="Contribution (Time Series)">
+        <ChartCard id="perf-4" title="Contribution (Time Series)" className="min-h-[280px]">
           <StackedTimeChart
             data={contributionTimeSeries}
             categories={stratData.slice(0, 6).map(s => s.name)}
             overlayLine="Total Portfolio"
           />
         </ChartCard>
-        <ChartCard id="perf-5" title={`Own-Based Return (${target})`}>
+        <ChartCard id="perf-5" title={`Own-Based Return (${target})`} className="min-h-[280px]">
           <FinancialBarChart data={ownData} />
         </ChartCard>
-        <ChartCard id="perf-6" title="Cumulative Strategy Performance" toolbar={
+        <ChartCard id="perf-6" title="Cumulative Strategy Performance" className="min-h-[280px]" toolbar={
           <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
         }>
           <TrendChart data={cumulativePerfSeries} lines={activeStrategies.slice(0, 6).map(s => s.name)} />
