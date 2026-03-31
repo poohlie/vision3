@@ -123,23 +123,6 @@ export default function Performance() {
           </div>
         )}
 
-        {isNominal && (
-          <div className="rounded-lg border-2 border-accent/30 bg-accent/5 px-4 py-3 shadow-sm">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="w-1 h-8 rounded-full bg-accent" />
-                <div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Breakdown</span>
-                  <p className="text-[9px] text-muted-foreground">Right charts → · TopN ↓ bottom 4</p>
-                </div>
-              </div>
-              <div className="h-8 w-px bg-border shrink-0" />
-              <ToggleBar options={breakdowns} value={filters.breakdown as any} onChange={v => set({ breakdown: v })} size="xs" />
-              <div className="h-8 w-px bg-border shrink-0" />
-              <TopNSelect value={filters.topN} onChange={n => set({ topN: n })} />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Tab content */}
