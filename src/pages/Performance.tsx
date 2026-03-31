@@ -191,6 +191,9 @@ function buildContribData(sourceData: { name: string; contribution: number; ownR
   return { stratData, contribData, ownData };
 }
 
+// Timespan scale factors for mock variation
+const tsScales: Record<string, number> = { '1Y': 1.0, '3Y': 0.75, '5Y': 0.85, '10Y': 0.65, '20Y': 0.55 };
+
 // ─── Sub-tab components ───
 
 function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
@@ -204,6 +207,18 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
     label: ts,
     data: perfWaterfallData[ts] || perfWaterfallData['1Y'],
   }));
+
+  // Build multi-timespan datasets for contribution and own-return charts
+  const contribDatasets = filters.compareTimespans.map(ts => ({
+    label: ts,
+    data: contribData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(2) })),
+  }));
+  const ownDatasets = filters.compareTimespans.map(ts => ({
+    label: ts,
+    data: ownData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) })),
+  }));
+
+  const isComparing = filters.compareTimespans.length > 1;
 
   return (
     <div className="space-y-4">
@@ -229,7 +244,10 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
       {/* Row 2 & 3: Bottom 4 charts — combined primary+accent border (TopN applies here) */}
       <div className="grid grid-cols-2 gap-4 border-l-2 pl-3 ml-1" style={{ borderImage: 'linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--accent))) 1' }}>
         <ChartCard id="perf-3" title={`Contribution to ${target}`} className="min-h-[280px]">
-          <FinancialBarChart data={contribData} />
+          {isComparing
+            ? <FinancialBarChart datasets={contribDatasets} />
+            : <FinancialBarChart data={contribData} />
+          }
         </ChartCard>
         <ChartCard id="perf-4" title="Contribution (Time Series)" className="min-h-[280px]">
           <StackedTimeChart
@@ -239,7 +257,10 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           />
         </ChartCard>
         <ChartCard id="perf-5" title={`Own-Based Return (${target})`} className="min-h-[280px]">
-          <FinancialBarChart data={ownData} />
+          {isComparing
+            ? <FinancialBarChart datasets={ownDatasets} />
+            : <FinancialBarChart data={ownData} />
+          }
         </ChartCard>
         <ChartCard id="perf-6" title="Cumulative Strategy Performance" className="min-h-[280px]" toolbar={
           <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
