@@ -235,6 +235,11 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           <ToggleBar options={breakdowns} value={breakdown as any} onChange={setBreakdown} size="xs" />
           <div className="h-8 w-px bg-border shrink-0" />
           <TopNSelect value={topN} onChange={setTopN} />
+          <div className="h-8 w-px bg-border shrink-0" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Return</span>
+            <ToggleBar options={returnTypes} value={returnType} onChange={setReturnType} size="xs" />
+          </div>
         </div>
       </div>
 
