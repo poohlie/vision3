@@ -13,7 +13,7 @@ interface Props {
   tags?: string[];
 }
 
-export default function ChartCard({ id, title, subtitle, children, toolbar, className }: Props) {
+export default function ChartCard({ id, title, subtitle, children, toolbar, className, tags }: Props) {
   const { saveChart, isChartSaved } = useWorkspace();
   const saved = isChartSaved(id);
 
