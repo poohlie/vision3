@@ -1,4 +1,4 @@
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend, Line, ComposedChart } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend, Line, ComposedChart, Tooltip, CartesianGrid } from 'recharts';
 import { CHART_COLORS } from '@/data/mockData';
 
 interface Props {
@@ -11,14 +11,23 @@ interface Props {
   negativeCategories?: string[];
 }
 
+const tooltipStyle = {
+  background: 'hsl(var(--card))',
+  border: '1px solid hsl(var(--border))',
+  borderRadius: '6px',
+  fontSize: 11,
+  boxShadow: '0 4px 12px -2px rgba(0,0,0,0.12)',
+};
+
 export default function StackedTimeChart({ data, categories, height = 250, xKey = 'month', overlayLine, stacked = true, negativeCategories = [] }: Props) {
   if (overlayLine) {
     return (
       <ResponsiveContainer width="100%" height={height}>
         <ComposedChart data={data}>
-          <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
-          <YAxis tick={{ fontSize: 10 }} tickFormatter={v => `${v}%`} />
-          
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+          <XAxis dataKey={xKey} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+          <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
+          <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v > 0 ? '+' : ''}${v.toFixed(2)}%`, undefined]} />
           <Legend wrapperStyle={{ fontSize: 10 }} />
           {categories.map((c, i) => (
             <Bar
@@ -27,9 +36,10 @@ export default function StackedTimeChart({ data, categories, height = 250, xKey 
               stackId={stacked ? (negativeCategories.includes(c) ? 'neg' : 's') : undefined}
               fill={CHART_COLORS[i % CHART_COLORS.length]}
               barSize={20}
+              radius={[1, 1, 0, 0]}
             />
           ))}
-          <Line type="monotone" dataKey={overlayLine} stroke="hsl(215, 60%, 18%)" strokeWidth={2.5} dot={false} />
+          <Line type="monotone" dataKey={overlayLine} stroke="hsl(var(--foreground))" strokeWidth={2.5} dot={false} />
         </ComposedChart>
       </ResponsiveContainer>
     );
@@ -38,12 +48,13 @@ export default function StackedTimeChart({ data, categories, height = 250, xKey 
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data}>
-        <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
-        <YAxis tick={{ fontSize: 10 }} tickFormatter={v => `${v}%`} />
-        
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+        <XAxis dataKey={xKey} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+        <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
+        <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v > 0 ? '+' : ''}${v.toFixed(2)}%`, undefined]} />
         <Legend wrapperStyle={{ fontSize: 10 }} />
         {categories.map((c, i) => (
-          <Bar key={c} dataKey={c} stackId={stacked ? 's' : undefined} fill={CHART_COLORS[i % CHART_COLORS.length]} barSize={20} />
+          <Bar key={c} dataKey={c} stackId={stacked ? 's' : undefined} fill={CHART_COLORS[i % CHART_COLORS.length]} barSize={20} radius={[1, 1, 0, 0]} />
         ))}
       </BarChart>
     </ResponsiveContainer>

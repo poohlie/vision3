@@ -3,12 +3,14 @@ import { useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import ChartCard from '@/components/shared/ChartCard';
 import ToggleBar from '@/components/shared/ToggleBar';
-import WaterfallChart from '@/components/charts/WaterfallChart';
+import GlobalFilterStrip, { type GlobalFilters } from '@/components/shared/GlobalFilterStrip';
+import TimespanMultiSelect from '@/components/shared/TimespanMultiSelect';
+import TopNSelect from '@/components/shared/TopNSelect';
+import CompareWaterfallChart from '@/components/charts/CompareWaterfallChart';
 import FinancialBarChart from '@/components/charts/FinancialBarChart';
 import StackedTimeChart from '@/components/charts/StackedTimeChart';
 import TrendChart from '@/components/charts/TrendChart';
 import ScatterPlot from '@/components/charts/ScatterChart';
-import ExposureTable from '@/components/charts/ExposureTable';
 import {
   perfWaterfallData, activeStrategies, perfTimeSeries, cumulativePerfSeries, contributionTimeSeries,
   equityCountryPerf, equitySectorPerf, fiPerf, commodityPerf, currencyPerf, marketTimeSeries,
@@ -25,15 +27,22 @@ const subTabsConfig = [
 ];
 const subTabs = subTabsConfig.map(t => t.key);
 type SubTab = typeof subTabs[number];
-const breakdowns = ['Active Strategies', 'Country', 'Sector'] as const;
 const cumRoll = ['Cumulative', 'Rolling'] as const;
 
 export default function Performance() {
   const [searchParams] = useSearchParams();
   const initialTab = subTabs.find(t => t === searchParams.get('tab')) || 'Absolute Return';
   const [sub, setSub] = useState<SubTab>(initialTab);
+  const [filters, setFilters] = useState<GlobalFilters>({
+    timespan: '1Y', currency: 'USD', breakdown: 'Active Strategies', topN: 8,
+  });
+
+  const showBreakdown = sub === 'Absolute Return' || sub === 'Active Return';
+  const showTopN = showBreakdown;
+
   return (
     <div className="p-6 space-y-4">
+      {/* Sub-tab cards */}
       <div className="grid grid-cols-5 gap-3">
         {subTabsConfig.map(t => (
           <button
@@ -44,9 +53,7 @@ export default function Performance() {
               sub === t.key ? 'bg-primary text-primary-foreground border-primary shadow-md' : 'bg-card hover:bg-muted/50'
             )}
           >
-            <div className="flex items-start justify-between">
-              <p className="text-[11px] font-bold uppercase tracking-wider">{t.key}</p>
-            </div>
+            <p className="text-[11px] font-bold uppercase tracking-wider">{t.key}</p>
             <p className={cn(
               'text-2xl font-bold tracking-tight mt-2',
               sub === t.key ? 'text-primary-foreground' : 'text-accent'
@@ -58,23 +65,28 @@ export default function Performance() {
           </button>
         ))}
       </div>
-      {sub === 'Absolute Return' && <PortfolioPerformance />}
-      {sub === 'Active Return' && <ActiveReturn />}
-      {sub === 'Market Performance' && <MarketPerformance />}
-      {sub === 'Real Return' && <RealReturn />}
-      {sub === 'Peers Comparison' && <PeersComparison />}
+
+      {/* Global filter strip */}
+      <GlobalFilterStrip
+        filters={filters}
+        onChange={setFilters}
+        showBreakdown={showBreakdown}
+        showTopN={showTopN}
+      />
+
+      {/* Tab content */}
+      {sub === 'Absolute Return' && <PortfolioPerformance filters={filters} />}
+      {sub === 'Active Return' && <ActiveReturn filters={filters} />}
+      {sub === 'Market Performance' && <MarketPerformance filters={filters} />}
+      {sub === 'Real Return' && <RealReturn filters={filters} />}
+      {sub === 'Peers Comparison' && <PeersComparison filters={filters} />}
     </div>
   );
 }
 
-function PortfolioPerformance() {
-  const [ts, setTs] = useState('1Y');
-  const [cur, setCur] = useState('USD');
-  const [bd, setBd] = useState<string>('Active Strategies');
-  const [topN, setTopN] = useState(8);
-  const [target, setTarget] = useState('Total Portfolio');
-  const [mode, setMode] = useState('Cumulative');
+// ─── Shared helpers ───
 
+function getSourceData(breakdown: string) {
   const countryContrib = [
     { name: 'United States', contribution: 0.32, ownReturn: 12.5 },
     { name: 'Japan', contribution: 0.12, ownReturn: 8.2 },
@@ -99,26 +111,40 @@ function PortfolioPerformance() {
     { name: 'Utilities', contribution: 0.02, ownReturn: 3.5 },
     { name: 'Comm. Services', contribution: 0.09, ownReturn: 9.8 },
   ];
+  return breakdown === 'Country' ? countryContrib : breakdown === 'Sector' ? sectorContrib : activeStrategies;
+}
 
-  const sourceData = bd === 'Country' ? countryContrib : bd === 'Sector' ? sectorContrib : activeStrategies;
+function buildContribData(sourceData: { name: string; contribution: number; ownReturn: number }[], topN: number) {
   const stratData = sourceData.slice(0, topN);
   const others = sourceData.slice(topN);
   const contribData = [...stratData.map(s => ({ name: s.name, value: s.contribution })),
     ...(others.length ? [{ name: 'Others', value: others.reduce((s, o) => s + o.contribution, 0) }] : [])];
   const ownData = [...stratData.map(s => ({ name: s.name, value: s.ownReturn })),
     ...(others.length ? [{ name: 'Others', value: others.reduce((s, o) => s + o.ownReturn, 0) / (others.length || 1) }] : [])];
+  return { stratData, contribData, ownData };
+}
 
-  const toolbar = (
-    <div className="flex gap-2">
-      <ToggleBar options={timespans} value={ts as any} onChange={setTs} size="xs" />
-      <ToggleBar options={currencies} value={cur as any} onChange={setCur} size="xs" />
-    </div>
-  );
+// ─── Sub-tab components ───
+
+function PortfolioPerformance({ filters }: { filters: GlobalFilters }) {
+  const [compareTimespans, setCompareTimespans] = useState<string[]>([filters.timespan]);
+  const [target, setTarget] = useState('Total Portfolio');
+  const [mode, setMode] = useState('Cumulative');
+
+  const sourceData = getSourceData(filters.breakdown);
+  const { stratData, contribData, ownData } = buildContribData(sourceData, filters.topN);
+
+  const waterfallDatasets = compareTimespans.map(ts => ({
+    label: ts,
+    data: perfWaterfallData[ts] || perfWaterfallData['1Y'],
+  }));
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      <ChartCard id="perf-1" title="Return Attribution (Waterfall)" toolbar={toolbar}>
-        <WaterfallChart data={perfWaterfallData[ts] || perfWaterfallData['1Y']} onBarClick={setTarget} />
+      <ChartCard id="perf-1" title="Return Attribution (Waterfall)" toolbar={
+        <TimespanMultiSelect selected={compareTimespans} onChange={setCompareTimespans} />
+      }>
+        <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
       </ChartCard>
       <ChartCard id="perf-2" title="Return Attribution (Time Series)">
         <StackedTimeChart
@@ -128,14 +154,7 @@ function PortfolioPerformance() {
           negativeCategories={['inflation']}
         />
       </ChartCard>
-      <ChartCard id="perf-3" title={`Contribution to ${target}`} toolbar={
-        <div className="flex gap-2 items-center">
-          <ToggleBar options={breakdowns} value={bd as any} onChange={setBd} size="xs" />
-          <label className="text-[10px] text-muted-foreground">Top N:</label>
-          <input type="range" min={3} max={10} value={topN} onChange={e => setTopN(+e.target.value)} className="w-16 h-1" />
-          <span className="text-[10px] w-4">{topN}</span>
-        </div>
-      }>
+      <ChartCard id="perf-3" title={`Contribution to ${target}`}>
         <FinancialBarChart data={contribData} />
       </ChartCard>
       <ChartCard id="perf-4" title="Contribution (Time Series)">
@@ -145,14 +164,7 @@ function PortfolioPerformance() {
           overlayLine="Total Portfolio"
         />
       </ChartCard>
-      <ChartCard id="perf-5" title={`Own-Based Return (${target})`} toolbar={
-        <div className="flex gap-2 items-center">
-          <ToggleBar options={breakdowns} value={bd as any} onChange={setBd} size="xs" />
-          <label className="text-[10px] text-muted-foreground">Top N:</label>
-          <input type="range" min={3} max={10} value={topN} onChange={e => setTopN(+e.target.value)} className="w-16 h-1" />
-          <span className="text-[10px] w-4">{topN}</span>
-        </div>
-      }>
+      <ChartCard id="perf-5" title={`Own-Based Return (${target})`}>
         <FinancialBarChart data={ownData} />
       </ChartCard>
       <ChartCard id="perf-6" title="Cumulative Strategy Performance" toolbar={
@@ -164,64 +176,29 @@ function PortfolioPerformance() {
   );
 }
 
-function ActiveReturn() {
-  const [ts, setTs] = useState('1Y');
-  const [cur, setCur] = useState('USD');
-  const [bd, setBd] = useState<string>('Active Strategies');
-  const [topN, setTopN] = useState(8);
+function ActiveReturn({ filters }: { filters: GlobalFilters }) {
+  const [compareTimespans, setCompareTimespans] = useState<string[]>([filters.timespan]);
   const [target, setTarget] = useState('Active Return');
   const [mode, setMode] = useState('Cumulative');
 
-  const countryContrib = [
-    { name: 'United States', contribution: 0.18, ownReturn: 3.2 },
-    { name: 'Japan', contribution: 0.08, ownReturn: 2.1 },
-    { name: 'United Kingdom', contribution: -0.03, ownReturn: -1.2 },
-    { name: 'Germany', contribution: 0.05, ownReturn: 1.8 },
-    { name: 'China', contribution: 0.12, ownReturn: 4.5 },
-    { name: 'France', contribution: -0.02, ownReturn: -0.8 },
-    { name: 'Canada', contribution: 0.03, ownReturn: 1.1 },
-    { name: 'Australia', contribution: 0.01, ownReturn: 0.6 },
-    { name: 'South Korea', contribution: 0.04, ownReturn: 2.3 },
-    { name: 'India', contribution: 0.06, ownReturn: 3.8 },
-  ];
-  const sectorContrib = [
-    { name: 'Information Technology', contribution: 0.15, ownReturn: 5.2 },
-    { name: 'Healthcare', contribution: 0.04, ownReturn: 1.8 },
-    { name: 'Financials', contribution: 0.08, ownReturn: 3.1 },
-    { name: 'Consumer Disc.', contribution: -0.02, ownReturn: -1.0 },
-    { name: 'Industrials', contribution: 0.03, ownReturn: 1.5 },
-    { name: 'Energy', contribution: -0.06, ownReturn: -4.1 },
-    { name: 'Materials', contribution: 0.02, ownReturn: 0.9 },
-    { name: 'Real Estate', contribution: 0.01, ownReturn: 0.5 },
-    { name: 'Utilities', contribution: -0.01, ownReturn: -0.3 },
-    { name: 'Comm. Services', contribution: 0.05, ownReturn: 2.4 },
-  ];
-
-  const sourceData = bd === 'Country' ? countryContrib : bd === 'Sector' ? sectorContrib : activeStrategies.map(s => ({
+  const sourceData = getSourceData(filters.breakdown).map(s => ({
     ...s, contribution: +(s.contribution * 0.4).toFixed(3), ownReturn: +(s.ownReturn * 0.35).toFixed(1)
   }));
-  const stratData = sourceData.slice(0, topN);
-  const others = sourceData.slice(topN);
-  const contribData = [...stratData.map(s => ({ name: s.name, value: s.contribution })),
-    ...(others.length ? [{ name: 'Others', value: others.reduce((s, o) => s + o.contribution, 0) }] : [])];
-  const ownData = [...stratData.map(s => ({ name: s.name, value: s.ownReturn })),
-    ...(others.length ? [{ name: 'Others', value: others.reduce((s, o) => s + o.ownReturn, 0) / (others.length || 1) }] : [])];
+  const { stratData, contribData, ownData } = buildContribData(sourceData, filters.topN);
 
-  const activeWaterfall = (perfWaterfallData[ts] || perfWaterfallData['1Y']).map(d => ({
-    ...d, value: +(d.value * 0.42).toFixed(1)
+  const waterfallDatasets = compareTimespans.map(ts => ({
+    label: ts,
+    data: (perfWaterfallData[ts] || perfWaterfallData['1Y']).map(d => ({
+      ...d, value: +(d.value * 0.42).toFixed(1)
+    })),
   }));
-
-  const toolbar = (
-    <div className="flex gap-2">
-      <ToggleBar options={timespans} value={ts as any} onChange={setTs} size="xs" />
-      <ToggleBar options={currencies} value={cur as any} onChange={setCur} size="xs" />
-    </div>
-  );
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      <ChartCard id="act-1" title="Active Return Attribution (Waterfall)" toolbar={toolbar}>
-        <WaterfallChart data={activeWaterfall} onBarClick={setTarget} />
+      <ChartCard id="act-1" title="Active Return Attribution (Waterfall)" toolbar={
+        <TimespanMultiSelect selected={compareTimespans} onChange={setCompareTimespans} />
+      }>
+        <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
       </ChartCard>
       <ChartCard id="act-2" title="Active Return Attribution (Time Series)">
         <StackedTimeChart
@@ -237,14 +214,7 @@ function ActiveReturn() {
           overlayLine="realReturn"
         />
       </ChartCard>
-      <ChartCard id="act-3" title={`Contribution to ${target}`} toolbar={
-        <div className="flex gap-2 items-center">
-          <ToggleBar options={breakdowns} value={bd as any} onChange={setBd} size="xs" />
-          <label className="text-[10px] text-muted-foreground">Top N:</label>
-          <input type="range" min={3} max={10} value={topN} onChange={e => setTopN(+e.target.value)} className="w-16 h-1" />
-          <span className="text-[10px] w-4">{topN}</span>
-        </div>
-      }>
+      <ChartCard id="act-3" title={`Contribution to ${target}`}>
         <FinancialBarChart data={contribData} />
       </ChartCard>
       <ChartCard id="act-4" title="Active Contribution (Time Series)">
@@ -258,14 +228,7 @@ function ActiveReturn() {
           overlayLine="Total Portfolio"
         />
       </ChartCard>
-      <ChartCard id="act-5" title={`Own-Based Active Return (${target})`} toolbar={
-        <div className="flex gap-2 items-center">
-          <ToggleBar options={breakdowns} value={bd as any} onChange={setBd} size="xs" />
-          <label className="text-[10px] text-muted-foreground">Top N:</label>
-          <input type="range" min={3} max={10} value={topN} onChange={e => setTopN(+e.target.value)} className="w-16 h-1" />
-          <span className="text-[10px] w-4">{topN}</span>
-        </div>
-      }>
+      <ChartCard id="act-5" title={`Own-Based Active Return (${target})`}>
         <FinancialBarChart data={ownData} />
       </ChartCard>
       <ChartCard id="act-6" title="Cumulative Active Strategy Performance" toolbar={
@@ -281,27 +244,16 @@ function ActiveReturn() {
   );
 }
 
-function MarketPerformance() {
-  const [ts, setTs] = useState('1Y');
-  const [cur, setCur] = useState('USD');
+function MarketPerformance({ filters }: { filters: GlobalFilters }) {
   const [eqBd, setEqBd] = useState<string>('Country');
   const [mode, setMode] = useState('Cumulative');
 
   const eqData = eqBd === 'Country' ? equityCountryPerf : equitySectorPerf;
-  const toolbar = (
-    <div className="flex gap-2">
-      <ToggleBar options={timespans} value={ts as any} onChange={setTs} size="xs" />
-      <ToggleBar options={currencies} value={cur as any} onChange={setCur} size="xs" />
-    </div>
-  );
 
   return (
     <div className="grid grid-cols-2 gap-4">
       <ChartCard id="mkt-1" title="Equity Performance (MSCI ACWI)" toolbar={
-        <div className="flex gap-2">
-          {toolbar}
-          <ToggleBar options={['Country', 'Sector'] as const} value={eqBd} onChange={setEqBd} size="xs" />
-        </div>
+        <ToggleBar options={['Country', 'Sector'] as const} value={eqBd} onChange={setEqBd} size="xs" />
       }>
         <FinancialBarChart data={eqData} />
       </ChartCard>
@@ -310,7 +262,7 @@ function MarketPerformance() {
       }>
         <TrendChart data={marketTimeSeries(eqData)} lines={eqData.map(d => d.name)} />
       </ChartCard>
-      <ChartCard id="mkt-3" title="Fixed Income Performance (BBGA)" toolbar={toolbar}>
+      <ChartCard id="mkt-3" title="Fixed Income Performance (BBGA)">
         <FinancialBarChart data={fiPerf.map(f => ({ name: f.name, value: f.yield }))} colorByValue={false} barColor="hsl(185, 58%, 38%)" />
       </ChartCard>
       <ChartCard id="mkt-4" title="Fixed Income Cumulative" toolbar={
@@ -318,7 +270,7 @@ function MarketPerformance() {
       }>
         <TrendChart data={marketTimeSeries(fiPerf)} lines={fiPerf.map(f => f.name)} />
       </ChartCard>
-      <ChartCard id="mkt-5" title="Commodities Performance (BCOM)" toolbar={toolbar}>
+      <ChartCard id="mkt-5" title="Commodities Performance (BCOM)">
         <FinancialBarChart data={commodityPerf} />
       </ChartCard>
       <ChartCard id="mkt-6" title="Commodities Cumulative" toolbar={
@@ -326,7 +278,7 @@ function MarketPerformance() {
       }>
         <TrendChart data={marketTimeSeries(commodityPerf)} lines={commodityPerf.map(d => d.name)} />
       </ChartCard>
-      <ChartCard id="mkt-7" title="Currency Performance" toolbar={toolbar}>
+      <ChartCard id="mkt-7" title="Currency Performance">
         <FinancialBarChart data={currencyPerf.map(c => ({ name: c.name, value: c.value }))} />
       </ChartCard>
       <ChartCard id="mkt-8" title="Currency Cumulative" toolbar={
@@ -338,22 +290,13 @@ function MarketPerformance() {
   );
 }
 
-function RealReturn() {
-  const [ts, setTs] = useState('1Y');
-  const [cur, setCur] = useState('USD');
-  const toolbar = (
-    <div className="flex gap-2">
-      <ToggleBar options={timespans} value={ts as any} onChange={setTs} size="xs" />
-      <ToggleBar options={currencies} value={cur as any} onChange={setCur} size="xs" />
-    </div>
-  );
-
-  const wfData = realReturnWaterfall[ts as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'];
+function RealReturn({ filters }: { filters: GlobalFilters }) {
+  const wfData = realReturnWaterfall[filters.timespan as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'];
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      <ChartCard id="rr-1" title="Real Return Decomposition" toolbar={toolbar}>
-        <WaterfallChart data={wfData} />
+      <ChartCard id="rr-1" title="Real Return Decomposition">
+        <CompareWaterfallChart datasets={[{ label: filters.timespan, data: wfData }]} />
       </ChartCard>
       <ChartCard id="rr-2" title="Cumulative Nominal & Projected Real Return">
         <TrendChart
@@ -367,15 +310,13 @@ function RealReturn() {
           connectNulls={false}
         />
       </ChartCard>
-      <ChartCard id="rr-3" title="Expected Long-Term Rate of Return (ELTRROR)" toolbar={
-        <ToggleBar options={timespans} value={ts as any} onChange={setTs} size="xs" />
-      }>
+      <ChartCard id="rr-3" title="Expected Long-Term Rate of Return (ELTRROR)">
         <FinancialBarChart data={eltrrorData} colorByValue={false} barColor="hsl(145, 52%, 42%)" />
       </ChartCard>
       <ChartCard id="rr-4" title="ELTRROR Cone Charts">
         <div className="grid grid-cols-3 grid-rows-2 gap-2 h-full">
           {eltrrorData.map(ac => (
-            <div key={ac.name} className="rounded border bg-muted/20 p-2 flex flex-col items-center justify-center">
+            <div key={ac.name} className="rounded-md border bg-muted/20 p-2 flex flex-col items-center justify-center">
               <p className="text-[9px] font-medium text-muted-foreground mb-1">{ac.name}</p>
               <div className="w-full h-12 relative">
                 <svg viewBox="0 0 100 40" className="w-full h-full">
@@ -388,9 +329,7 @@ function RealReturn() {
           ))}
         </div>
       </ChartCard>
-      <ChartCard id="rr-5" title="Inflation by Country" toolbar={
-        <ToggleBar options={timespans} value={ts as any} onChange={setTs} size="xs" />
-      }>
+      <ChartCard id="rr-5" title="Inflation by Country">
         <FinancialBarChart data={inflationByCountry} colorByValue={false} barColor="hsl(38, 90%, 50%)" />
       </ChartCard>
       <ChartCard id="rr-6" title="Cumulative Inflation by Country">
@@ -403,13 +342,10 @@ function RealReturn() {
   );
 }
 
-function PeersComparison() {
-  const [ts, setTs] = useState('1Y');
-  const toolbar = <ToggleBar options={timespans} value={ts as any} onChange={setTs} size="xs" />;
-
+function PeersComparison({ filters }: { filters: GlobalFilters }) {
   return (
     <div className="grid grid-cols-2 gap-4">
-      <ChartCard id="peer-1" title="Peer Performance Metrics" toolbar={toolbar}>
+      <ChartCard id="peer-1" title="Peer Performance Metrics">
         <div className="overflow-auto text-xs">
           <table className="w-full">
             <thead>
@@ -435,7 +371,7 @@ function PeersComparison() {
           </table>
         </div>
       </ChartCard>
-      <ChartCard id="peer-2" title="Cumulative Returns" toolbar={toolbar}>
+      <ChartCard id="peer-2" title="Cumulative Returns">
         <TrendChart data={peerReturnSeries} lines={peersData.map(p => p.name)} />
       </ChartCard>
       <ChartCard id="peer-3" title="Asset Mix Comparison">
@@ -494,14 +430,14 @@ function PeersComparison() {
           </table>
         </div>
       </ChartCard>
-      <ChartCard id="peer-5" title="Return vs Volatility" toolbar={toolbar}>
+      <ChartCard id="peer-5" title="Return vs Volatility">
         <ScatterPlot
           data={peersData.map(p => ({ name: p.name, x: p.volatility, y: p.returns }))}
           xLabel="Volatility (%)"
           yLabel="Returns (%)"
         />
       </ChartCard>
-      <ChartCard id="peer-6" title="Return vs EQ Beta" toolbar={toolbar}>
+      <ChartCard id="peer-6" title="Return vs EQ Beta">
         <ScatterPlot
           data={peersData.map(p => ({ name: p.name, x: p.eqBeta, y: p.returns }))}
           xLabel="EQ Beta"
