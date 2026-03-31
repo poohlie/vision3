@@ -157,7 +157,7 @@ export default function Exposure() {
 
       {/* Row 1: Overview charts — bordered by View (primary) */}
       <div className="grid grid-cols-2 gap-4 border-l-2 border-primary/20 pl-3 ml-1">
-        <ChartCard id={`exp-${tab}-1`} title={`${activeTab.label} Breakdown`}>
+        <ChartCard id={`exp-${tab}-1`} title={`${activeTab.label} Breakdown`} tags={[view]}>
           {(tab === 'country' || tab === 'currency') ? (
             <GroupedBarChart
               data={(tab === 'country' ? countryExposureData : currencyExposureData).map(d => ({
