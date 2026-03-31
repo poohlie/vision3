@@ -252,29 +252,41 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
 
       {/* Row 2 & 3: Bottom 4 charts — accent border (breakdown + TopN) */}
       <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/30 pl-3 ml-1">
-        <ChartCard id="perf-3" title={`Contribution to ${target}`} className="min-h-[280px]">
+        <ChartCard id="perf-3" title={`Contribution to ${target} (${returnType})`} className="min-h-[280px]">
           {isComparing
             ? <FinancialBarChart datasets={contribDatasets} />
-            : <FinancialBarChart data={contribData} />
+            : <FinancialBarChart data={applyRt(contribData)} />
           }
         </ChartCard>
-        <ChartCard id="perf-4" title="Contribution (Time Series)" className="min-h-[280px]">
+        <ChartCard id="perf-4" title={`Contribution Time Series (${returnType})`} className="min-h-[280px]">
           <StackedTimeChart
-            data={contributionTimeSeries}
+            data={contributionTimeSeries.map(d => {
+              const scaled: Record<string, any> = { month: d.month };
+              stratData.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = +((d as any)[s.name] * rtFactor).toFixed(2); });
+              if ('Total Portfolio' in d) scaled['Total Portfolio'] = +((d as any)['Total Portfolio'] * rtFactor).toFixed(2);
+              return scaled;
+            })}
             categories={stratData.slice(0, 6).map(s => s.name)}
             overlayLine="Total Portfolio"
           />
         </ChartCard>
-        <ChartCard id="perf-5" title={`Own-Based Return (${target})`} className="min-h-[280px]">
+        <ChartCard id="perf-5" title={`Own-Based Return (${returnType})`} className="min-h-[280px]">
           {isComparing
             ? <FinancialBarChart datasets={ownDatasets} />
-            : <FinancialBarChart data={ownData} />
+            : <FinancialBarChart data={applyRt(ownData)} />
           }
         </ChartCard>
-        <ChartCard id="perf-6" title="Cumulative Strategy Performance" className="min-h-[280px]" toolbar={
+        <ChartCard id="perf-6" title={`Cumulative Performance (${returnType})`} className="min-h-[280px]" toolbar={
           <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
         }>
-          <TrendChart data={cumulativePerfSeries} lines={activeStrategies.slice(0, 6).map(s => s.name)} />
+          <TrendChart
+            data={cumulativePerfSeries.map(d => {
+              const scaled: Record<string, any> = { month: d.month };
+              activeStrategies.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = +((d as any)[s.name] * rtFactor).toFixed(2); });
+              return scaled;
+            })}
+            lines={activeStrategies.slice(0, 6).map(s => s.name)}
+          />
         </ChartCard>
       </div>
     </div>
