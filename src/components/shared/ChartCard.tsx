@@ -45,8 +45,14 @@ export default function ChartCard({ id, title, subtitle, children, toolbar, clas
       {tags && tags.length > 0 && (
         <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border/50">
           {tags.map((tag, i) => (
-            <span key={i} className="text-[10px] font-medium text-primary px-1.5 py-0.5 rounded bg-primary/8">
-              {tag}
+            <span key={i} className={cn(
+              'text-[10px] font-medium px-1.5 py-0.5 rounded border',
+              tag.color === 'primary' && 'text-primary border-primary/40 bg-primary/5',
+              tag.color === 'accent' && 'text-accent border-accent/40 bg-accent/5',
+              tag.color === 'muted' && 'text-muted-foreground border-muted-foreground/30 bg-muted/30',
+              !tag.color && 'text-primary border-primary/40 bg-primary/5',
+            )}>
+              {tag.label}
             </span>
           ))}
         </div>
