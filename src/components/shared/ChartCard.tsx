@@ -10,6 +10,7 @@ interface Props {
   children: ReactNode;
   toolbar?: ReactNode;
   className?: string;
+  tags?: string[];
 }
 
 export default function ChartCard({ id, title, subtitle, children, toolbar, className }: Props) {
