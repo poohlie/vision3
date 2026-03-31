@@ -262,7 +262,7 @@ export default function Exposure() {
 
       {/* Row 2: Waterfall — bordered by Filter (accent) */}
       <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/20 pl-3 ml-1">
-        <ChartCard id={`exp-${tab}-wf`} title={`${waterfallItem} — Exposure Waterfall`}>
+        <ChartCard id={`exp-${tab}-wf`} title={`${waterfallItem} — Exposure Waterfall`} tags={[waterfallItem]}>
           <WaterfallChart data={waterfallData} height={280} />
         </ChartCard>
         <ChartCard id={`exp-${tab}-wf-ts`} title={`${waterfallItem} — Waterfall Over Time`}>
