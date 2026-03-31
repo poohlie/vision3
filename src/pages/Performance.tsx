@@ -76,8 +76,8 @@ export default function Performance() {
       </div>
 
       {/* Scoped control cards */}
-      <div className={cn('grid gap-3', isNominal ? 'grid-cols-4' : 'grid-cols-2')}>
-        {/* Period — all charts */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Row 1: Period + Currency — all charts */}
         <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 shrink-0">
@@ -92,7 +92,6 @@ export default function Performance() {
           </div>
         </div>
 
-        {/* Currency — all charts */}
         <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 shrink-0">
@@ -107,7 +106,7 @@ export default function Performance() {
           </div>
         </div>
 
-        {/* Compare — left charts only (Nominal Return only) */}
+        {/* Row 2: Compare + Breakdown (Nominal Return only) */}
         {isNominal && (
           <div className="rounded-lg border-2 border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
             <div className="flex items-center gap-3">
@@ -124,7 +123,6 @@ export default function Performance() {
           </div>
         )}
 
-        {/* Breakdown + TopN — right / bottom charts (Nominal Return only) */}
         {isNominal && (
           <div className="rounded-lg border-2 border-accent/30 bg-accent/5 px-4 py-3 shadow-sm">
             <div className="flex items-center gap-3 flex-wrap">
@@ -132,7 +130,7 @@ export default function Performance() {
                 <div className="w-1 h-8 rounded-full bg-accent" />
                 <div>
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Breakdown</span>
-                  <p className="text-[9px] text-muted-foreground">Right charts →  ·  TopN ↓ bottom 4</p>
+                  <p className="text-[9px] text-muted-foreground">Right charts → · TopN ↓ bottom 4</p>
                 </div>
               </div>
               <div className="h-8 w-px bg-border shrink-0" />
@@ -211,13 +209,13 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
     <div className="space-y-4">
       {/* Row 1: Top charts — left bordered primary (compare), right bordered accent (breakdown) */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="border-l-2 border-primary/30 pl-3">
-          <ChartCard id="perf-1" title="Return Attribution (Waterfall)">
+        <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
+          <ChartCard id="perf-1" title="Return Attribution (Waterfall)" className="h-full">
             <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
           </ChartCard>
         </div>
-        <div className="border-l-2 border-accent/30 pl-3">
-          <ChartCard id="perf-2" title="Return Attribution (Time Series)">
+        <div className="border-l-2 border-accent/30 pl-3 min-h-[320px]">
+          <ChartCard id="perf-2" title="Return Attribution (Time Series)" className="h-full">
             <StackedTimeChart
               data={perfTimeSeries}
               categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
@@ -230,20 +228,20 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
 
       {/* Row 2 & 3: Bottom 4 charts — combined primary+accent border (TopN applies here) */}
       <div className="grid grid-cols-2 gap-4 border-l-2 pl-3 ml-1" style={{ borderImage: 'linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--accent))) 1' }}>
-        <ChartCard id="perf-3" title={`Contribution to ${target}`}>
+        <ChartCard id="perf-3" title={`Contribution to ${target}`} className="min-h-[280px]">
           <FinancialBarChart data={contribData} />
         </ChartCard>
-        <ChartCard id="perf-4" title="Contribution (Time Series)">
+        <ChartCard id="perf-4" title="Contribution (Time Series)" className="min-h-[280px]">
           <StackedTimeChart
             data={contributionTimeSeries}
             categories={stratData.slice(0, 6).map(s => s.name)}
             overlayLine="Total Portfolio"
           />
         </ChartCard>
-        <ChartCard id="perf-5" title={`Own-Based Return (${target})`}>
+        <ChartCard id="perf-5" title={`Own-Based Return (${target})`} className="min-h-[280px]">
           <FinancialBarChart data={ownData} />
         </ChartCard>
-        <ChartCard id="perf-6" title="Cumulative Strategy Performance" toolbar={
+        <ChartCard id="perf-6" title="Cumulative Strategy Performance" className="min-h-[280px]" toolbar={
           <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
         }>
           <TrendChart data={cumulativePerfSeries} lines={activeStrategies.slice(0, 6).map(s => s.name)} />
