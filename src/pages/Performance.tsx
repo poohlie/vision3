@@ -182,9 +182,11 @@ const tsScales: Record<string, number> = { '1Y': 1.0, '3Y': 0.75, '5Y': 0.85, '1
 function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const [target, setTarget] = useState('Total Portfolio');
   const [mode, setMode] = useState('Cumulative');
+  const [breakdown, setBreakdown] = useState('Active Strategies');
+  const [topN, setTopN] = useState(8);
 
-  const sourceData = getSourceData(filters.breakdown);
-  const { stratData, contribData, ownData } = buildContribData(sourceData, filters.topN);
+  const sourceData = getSourceData(breakdown);
+  const { stratData, contribData, ownData } = buildContribData(sourceData, topN);
 
   const waterfallDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
@@ -212,7 +214,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
             <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
           </ChartCard>
         </div>
-        <div className="border-l-2 border-accent/30 pl-3 min-h-[320px]">
+        <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
           <ChartCard id="perf-2" title="Return Attribution (Time Series)" className="h-full">
             <StackedTimeChart
               data={perfTimeSeries}
@@ -224,8 +226,25 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
         </div>
       </div>
 
-      {/* Row 2 & 3: Bottom 4 charts — combined primary+accent border (TopN applies here) */}
-      <div className="grid grid-cols-2 gap-4 border-l-2 pl-3 ml-1" style={{ borderImage: 'linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--accent))) 1' }}>
+      {/* Breakdown filter bar — between row 1 and bottom charts, like Exposure filter */}
+      <div className="rounded-lg border-2 border-accent/30 bg-accent/5 px-4 py-3 shadow-sm">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-1 h-8 rounded-full bg-accent" />
+            <div>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Breakdown</span>
+              <p className="text-[9px] text-muted-foreground">Applies to charts below ↓</p>
+            </div>
+          </div>
+          <div className="h-8 w-px bg-border shrink-0" />
+          <ToggleBar options={breakdowns} value={breakdown as any} onChange={setBreakdown} size="xs" />
+          <div className="h-8 w-px bg-border shrink-0" />
+          <TopNSelect value={topN} onChange={setTopN} />
+        </div>
+      </div>
+
+      {/* Row 2 & 3: Bottom 4 charts — accent border (breakdown + TopN) */}
+      <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/30 pl-3 ml-1">
         <ChartCard id="perf-3" title={`Contribution to ${target}`} className="min-h-[280px]">
           {isComparing
             ? <FinancialBarChart datasets={contribDatasets} />
