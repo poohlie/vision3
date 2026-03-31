@@ -30,7 +30,7 @@ const cumRoll = ['Cumulative', 'Rolling'] as const;
 
 export default function Performance() {
   const [searchParams] = useSearchParams();
-  const initialTab = subTabs.find(t => t === searchParams.get('tab')) || 'Absolute Return';
+  const initialTab = subTabs.find(t => t === searchParams.get('tab')) || 'Nominal Return';
   const [sub, setSub] = useState<SubTab>(initialTab);
   const [filters, setFilters] = useState<GlobalFilters>({
     timespan: '1Y', currency: 'USD', breakdown: 'Active Strategies', topN: 8,
