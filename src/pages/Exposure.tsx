@@ -285,7 +285,7 @@ export default function Exposure() {
         }>
           <FinancialBarChart data={breakdownData} colorByValue={view === 'Active Tilt'} barColor="hsl(212, 72%, 42%)" />
         </ChartCard>
-        <ChartCard id={`exp-${tab}-4`} title={`${filterLabel} — ${groupBy} Over Time`}>
+        <ChartCard id={`exp-${tab}-4`} title={`${filterLabel} — ${groupBy} Over Time`} tags={[view, period, filterLabel]}>
           <StackedTimeChart data={timeSeries} categories={tsCats.slice(0, 4)} height={320} />
         </ChartCard>
       </div>
