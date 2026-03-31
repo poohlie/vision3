@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import ChartCard from '@/components/shared/ChartCard';
 import ToggleBar from '@/components/shared/ToggleBar';
-import GlobalFilterStrip, { type GlobalFilters } from '@/components/shared/GlobalFilterStrip';
 import TimespanMultiSelect from '@/components/shared/TimespanMultiSelect';
 import TopNSelect from '@/components/shared/TopNSelect';
 import CompareWaterfallChart from '@/components/charts/CompareWaterfallChart';
@@ -18,6 +17,8 @@ import {
   peersData, peerReturnSeries, peerAssetMix, peerCountryMix, timespans, currencies,
 } from '@/data/mockData';
 
+const breakdowns = ['Active Strategies', 'Country', 'Sector'] as const;
+
 const subTabsConfig = [
   { key: 'Nominal Return' as const, metric: '+10.5%', label: 'Total Return', subtitle: '1Y USD basis' },
   { key: 'Real Return' as const, metric: '+7.3%', label: 'Real Return', subtitle: 'Inflation adjusted' },
@@ -28,16 +29,25 @@ const subTabs = subTabsConfig.map(t => t.key);
 type SubTab = typeof subTabs[number];
 const cumRoll = ['Cumulative', 'Rolling'] as const;
 
+export interface PerfFilters {
+  timespan: string;
+  currency: string;
+  breakdown: string;
+  topN: number;
+  compareTimespans: string[];
+}
+
 export default function Performance() {
   const [searchParams] = useSearchParams();
   const initialTab = subTabs.find(t => t === searchParams.get('tab')) || 'Nominal Return';
   const [sub, setSub] = useState<SubTab>(initialTab);
-  const [filters, setFilters] = useState<GlobalFilters>({
+  const [filters, setFilters] = useState<PerfFilters>({
     timespan: '1Y', currency: 'USD', breakdown: 'Active Strategies', topN: 8,
+    compareTimespans: ['1Y'],
   });
 
-  const showBreakdown = sub === 'Nominal Return';
-  const showTopN = showBreakdown;
+  const set = (partial: Partial<PerfFilters>) => setFilters(prev => ({ ...prev, ...partial }));
+  const isNominal = sub === 'Nominal Return';
 
   return (
     <div className="p-6 space-y-4">
@@ -65,13 +75,74 @@ export default function Performance() {
         ))}
       </div>
 
-      {/* Global filter strip */}
-      <GlobalFilterStrip
-        filters={filters}
-        onChange={setFilters}
-        showBreakdown={showBreakdown}
-        showTopN={showTopN}
-      />
+      {/* Scoped control cards */}
+      <div className={cn('grid gap-3', isNominal ? 'grid-cols-4' : 'grid-cols-2')}>
+        {/* Period — all charts */}
+        <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Period</span>
+                <p className="text-[9px] text-muted-foreground">All charts</p>
+              </div>
+            </div>
+            <div className="h-8 w-px bg-border shrink-0" />
+            <ToggleBar options={timespans} value={filters.timespan as any} onChange={v => set({ timespan: v })} size="xs" />
+          </div>
+        </div>
+
+        {/* Currency — all charts */}
+        <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Currency</span>
+                <p className="text-[9px] text-muted-foreground">All charts</p>
+              </div>
+            </div>
+            <div className="h-8 w-px bg-border shrink-0" />
+            <ToggleBar options={currencies} value={filters.currency as any} onChange={v => set({ currency: v })} size="xs" />
+          </div>
+        </div>
+
+        {/* Compare — left charts only (Nominal Return only) */}
+        {isNominal && (
+          <div className="rounded-lg border-2 border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="w-1 h-8 rounded-full bg-primary" />
+                <div>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Compare</span>
+                  <p className="text-[9px] text-muted-foreground">Left charts only ←</p>
+                </div>
+              </div>
+              <div className="h-8 w-px bg-border shrink-0" />
+              <TimespanMultiSelect selected={filters.compareTimespans} onChange={v => set({ compareTimespans: v })} />
+            </div>
+          </div>
+        )}
+
+        {/* Breakdown + TopN — right / bottom charts (Nominal Return only) */}
+        {isNominal && (
+          <div className="rounded-lg border-2 border-accent/30 bg-accent/5 px-4 py-3 shadow-sm">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="w-1 h-8 rounded-full bg-accent" />
+                <div>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Breakdown</span>
+                  <p className="text-[9px] text-muted-foreground">Right charts →  ·  TopN ↓ bottom 4</p>
+                </div>
+              </div>
+              <div className="h-8 w-px bg-border shrink-0" />
+              <ToggleBar options={breakdowns} value={filters.breakdown as any} onChange={v => set({ breakdown: v })} size="xs" />
+              <div className="h-8 w-px bg-border shrink-0" />
+              <TopNSelect value={filters.topN} onChange={n => set({ topN: n })} />
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Tab content */}
       {sub === 'Nominal Return' && <PortfolioPerformance filters={filters} />}
@@ -124,125 +195,66 @@ function buildContribData(sourceData: { name: string; contribution: number; ownR
 
 // ─── Sub-tab components ───
 
-function PortfolioPerformance({ filters }: { filters: GlobalFilters }) {
-  const [compareTimespans, setCompareTimespans] = useState<string[]>([filters.timespan]);
+function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const [target, setTarget] = useState('Total Portfolio');
   const [mode, setMode] = useState('Cumulative');
 
   const sourceData = getSourceData(filters.breakdown);
   const { stratData, contribData, ownData } = buildContribData(sourceData, filters.topN);
 
-  const waterfallDatasets = compareTimespans.map(ts => ({
+  const waterfallDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
     data: perfWaterfallData[ts] || perfWaterfallData['1Y'],
   }));
 
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <ChartCard id="perf-1" title="Return Attribution (Waterfall)" toolbar={
-        <TimespanMultiSelect selected={compareTimespans} onChange={setCompareTimespans} />
-      }>
-        <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
-      </ChartCard>
-      <ChartCard id="perf-2" title="Return Attribution (Time Series)">
-        <StackedTimeChart
-          data={perfTimeSeries}
-          categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
-          overlayLine="realReturn"
-          negativeCategories={['inflation']}
-        />
-      </ChartCard>
-      <ChartCard id="perf-3" title={`Contribution to ${target}`}>
-        <FinancialBarChart data={contribData} />
-      </ChartCard>
-      <ChartCard id="perf-4" title="Contribution (Time Series)">
-        <StackedTimeChart
-          data={contributionTimeSeries}
-          categories={stratData.slice(0, 6).map(s => s.name)}
-          overlayLine="Total Portfolio"
-        />
-      </ChartCard>
-      <ChartCard id="perf-5" title={`Own-Based Return (${target})`}>
-        <FinancialBarChart data={ownData} />
-      </ChartCard>
-      <ChartCard id="perf-6" title="Cumulative Strategy Performance" toolbar={
-        <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
-      }>
-        <TrendChart data={cumulativePerfSeries} lines={activeStrategies.slice(0, 6).map(s => s.name)} />
-      </ChartCard>
+    <div className="space-y-4">
+      {/* Row 1: Top charts — left bordered primary (compare), right bordered accent (breakdown) */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="border-l-2 border-primary/30 pl-3">
+          <ChartCard id="perf-1" title="Return Attribution (Waterfall)">
+            <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
+          </ChartCard>
+        </div>
+        <div className="border-l-2 border-accent/30 pl-3">
+          <ChartCard id="perf-2" title="Return Attribution (Time Series)">
+            <StackedTimeChart
+              data={perfTimeSeries}
+              categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
+              overlayLine="realReturn"
+              negativeCategories={['inflation']}
+            />
+          </ChartCard>
+        </div>
+      </div>
+
+      {/* Row 2 & 3: Bottom 4 charts — combined primary+accent border (TopN applies here) */}
+      <div className="grid grid-cols-2 gap-4 border-l-2 pl-3 ml-1" style={{ borderImage: 'linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--accent))) 1' }}>
+        <ChartCard id="perf-3" title={`Contribution to ${target}`}>
+          <FinancialBarChart data={contribData} />
+        </ChartCard>
+        <ChartCard id="perf-4" title="Contribution (Time Series)">
+          <StackedTimeChart
+            data={contributionTimeSeries}
+            categories={stratData.slice(0, 6).map(s => s.name)}
+            overlayLine="Total Portfolio"
+          />
+        </ChartCard>
+        <ChartCard id="perf-5" title={`Own-Based Return (${target})`}>
+          <FinancialBarChart data={ownData} />
+        </ChartCard>
+        <ChartCard id="perf-6" title="Cumulative Strategy Performance" toolbar={
+          <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
+        }>
+          <TrendChart data={cumulativePerfSeries} lines={activeStrategies.slice(0, 6).map(s => s.name)} />
+        </ChartCard>
+      </div>
     </div>
   );
 }
+// ActiveReturn removed — no longer a sub-tab
 
-function ActiveReturn({ filters }: { filters: GlobalFilters }) {
-  const [compareTimespans, setCompareTimespans] = useState<string[]>([filters.timespan]);
-  const [target, setTarget] = useState('Active Return');
-  const [mode, setMode] = useState('Cumulative');
-
-  const sourceData = getSourceData(filters.breakdown).map(s => ({
-    ...s, contribution: +(s.contribution * 0.4).toFixed(3), ownReturn: +(s.ownReturn * 0.35).toFixed(1)
-  }));
-  const { stratData, contribData, ownData } = buildContribData(sourceData, filters.topN);
-
-  const waterfallDatasets = compareTimespans.map(ts => ({
-    label: ts,
-    data: (perfWaterfallData[ts] || perfWaterfallData['1Y']).map(d => ({
-      ...d, value: +(d.value * 0.42).toFixed(1)
-    })),
-  }));
-
-  return (
-    <div className="grid grid-cols-2 gap-4">
-      <ChartCard id="act-1" title="Active Return Attribution (Waterfall)" toolbar={
-        <TimespanMultiSelect selected={compareTimespans} onChange={setCompareTimespans} />
-      }>
-        <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
-      </ChartCard>
-      <ChartCard id="act-2" title="Active Return Attribution (Time Series)">
-        <StackedTimeChart
-          data={perfTimeSeries.map(d => ({
-            month: d.month,
-            strategicPortfolio: +(d.strategicPortfolio * 0.4).toFixed(2),
-            mts: +(d.mts * 0.4).toFixed(2),
-            activeStrategies: +(d.activeStrategies * 0.4).toFixed(2),
-            inflation: +(d.inflation * 0.3).toFixed(2),
-            realReturn: +(d.realReturn * 0.4).toFixed(2),
-          }))}
-          categories={['strategicPortfolio', 'mts', 'activeStrategies']}
-          overlayLine="realReturn"
-        />
-      </ChartCard>
-      <ChartCard id="act-3" title={`Contribution to ${target}`}>
-        <FinancialBarChart data={contribData} />
-      </ChartCard>
-      <ChartCard id="act-4" title="Active Contribution (Time Series)">
-        <StackedTimeChart
-          data={contributionTimeSeries.map(d => {
-            const out: any = { month: d.month };
-            Object.keys(d).filter(k => k !== 'month').forEach(k => { out[k] = +((d as any)[k] * 0.4).toFixed(2); });
-            return out;
-          })}
-          categories={stratData.slice(0, 6).map(s => s.name)}
-          overlayLine="Total Portfolio"
-        />
-      </ChartCard>
-      <ChartCard id="act-5" title={`Own-Based Active Return (${target})`}>
-        <FinancialBarChart data={ownData} />
-      </ChartCard>
-      <ChartCard id="act-6" title="Cumulative Active Strategy Performance" toolbar={
-        <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
-      }>
-        <TrendChart data={cumulativePerfSeries.map(d => {
-          const out: any = { month: d.month };
-          Object.keys(d).filter(k => k !== 'month').forEach(k => { out[k] = +((d as any)[k] * 0.4).toFixed(2); });
-          return out;
-        })} lines={activeStrategies.slice(0, 6).map(s => s.name)} />
-      </ChartCard>
-    </div>
-  );
-}
-
-function MarketPerformance({ filters }: { filters: GlobalFilters }) {
+function MarketPerformance({ filters }: { filters: PerfFilters }) {
   const [eqBd, setEqBd] = useState<string>('Country');
   const [mode, setMode] = useState('Cumulative');
 
@@ -288,7 +300,7 @@ function MarketPerformance({ filters }: { filters: GlobalFilters }) {
   );
 }
 
-function RealReturn({ filters }: { filters: GlobalFilters }) {
+function RealReturn({ filters }: { filters: PerfFilters }) {
   const wfData = realReturnWaterfall[filters.timespan as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'];
 
   return (
@@ -340,7 +352,7 @@ function RealReturn({ filters }: { filters: GlobalFilters }) {
   );
 }
 
-function PeersComparison({ filters }: { filters: GlobalFilters }) {
+function PeersComparison({ filters }: { filters: PerfFilters }) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <ChartCard id="peer-1" title="Peer Performance Metrics">
