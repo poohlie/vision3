@@ -42,7 +42,7 @@ export default function Performance() {
   return (
     <div className="p-6 space-y-4">
       {/* Sub-tab cards */}
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         {subTabsConfig.map(t => (
           <button
             key={t.key}
