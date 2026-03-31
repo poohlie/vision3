@@ -121,12 +121,12 @@ export default function Overview() {
       <div className="grid grid-cols-3 gap-3 min-h-0" style={{ flex: '0 0 40%' }}>
         {/* Performance column: 2x2 grid */}
         <div className="grid grid-cols-2 grid-rows-2 gap-2">
-          {/* Absolute Return */}
-          <div className={tilePerf} onClick={() => nav('/performance?tab=Absolute Return')}>
+          {/* Nominal Return */}
+          <div className={tilePerf} onClick={() => nav('/performance?tab=Nominal Return')}>
             <div className="flex items-start justify-between mb-1">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-foreground leading-tight">
-                  <span className="block">Absolute</span><span className="block">Return</span>
+                  <span className="block">Nominal</span><span className="block">Return</span>
                 </p>
                 <p className="text-[11px] text-muted-foreground">1Y USD basis</p>
               </div>
@@ -153,19 +153,19 @@ export default function Overview() {
               </div>
             </div>
           </div>
-          {/* Active Return */}
-          <div className={tilePerf} onClick={() => nav('/performance?tab=Active Return')}>
+          {/* Comparison */}
+          <div className={tilePerf} onClick={() => nav('/performance?tab=Comparison')}>
             <div className="flex items-start justify-between mb-1">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-foreground leading-tight">
-                  <span className="block">Active</span><span className="block">Return</span>
+                  <span className="block">Peer</span><span className="block">Comparison</span>
                 </p>
-                <p className="text-[11px] text-muted-foreground">Above benchmark</p>
+                <p className="text-[11px] text-muted-foreground">75th percentile</p>
               </div>
               <Activity className="h-4 w-4 text-chart-positive" />
             </div>
-            <p className="text-3xl font-bold tracking-tight mt-2 mb-1 text-chart-positive">2.3<span className="text-base font-medium ml-0.5">%</span></p>
-            <p className="text-[11px] text-muted-foreground flex items-center gap-1"><TrendingUp className="h-3 w-3" />Strategic + tactical</p>
+            <p className="text-3xl font-bold tracking-tight mt-2 mb-1 text-chart-positive">P75</p>
+            <p className="text-[11px] text-muted-foreground flex items-center gap-1"><TrendingUp className="h-3 w-3" />vs peer group</p>
           </div>
           {/* Market Return */}
           <div className={tilePerf} onClick={() => nav('/performance?tab=Market Performance')}>

@@ -19,11 +19,10 @@ import {
 } from '@/data/mockData';
 
 const subTabsConfig = [
-  { key: 'Absolute Return' as const, metric: '+10.5%', label: 'Total Return', subtitle: '1Y USD basis' },
-  { key: 'Active Return' as const, metric: '+4.4%', label: 'Active Return', subtitle: 'vs benchmark' },
+  { key: 'Nominal Return' as const, metric: '+10.5%', label: 'Total Return', subtitle: '1Y USD basis' },
   { key: 'Real Return' as const, metric: '+7.3%', label: 'Real Return', subtitle: 'Inflation adjusted' },
   { key: 'Market Performance' as const, metric: '+6.1%', label: 'MSCI ACWI', subtitle: 'Equity benchmark' },
-  { key: 'Peers Comparison' as const, metric: 'P75', label: 'Peer Ranking', subtitle: '75th percentile' },
+  { key: 'Comparison' as const, metric: 'P75', label: 'Peer Ranking', subtitle: '75th percentile' },
 ];
 const subTabs = subTabsConfig.map(t => t.key);
 type SubTab = typeof subTabs[number];
@@ -31,19 +30,19 @@ const cumRoll = ['Cumulative', 'Rolling'] as const;
 
 export default function Performance() {
   const [searchParams] = useSearchParams();
-  const initialTab = subTabs.find(t => t === searchParams.get('tab')) || 'Absolute Return';
+  const initialTab = subTabs.find(t => t === searchParams.get('tab')) || 'Nominal Return';
   const [sub, setSub] = useState<SubTab>(initialTab);
   const [filters, setFilters] = useState<GlobalFilters>({
     timespan: '1Y', currency: 'USD', breakdown: 'Active Strategies', topN: 8,
   });
 
-  const showBreakdown = sub === 'Absolute Return' || sub === 'Active Return';
+  const showBreakdown = sub === 'Nominal Return';
   const showTopN = showBreakdown;
 
   return (
     <div className="p-6 space-y-4">
       {/* Sub-tab cards */}
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         {subTabsConfig.map(t => (
           <button
             key={t.key}
@@ -75,11 +74,10 @@ export default function Performance() {
       />
 
       {/* Tab content */}
-      {sub === 'Absolute Return' && <PortfolioPerformance filters={filters} />}
-      {sub === 'Active Return' && <ActiveReturn filters={filters} />}
+      {sub === 'Nominal Return' && <PortfolioPerformance filters={filters} />}
       {sub === 'Market Performance' && <MarketPerformance filters={filters} />}
       {sub === 'Real Return' && <RealReturn filters={filters} />}
-      {sub === 'Peers Comparison' && <PeersComparison filters={filters} />}
+      {sub === 'Comparison' && <PeersComparison filters={filters} />}
     </div>
   );
 }
