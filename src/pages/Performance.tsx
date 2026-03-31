@@ -18,6 +18,7 @@ import {
 } from '@/data/mockData';
 
 const breakdowns = ['Active Strategies', 'Country', 'Sector'] as const;
+const returnTypes = ['Portfolio Return', 'Benchmark Return', 'Active Return'] as const;
 
 const subTabsConfig = [
   { key: 'Nominal Return' as const, metric: '+10.5%', label: 'Total Return', subtitle: '1Y USD basis' },
@@ -177,6 +178,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const [mode, setMode] = useState('Cumulative');
   const [breakdown, setBreakdown] = useState('Active Strategies');
   const [topN, setTopN] = useState(8);
+  const [returnType, setReturnType] = useState<typeof returnTypes[number]>('Portfolio Return');
 
   const sourceData = getSourceData(breakdown);
   const { stratData, contribData, ownData } = buildContribData(sourceData, topN);
@@ -233,6 +235,11 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           <ToggleBar options={breakdowns} value={breakdown as any} onChange={setBreakdown} size="xs" />
           <div className="h-8 w-px bg-border shrink-0" />
           <TopNSelect value={topN} onChange={setTopN} />
+          <div className="h-8 w-px bg-border shrink-0" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Return</span>
+            <ToggleBar options={returnTypes} value={returnType} onChange={v => setReturnType(v as typeof returnTypes[number])} size="xs" />
+          </div>
         </div>
       </div>
 
