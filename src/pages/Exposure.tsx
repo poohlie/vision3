@@ -280,7 +280,7 @@ export default function Exposure() {
         <div className="absolute left-0 top-0 bottom-0 w-1 rounded-full"
           style={{ background: 'linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--accent)))' }}
         />
-        <ChartCard id={`exp-${tab}-3`} title={`${filterLabel} — ${groupBy} Breakdown`} tags={[view, filterLabel]} toolbar={
+        <ChartCard id={`exp-${tab}-3`} title={`${filterLabel} — ${groupBy} Breakdown`} tags={[{ label: view, color: 'primary' }, { label: filterLabel, color: 'accent' }]} toolbar={
           <ToggleBar options={groupByOptions[tab] as any} value={groupBy as any} onChange={setGroupBy} size="xs" />
         }>
           <FinancialBarChart data={breakdownData} colorByValue={view === 'Active Tilt'} barColor="hsl(212, 72%, 42%)" />
