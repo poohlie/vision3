@@ -75,33 +75,32 @@ export default function Performance() {
         ))}
       </div>
 
-      {/* Scoped control cards */}
-      <div className={cn('grid gap-3', isNominal ? 'grid-cols-2' : 'grid-cols-1')}>
-        {/* Period + Currency — all charts (single box) */}
-        <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 shrink-0">
-              <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
-              <div>
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Global</span>
-                <p className="text-[9px] text-muted-foreground">All charts</p>
-              </div>
-            </div>
-            <div className="h-8 w-px bg-border shrink-0" />
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Period</span>
-              <ToggleBar options={timespans} value={filters.timespan as any} onChange={v => set({ timespan: v })} size="xs" />
-            </div>
-            <div className="h-8 w-px bg-border shrink-0" />
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Currency</span>
-              <ToggleBar options={currencies} value={filters.currency as any} onChange={v => set({ currency: v })} size="xs" />
+      {/* Global controls — full width */}
+      <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
+            <div>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Global</span>
+              <p className="text-[9px] text-muted-foreground">All charts</p>
             </div>
           </div>
+          <div className="h-8 w-px bg-border shrink-0" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Period</span>
+            <ToggleBar options={timespans} value={filters.timespan as any} onChange={v => set({ timespan: v })} size="xs" />
+          </div>
+          <div className="h-8 w-px bg-border shrink-0" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Currency</span>
+            <ToggleBar options={currencies} value={filters.currency as any} onChange={v => set({ currency: v })} size="xs" />
+          </div>
         </div>
+      </div>
 
-        {/* Compare (Nominal Return only) */}
-        {isNominal && (
+      {/* Compare — left half only (Nominal Return only) */}
+      {isNominal && (
+        <div className="grid grid-cols-2 gap-3">
           <div className="rounded-lg border-2 border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 shrink-0">
@@ -115,8 +114,9 @@ export default function Performance() {
               <TimespanMultiSelect selected={filters.compareTimespans} onChange={v => set({ compareTimespans: v })} />
             </div>
           </div>
-        )}
-      </div>
+          <div /> {/* empty right half */}
+        </div>
+      )}
 
       {/* Tab content */}
       {sub === 'Nominal Return' && <PortfolioPerformance filters={filters} />}
