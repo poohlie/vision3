@@ -352,7 +352,7 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
   );
 }
 
-function PeersComparison({ filters }: { filters: GlobalFilters }) {
+function PeersComparison({ filters }: { filters: PerfFilters }) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <ChartCard id="peer-1" title="Peer Performance Metrics">
