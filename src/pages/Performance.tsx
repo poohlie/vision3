@@ -252,73 +252,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
     </div>
   );
 }
-function ActiveReturn({ filters }: { filters: GlobalFilters }) {
-  const [compareTimespans, setCompareTimespans] = useState<string[]>([filters.timespan]);
-  const [target, setTarget] = useState('Active Return');
-  const [mode, setMode] = useState('Cumulative');
-
-  const sourceData = getSourceData(filters.breakdown).map(s => ({
-    ...s, contribution: +(s.contribution * 0.4).toFixed(3), ownReturn: +(s.ownReturn * 0.35).toFixed(1)
-  }));
-  const { stratData, contribData, ownData } = buildContribData(sourceData, filters.topN);
-
-  const waterfallDatasets = compareTimespans.map(ts => ({
-    label: ts,
-    data: (perfWaterfallData[ts] || perfWaterfallData['1Y']).map(d => ({
-      ...d, value: +(d.value * 0.42).toFixed(1)
-    })),
-  }));
-
-  return (
-    <div className="grid grid-cols-2 gap-4">
-      <ChartCard id="act-1" title="Active Return Attribution (Waterfall)" toolbar={
-        <TimespanMultiSelect selected={compareTimespans} onChange={setCompareTimespans} />
-      }>
-        <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
-      </ChartCard>
-      <ChartCard id="act-2" title="Active Return Attribution (Time Series)">
-        <StackedTimeChart
-          data={perfTimeSeries.map(d => ({
-            month: d.month,
-            strategicPortfolio: +(d.strategicPortfolio * 0.4).toFixed(2),
-            mts: +(d.mts * 0.4).toFixed(2),
-            activeStrategies: +(d.activeStrategies * 0.4).toFixed(2),
-            inflation: +(d.inflation * 0.3).toFixed(2),
-            realReturn: +(d.realReturn * 0.4).toFixed(2),
-          }))}
-          categories={['strategicPortfolio', 'mts', 'activeStrategies']}
-          overlayLine="realReturn"
-        />
-      </ChartCard>
-      <ChartCard id="act-3" title={`Contribution to ${target}`}>
-        <FinancialBarChart data={contribData} />
-      </ChartCard>
-      <ChartCard id="act-4" title="Active Contribution (Time Series)">
-        <StackedTimeChart
-          data={contributionTimeSeries.map(d => {
-            const out: any = { month: d.month };
-            Object.keys(d).filter(k => k !== 'month').forEach(k => { out[k] = +((d as any)[k] * 0.4).toFixed(2); });
-            return out;
-          })}
-          categories={stratData.slice(0, 6).map(s => s.name)}
-          overlayLine="Total Portfolio"
-        />
-      </ChartCard>
-      <ChartCard id="act-5" title={`Own-Based Active Return (${target})`}>
-        <FinancialBarChart data={ownData} />
-      </ChartCard>
-      <ChartCard id="act-6" title="Cumulative Active Strategy Performance" toolbar={
-        <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
-      }>
-        <TrendChart data={cumulativePerfSeries.map(d => {
-          const out: any = { month: d.month };
-          Object.keys(d).filter(k => k !== 'month').forEach(k => { out[k] = +((d as any)[k] * 0.4).toFixed(2); });
-          return out;
-        })} lines={activeStrategies.slice(0, 6).map(s => s.name)} />
-      </ChartCard>
-    </div>
-  );
-}
+// ActiveReturn removed — no longer a sub-tab
 
 function MarketPerformance({ filters }: { filters: GlobalFilters }) {
   const [eqBd, setEqBd] = useState<string>('Country');
