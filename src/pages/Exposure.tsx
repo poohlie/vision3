@@ -265,7 +265,7 @@ export default function Exposure() {
         <ChartCard id={`exp-${tab}-wf`} title={`${waterfallItem} — Exposure Waterfall`} tags={[{ label: waterfallItem, color: 'accent' }]}>
           <WaterfallChart data={waterfallData} height={280} />
         </ChartCard>
-        <ChartCard id={`exp-${tab}-wf-ts`} title={`${waterfallItem} — Waterfall Over Time`} tags={[waterfallItem, period]}>
+        <ChartCard id={`exp-${tab}-wf-ts`} title={`${waterfallItem} — Waterfall Over Time`} tags={[{ label: waterfallItem, color: 'accent' }, { label: period, color: 'muted' }]}>
           <StackedTimeChart
             data={waterfallTrendData}
             categories={waterfallTrendCategories}
