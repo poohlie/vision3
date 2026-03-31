@@ -254,7 +254,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
 }
 // ActiveReturn removed — no longer a sub-tab
 
-function MarketPerformance({ filters }: { filters: GlobalFilters }) {
+function MarketPerformance({ filters }: { filters: PerfFilters }) {
   const [eqBd, setEqBd] = useState<string>('Country');
   const [mode, setMode] = useState('Cumulative');
 
