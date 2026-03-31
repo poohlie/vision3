@@ -74,11 +74,10 @@ export default function Performance() {
       />
 
       {/* Tab content */}
-      {sub === 'Absolute Return' && <PortfolioPerformance filters={filters} />}
-      {sub === 'Active Return' && <ActiveReturn filters={filters} />}
+      {sub === 'Nominal Return' && <PortfolioPerformance filters={filters} />}
       {sub === 'Market Performance' && <MarketPerformance filters={filters} />}
       {sub === 'Real Return' && <RealReturn filters={filters} />}
-      {sub === 'Peers Comparison' && <PeersComparison filters={filters} />}
+      {sub === 'Comparison' && <PeersComparison filters={filters} />}
     </div>
   );
 }
