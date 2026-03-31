@@ -157,7 +157,7 @@ export default function Exposure() {
 
       {/* Row 1: Overview charts — bordered by View (primary) */}
       <div className="grid grid-cols-2 gap-4 border-l-2 border-primary/20 pl-3 ml-1">
-        <ChartCard id={`exp-${tab}-1`} title={`${activeTab.label} Breakdown`} tags={[view]}>
+        <ChartCard id={`exp-${tab}-1`} title={`${activeTab.label} Breakdown`} tags={[{ label: view, color: 'primary' }]}>
           {(tab === 'country' || tab === 'currency') ? (
             <GroupedBarChart
               data={(tab === 'country' ? countryExposureData : currencyExposureData).map(d => ({
@@ -183,7 +183,7 @@ export default function Exposure() {
             />
           )}
         </ChartCard>
-        <ChartCard id={`exp-${tab}-2`} title={`${activeTab.label} Over Time`} tags={[view, period]}>
+        <ChartCard id={`exp-${tab}-2`} title={`${activeTab.label} Over Time`} tags={[{ label: view, color: 'primary' }, { label: period, color: 'muted' }]}>
           <StackedTimeChart data={timeSeries} categories={tsCats} height={380} />
         </ChartCard>
       </div>
@@ -262,10 +262,10 @@ export default function Exposure() {
 
       {/* Row 2: Waterfall — bordered by Filter (accent) */}
       <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/20 pl-3 ml-1">
-        <ChartCard id={`exp-${tab}-wf`} title={`${waterfallItem} — Exposure Waterfall`} tags={[waterfallItem]}>
+        <ChartCard id={`exp-${tab}-wf`} title={`${waterfallItem} — Exposure Waterfall`} tags={[{ label: waterfallItem, color: 'accent' }]}>
           <WaterfallChart data={waterfallData} height={280} />
         </ChartCard>
-        <ChartCard id={`exp-${tab}-wf-ts`} title={`${waterfallItem} — Waterfall Over Time`} tags={[waterfallItem, period]}>
+        <ChartCard id={`exp-${tab}-wf-ts`} title={`${waterfallItem} — Waterfall Over Time`} tags={[{ label: waterfallItem, color: 'accent' }, { label: period, color: 'muted' }]}>
           <StackedTimeChart
             data={waterfallTrendData}
             categories={waterfallTrendCategories}
@@ -280,12 +280,12 @@ export default function Exposure() {
         <div className="absolute left-0 top-0 bottom-0 w-1 rounded-full"
           style={{ background: 'linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--accent)))' }}
         />
-        <ChartCard id={`exp-${tab}-3`} title={`${filterLabel} — ${groupBy} Breakdown`} tags={[view, filterLabel]} toolbar={
+        <ChartCard id={`exp-${tab}-3`} title={`${filterLabel} — ${groupBy} Breakdown`} tags={[{ label: view, color: 'primary' }, { label: filterLabel, color: 'accent' }]} toolbar={
           <ToggleBar options={groupByOptions[tab] as any} value={groupBy as any} onChange={setGroupBy} size="xs" />
         }>
           <FinancialBarChart data={breakdownData} colorByValue={view === 'Active Tilt'} barColor="hsl(212, 72%, 42%)" />
         </ChartCard>
-        <ChartCard id={`exp-${tab}-4`} title={`${filterLabel} — ${groupBy} Over Time`} tags={[view, period, filterLabel]}>
+        <ChartCard id={`exp-${tab}-4`} title={`${filterLabel} — ${groupBy} Over Time`} tags={[{ label: view, color: 'primary' }, { label: period, color: 'muted' }, { label: filterLabel, color: 'accent' }]}>
           <StackedTimeChart data={timeSeries} categories={tsCats.slice(0, 4)} height={320} />
         </ChartCard>
       </div>
