@@ -195,56 +195,63 @@ function buildContribData(sourceData: { name: string; contribution: number; ownR
 
 // ─── Sub-tab components ───
 
-function PortfolioPerformance({ filters }: { filters: GlobalFilters }) {
-  const [compareTimespans, setCompareTimespans] = useState<string[]>([filters.timespan]);
+function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const [target, setTarget] = useState('Total Portfolio');
   const [mode, setMode] = useState('Cumulative');
 
   const sourceData = getSourceData(filters.breakdown);
   const { stratData, contribData, ownData } = buildContribData(sourceData, filters.topN);
 
-  const waterfallDatasets = compareTimespans.map(ts => ({
+  const waterfallDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
     data: perfWaterfallData[ts] || perfWaterfallData['1Y'],
   }));
 
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <ChartCard id="perf-1" title="Return Attribution (Waterfall)" toolbar={
-        <TimespanMultiSelect selected={compareTimespans} onChange={setCompareTimespans} />
-      }>
-        <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
-      </ChartCard>
-      <ChartCard id="perf-2" title="Return Attribution (Time Series)">
-        <StackedTimeChart
-          data={perfTimeSeries}
-          categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
-          overlayLine="realReturn"
-          negativeCategories={['inflation']}
-        />
-      </ChartCard>
-      <ChartCard id="perf-3" title={`Contribution to ${target}`}>
-        <FinancialBarChart data={contribData} />
-      </ChartCard>
-      <ChartCard id="perf-4" title="Contribution (Time Series)">
-        <StackedTimeChart
-          data={contributionTimeSeries}
-          categories={stratData.slice(0, 6).map(s => s.name)}
-          overlayLine="Total Portfolio"
-        />
-      </ChartCard>
-      <ChartCard id="perf-5" title={`Own-Based Return (${target})`}>
-        <FinancialBarChart data={ownData} />
-      </ChartCard>
-      <ChartCard id="perf-6" title="Cumulative Strategy Performance" toolbar={
-        <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
-      }>
-        <TrendChart data={cumulativePerfSeries} lines={activeStrategies.slice(0, 6).map(s => s.name)} />
-      </ChartCard>
+    <div className="space-y-4">
+      {/* Row 1: Top charts — left bordered primary (compare), right bordered accent (breakdown) */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="border-l-2 border-primary/30 pl-3">
+          <ChartCard id="perf-1" title="Return Attribution (Waterfall)">
+            <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
+          </ChartCard>
+        </div>
+        <div className="border-l-2 border-accent/30 pl-3">
+          <ChartCard id="perf-2" title="Return Attribution (Time Series)">
+            <StackedTimeChart
+              data={perfTimeSeries}
+              categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
+              overlayLine="realReturn"
+              negativeCategories={['inflation']}
+            />
+          </ChartCard>
+        </div>
+      </div>
+
+      {/* Row 2 & 3: Bottom 4 charts — combined primary+accent border (TopN applies here) */}
+      <div className="grid grid-cols-2 gap-4 border-l-2 pl-3 ml-1" style={{ borderImage: 'linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--accent))) 1' }}>
+        <ChartCard id="perf-3" title={`Contribution to ${target}`}>
+          <FinancialBarChart data={contribData} />
+        </ChartCard>
+        <ChartCard id="perf-4" title="Contribution (Time Series)">
+          <StackedTimeChart
+            data={contributionTimeSeries}
+            categories={stratData.slice(0, 6).map(s => s.name)}
+            overlayLine="Total Portfolio"
+          />
+        </ChartCard>
+        <ChartCard id="perf-5" title={`Own-Based Return (${target})`}>
+          <FinancialBarChart data={ownData} />
+        </ChartCard>
+        <ChartCard id="perf-6" title="Cumulative Strategy Performance" toolbar={
+          <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
+        }>
+          <TrendChart data={cumulativePerfSeries} lines={activeStrategies.slice(0, 6).map(s => s.name)} />
+        </ChartCard>
+      </div>
     </div>
   );
 }
-
 function ActiveReturn({ filters }: { filters: GlobalFilters }) {
   const [compareTimespans, setCompareTimespans] = useState<string[]>([filters.timespan]);
   const [target, setTarget] = useState('Active Return');
