@@ -183,6 +183,13 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const sourceData = getSourceData(breakdown);
   const { stratData, contribData, ownData } = buildContribData(sourceData, topN);
 
+  // Return-type scale: simulate different return perspectives
+  const rtScale: Record<string, number> = { 'Portfolio Return': 1.0, 'Benchmark Return': 0.7, 'Active Return': 0.3 };
+  const rtFactor = rtScale[returnType] || 1;
+
+  const applyRt = (data: { name: string; value: number }[]) =>
+    data.map(d => ({ name: d.name, value: +(d.value * rtFactor).toFixed(2) }));
+
   const waterfallDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
     data: perfWaterfallData[ts] || perfWaterfallData['1Y'],
@@ -191,11 +198,11 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   // Build multi-timespan datasets for contribution and own-return charts
   const contribDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
-    data: contribData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(2) })),
+    data: applyRt(contribData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(2) }))),
   }));
   const ownDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
-    data: ownData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) })),
+    data: applyRt(ownData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) }))),
   }));
 
   const isComparing = filters.compareTimespans.length > 1;
@@ -245,29 +252,41 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
 
       {/* Row 2 & 3: Bottom 4 charts — accent border (breakdown + TopN) */}
       <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/30 pl-3 ml-1">
-        <ChartCard id="perf-3" title={`Contribution to ${target}`} className="min-h-[280px]">
+        <ChartCard id="perf-3" title={`Contribution to ${target} (${returnType})`} className="min-h-[280px]">
           {isComparing
             ? <FinancialBarChart datasets={contribDatasets} />
-            : <FinancialBarChart data={contribData} />
+            : <FinancialBarChart data={applyRt(contribData)} />
           }
         </ChartCard>
-        <ChartCard id="perf-4" title="Contribution (Time Series)" className="min-h-[280px]">
+        <ChartCard id="perf-4" title={`Contribution Time Series (${returnType})`} className="min-h-[280px]">
           <StackedTimeChart
-            data={contributionTimeSeries}
+            data={contributionTimeSeries.map(d => {
+              const scaled: Record<string, any> = { month: d.month };
+              stratData.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = +((d as any)[s.name] * rtFactor).toFixed(2); });
+              if ('Total Portfolio' in d) scaled['Total Portfolio'] = +((d as any)['Total Portfolio'] * rtFactor).toFixed(2);
+              return scaled;
+            })}
             categories={stratData.slice(0, 6).map(s => s.name)}
             overlayLine="Total Portfolio"
           />
         </ChartCard>
-        <ChartCard id="perf-5" title={`Own-Based Return (${target})`} className="min-h-[280px]">
+        <ChartCard id="perf-5" title={`Own-Based Return (${returnType})`} className="min-h-[280px]">
           {isComparing
             ? <FinancialBarChart datasets={ownDatasets} />
-            : <FinancialBarChart data={ownData} />
+            : <FinancialBarChart data={applyRt(ownData)} />
           }
         </ChartCard>
-        <ChartCard id="perf-6" title="Cumulative Strategy Performance" className="min-h-[280px]" toolbar={
+        <ChartCard id="perf-6" title={`Cumulative Performance (${returnType})`} className="min-h-[280px]" toolbar={
           <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
         }>
-          <TrendChart data={cumulativePerfSeries} lines={activeStrategies.slice(0, 6).map(s => s.name)} />
+          <TrendChart
+            data={cumulativePerfSeries.map(d => {
+              const scaled: Record<string, any> = { month: d.month };
+              activeStrategies.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = +((d as any)[s.name] * rtFactor).toFixed(2); });
+              return scaled;
+            })}
+            lines={activeStrategies.slice(0, 6).map(s => s.name)}
+          />
         </ChartCard>
       </div>
     </div>
