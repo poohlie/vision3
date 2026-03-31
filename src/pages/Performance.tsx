@@ -178,6 +178,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const [mode, setMode] = useState('Cumulative');
   const [breakdown, setBreakdown] = useState('Active Strategies');
   const [topN, setTopN] = useState(8);
+  const [returnType, setReturnType] = useState<typeof returnTypes[number]>('Portfolio Return');
 
   const sourceData = getSourceData(breakdown);
   const { stratData, contribData, ownData } = buildContribData(sourceData, topN);
