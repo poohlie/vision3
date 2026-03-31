@@ -121,12 +121,12 @@ export default function Overview() {
       <div className="grid grid-cols-3 gap-3 min-h-0" style={{ flex: '0 0 40%' }}>
         {/* Performance column: 2x2 grid */}
         <div className="grid grid-cols-2 grid-rows-2 gap-2">
-          {/* Absolute Return */}
-          <div className={tilePerf} onClick={() => nav('/performance?tab=Absolute Return')}>
+          {/* Nominal Return */}
+          <div className={tilePerf} onClick={() => nav('/performance?tab=Nominal Return')}>
             <div className="flex items-start justify-between mb-1">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-foreground leading-tight">
-                  <span className="block">Absolute</span><span className="block">Return</span>
+                  <span className="block">Nominal</span><span className="block">Return</span>
                 </p>
                 <p className="text-[11px] text-muted-foreground">1Y USD basis</p>
               </div>
