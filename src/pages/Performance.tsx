@@ -36,7 +36,7 @@ export default function Performance() {
     timespan: '1Y', currency: 'USD', breakdown: 'Active Strategies', topN: 8,
   });
 
-  const showBreakdown = sub === 'Absolute Return' || sub === 'Active Return';
+  const showBreakdown = sub === 'Nominal Return';
   const showTopN = showBreakdown;
 
   return (
