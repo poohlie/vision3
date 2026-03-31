@@ -183,6 +183,13 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const sourceData = getSourceData(breakdown);
   const { stratData, contribData, ownData } = buildContribData(sourceData, topN);
 
+  // Return-type scale: simulate different return perspectives
+  const rtScale: Record<string, number> = { 'Portfolio Return': 1.0, 'Benchmark Return': 0.7, 'Active Return': 0.3 };
+  const rtFactor = rtScale[returnType] || 1;
+
+  const applyRt = (data: { name: string; value: number }[]) =>
+    data.map(d => ({ name: d.name, value: +(d.value * rtFactor).toFixed(2) }));
+
   const waterfallDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
     data: perfWaterfallData[ts] || perfWaterfallData['1Y'],
@@ -191,11 +198,11 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   // Build multi-timespan datasets for contribution and own-return charts
   const contribDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
-    data: contribData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(2) })),
+    data: applyRt(contribData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(2) }))),
   }));
   const ownDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
-    data: ownData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) })),
+    data: applyRt(ownData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) }))),
   }));
 
   const isComparing = filters.compareTimespans.length > 1;
