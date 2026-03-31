@@ -238,7 +238,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           <div className="h-8 w-px bg-border shrink-0" />
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Return</span>
-            <ToggleBar options={returnTypes} value={returnType} onChange={setReturnType} size="xs" />
+            <ToggleBar options={returnTypes} value={returnType} onChange={v => setReturnType(v as typeof returnTypes[number])} size="xs" />
           </div>
         </div>
       </div>
