@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import ChartCard from '@/components/shared/ChartCard';
 import ToggleBar from '@/components/shared/ToggleBar';
-import GlobalFilterStrip, { type GlobalFilters } from '@/components/shared/GlobalFilterStrip';
 import TimespanMultiSelect from '@/components/shared/TimespanMultiSelect';
 import TopNSelect from '@/components/shared/TopNSelect';
 import CompareWaterfallChart from '@/components/charts/CompareWaterfallChart';
@@ -18,6 +17,8 @@ import {
   peersData, peerReturnSeries, peerAssetMix, peerCountryMix, timespans, currencies,
 } from '@/data/mockData';
 
+const breakdowns = ['Active Strategies', 'Country', 'Sector'] as const;
+
 const subTabsConfig = [
   { key: 'Nominal Return' as const, metric: '+10.5%', label: 'Total Return', subtitle: '1Y USD basis' },
   { key: 'Real Return' as const, metric: '+7.3%', label: 'Real Return', subtitle: 'Inflation adjusted' },
@@ -28,16 +29,25 @@ const subTabs = subTabsConfig.map(t => t.key);
 type SubTab = typeof subTabs[number];
 const cumRoll = ['Cumulative', 'Rolling'] as const;
 
+export interface PerfFilters {
+  timespan: string;
+  currency: string;
+  breakdown: string;
+  topN: number;
+  compareTimespans: string[];
+}
+
 export default function Performance() {
   const [searchParams] = useSearchParams();
   const initialTab = subTabs.find(t => t === searchParams.get('tab')) || 'Nominal Return';
   const [sub, setSub] = useState<SubTab>(initialTab);
-  const [filters, setFilters] = useState<GlobalFilters>({
+  const [filters, setFilters] = useState<PerfFilters>({
     timespan: '1Y', currency: 'USD', breakdown: 'Active Strategies', topN: 8,
+    compareTimespans: ['1Y'],
   });
 
-  const showBreakdown = sub === 'Nominal Return';
-  const showTopN = showBreakdown;
+  const set = (partial: Partial<PerfFilters>) => setFilters(prev => ({ ...prev, ...partial }));
+  const isNominal = sub === 'Nominal Return';
 
   return (
     <div className="p-6 space-y-4">
@@ -65,13 +75,74 @@ export default function Performance() {
         ))}
       </div>
 
-      {/* Global filter strip */}
-      <GlobalFilterStrip
-        filters={filters}
-        onChange={setFilters}
-        showBreakdown={showBreakdown}
-        showTopN={showTopN}
-      />
+      {/* Scoped control cards */}
+      <div className={cn('grid gap-3', isNominal ? 'grid-cols-4' : 'grid-cols-2')}>
+        {/* Period — all charts */}
+        <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Period</span>
+                <p className="text-[9px] text-muted-foreground">All charts</p>
+              </div>
+            </div>
+            <div className="h-8 w-px bg-border shrink-0" />
+            <ToggleBar options={timespans} value={filters.timespan as any} onChange={v => set({ timespan: v })} size="xs" />
+          </div>
+        </div>
+
+        {/* Currency — all charts */}
+        <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Currency</span>
+                <p className="text-[9px] text-muted-foreground">All charts</p>
+              </div>
+            </div>
+            <div className="h-8 w-px bg-border shrink-0" />
+            <ToggleBar options={currencies} value={filters.currency as any} onChange={v => set({ currency: v })} size="xs" />
+          </div>
+        </div>
+
+        {/* Compare — left charts only (Nominal Return only) */}
+        {isNominal && (
+          <div className="rounded-lg border-2 border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="w-1 h-8 rounded-full bg-primary" />
+                <div>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Compare</span>
+                  <p className="text-[9px] text-muted-foreground">Left charts only ←</p>
+                </div>
+              </div>
+              <div className="h-8 w-px bg-border shrink-0" />
+              <TimespanMultiSelect selected={filters.compareTimespans} onChange={v => set({ compareTimespans: v })} />
+            </div>
+          </div>
+        )}
+
+        {/* Breakdown + TopN — right / bottom charts (Nominal Return only) */}
+        {isNominal && (
+          <div className="rounded-lg border-2 border-accent/30 bg-accent/5 px-4 py-3 shadow-sm">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="w-1 h-8 rounded-full bg-accent" />
+                <div>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Breakdown</span>
+                  <p className="text-[9px] text-muted-foreground">Right charts →  ·  TopN ↓ bottom 4</p>
+                </div>
+              </div>
+              <div className="h-8 w-px bg-border shrink-0" />
+              <ToggleBar options={breakdowns} value={filters.breakdown as any} onChange={v => set({ breakdown: v })} size="xs" />
+              <div className="h-8 w-px bg-border shrink-0" />
+              <TopNSelect value={filters.topN} onChange={n => set({ topN: n })} />
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Tab content */}
       {sub === 'Nominal Return' && <PortfolioPerformance filters={filters} />}
