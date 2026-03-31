@@ -183,7 +183,7 @@ export default function Exposure() {
             />
           )}
         </ChartCard>
-        <ChartCard id={`exp-${tab}-2`} title={`${activeTab.label} Over Time`} tags={[view, period]}>
+        <ChartCard id={`exp-${tab}-2`} title={`${activeTab.label} Over Time`} tags={[{ label: view, color: 'primary' }, { label: period, color: 'muted' }]}>
           <StackedTimeChart data={timeSeries} categories={tsCats} height={380} />
         </ChartCard>
       </div>
