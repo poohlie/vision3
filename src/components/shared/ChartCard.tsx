@@ -3,6 +3,11 @@ import { Pin, PinOff } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useWorkspace } from '@/context/WorkspaceContext';
 
+export interface ChartTag {
+  label: string;
+  color?: 'primary' | 'muted' | 'accent';
+}
+
 interface Props {
   id: string;
   title: string;
@@ -10,7 +15,7 @@ interface Props {
   children: ReactNode;
   toolbar?: ReactNode;
   className?: string;
-  tags?: string[];
+  tags?: ChartTag[];
 }
 
 export default function ChartCard({ id, title, subtitle, children, toolbar, className, tags }: Props) {
