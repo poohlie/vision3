@@ -196,6 +196,49 @@ const getGlobalScale = (timespan: string, currency: string) => (tsScales[timespa
 const scaleValue = (v: number, scale: number) => +(v * scale).toFixed(2);
 const scaleData = (data: { name: string; value: number }[], scale: number) => data.map(d => ({ name: d.name, value: scaleValue(d.value, scale) }));
 
+// ─── Timespan Grouped Bar Chart (vertical columns per timespan) ───
+
+function TimespanGroupedBarChart({ items, timespans, combinedFactor, valueKey }: {
+  items: { name: string; value: number }[];
+  timespans: string[];
+  combinedFactor: number;
+  valueKey: string;
+}) {
+  const chartData = useMemo(() =>
+    timespans.map(ts => {
+      const tsFactor = (tsScales[ts] || 1) / (tsScales[timespans[0]] || 1);
+      const row: Record<string, any> = { timespan: ts };
+      items.forEach(item => {
+        row[item.name] = scaleValue(item.value * tsFactor, combinedFactor);
+      });
+      return row;
+    }), [timespans, items, combinedFactor]);
+
+  return (
+    <ResponsiveContainer width="100%" height={250}>
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+        <XAxis dataKey="timespan" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+        <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
+        <Tooltip
+          contentStyle={{
+            background: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '6px',
+            fontSize: 11,
+            boxShadow: '0 4px 12px -2px rgba(0,0,0,0.12)',
+          }}
+          formatter={(v: number) => [`${v.toFixed(2)}%`, undefined]}
+        />
+        <Legend wrapperStyle={{ fontSize: 10 }} />
+        {items.map((item, i) => (
+          <Bar key={item.name} dataKey={item.name} fill={CHART_COLORS[i % CHART_COLORS.length]} radius={[2, 2, 0, 0]} />
+        ))}
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
 // ─── Rolling Grouped Bar Chart ───
 
 const TIMESPAN_YEARS: Record<string, number[]> = {
@@ -342,10 +385,12 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
       {/* Row 2 & 3: Bottom 4 charts — accent border (breakdown + TopN) */}
       <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/30 pl-3 ml-1">
         <ChartCard id="perf-3" title={`Contribution to ${target} (${returnType})`} className="min-h-[280px]">
-          {isComparing
-            ? <FinancialBarChart datasets={contribDatasets} />
-            : <FinancialBarChart data={applyRt(contribData)} />
-          }
+          <TimespanGroupedBarChart
+            items={contribData}
+            timespans={filters.compareTimespans}
+            combinedFactor={combinedFactor}
+            valueKey="contribution"
+          />
         </ChartCard>
         <ChartCard id="perf-4" title={`Contribution Time Series (${returnType})`} className="min-h-[280px]">
           <StackedTimeChart
@@ -360,10 +405,12 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           />
         </ChartCard>
         <ChartCard id="perf-5" title={`Own-Based Return (${returnType})`} className="min-h-[280px]">
-          {isComparing
-            ? <FinancialBarChart datasets={ownDatasets} />
-            : <FinancialBarChart data={applyRt(ownData)} />
-          }
+          <TimespanGroupedBarChart
+            items={ownData}
+            timespans={filters.compareTimespans}
+            combinedFactor={combinedFactor}
+            valueKey="ownReturn"
+          />
         </ChartCard>
         <ChartCard id="perf-6" title={`${mode} Performance (${returnType})`} className="min-h-[280px]" toolbar={
           <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
