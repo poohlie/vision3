@@ -56,7 +56,7 @@ export default function FinancialBarChart({ data: rawData, datasets, height = 25
         <ResponsiveContainer width="100%" height={height}>
           <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 20 }}>
             <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
-            <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} width={120} />
+            <YAxis type="category" dataKey="name" interval={0} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} width={120} />
             <ReferenceLine x={0} stroke="hsl(var(--border))" />
             <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v > 0 ? '+' : ''}${v.toFixed(1)}%`, undefined]} />
             <Legend wrapperStyle={{ fontSize: 10 }} />
