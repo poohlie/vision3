@@ -50,7 +50,21 @@ export default function Performance() {
     compareTimespans: ['1Y'],
   });
 
-  const set = (partial: Partial<PerfFilters>) => setFilters(prev => ({ ...prev, ...partial }));
+  const set = (partial: Partial<PerfFilters>) => setFilters(prev => {
+    const next = { ...prev, ...partial };
+    // When global timespan changes, ensure it's always the first in compareTimespans
+    if ('timespan' in partial && partial.timespan) {
+      const others = prev.compareTimespans.filter(t => t !== partial.timespan);
+      next.compareTimespans = [partial.timespan, ...others];
+    }
+    // Ensure global timespan is always included in compareTimespans
+    if ('compareTimespans' in partial && partial.compareTimespans) {
+      if (!partial.compareTimespans.includes(next.timespan)) {
+        next.compareTimespans = [next.timespan, ...partial.compareTimespans];
+      }
+    }
+    return next;
+  });
   const isNominal = sub === 'Nominal Return';
 
   return (
