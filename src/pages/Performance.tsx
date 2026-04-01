@@ -78,24 +78,27 @@ export default function Performance() {
 
       {/* Global controls — full width */}
       <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
-            <div>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Global</span>
-              <p className="text-[9px] text-muted-foreground">All charts</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Global</span>
+                <p className="text-[9px] text-muted-foreground">All charts</p>
+              </div>
+            </div>
+            <div className="h-8 w-px bg-border shrink-0" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Period</span>
+              <ToggleBar options={timespans} value={filters.timespan as any} onChange={v => set({ timespan: v })} size="xs" />
             </div>
           </div>
-          <div className="h-8 w-px bg-border shrink-0" />
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Period</span>
-            <ToggleBar options={timespans} value={filters.timespan as any} onChange={v => set({ timespan: v })} size="xs" />
-          </div>
-          <div className="flex-1" />
-          <div className="h-8 w-px bg-border shrink-0" />
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Currency</span>
-            <ToggleBar options={currencies} value={filters.currency as any} onChange={v => set({ currency: v })} size="xs" />
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-px bg-border shrink-0" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Currency</span>
+              <ToggleBar options={currencies} value={filters.currency as any} onChange={v => set({ currency: v })} size="xs" />
+            </div>
           </div>
         </div>
       </div>
