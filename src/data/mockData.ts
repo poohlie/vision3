@@ -469,6 +469,18 @@ export const marketTimeSeries = (items: { name: string }[], timespan: string = '
   });
 };
 
+// Market rolling time series — fluctuates around each item's value (flat, not cumulative)
+export const marketRollingTimeSeries = (items: { name: string; value?: number }[], timespan: string = '1Y') => {
+  const labels = getTimeLabels(timespan);
+  return labels.map((m, i) => {
+    const base: Record<string, string | number> = { month: m };
+    items.forEach((item, j) => {
+      const anchor = (item as any).value ?? (item as any).yield ?? 5;
+      base[item.name] = +(anchor + (numericRandom(i * 19 + j * 11) - 0.5) * 4).toFixed(2);
+    });
+    return base;
+  });
+};
 // ============ REAL RETURN ============
 export const realReturnWaterfall = {
   '1Y': [

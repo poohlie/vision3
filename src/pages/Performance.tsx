@@ -31,7 +31,7 @@ const subTabsConfig = [
 ];
 const subTabs = subTabsConfig.map(t => t.key);
 type SubTab = typeof subTabs[number];
-const cumRoll = ['Cumulative', 'Rolling', 'Annual'] as const;
+const cumRoll = ['Cumulative', 'Rolling'] as const;
 
 export interface PerfFilters {
   timespans: string[];
