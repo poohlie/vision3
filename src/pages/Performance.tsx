@@ -75,10 +75,9 @@ export default function Performance() {
         ))}
       </div>
 
-      {/* Scoped control cards */}
-      <div className="grid grid-cols-2 gap-3">
-        {/* Row 1: Period + Currency — all charts */}
-        <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
+      {/* Global parameters */}
+      <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
+        <div className="grid grid-cols-2 gap-3">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 shrink-0">
               <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
@@ -90,9 +89,6 @@ export default function Performance() {
             <div className="h-8 w-px bg-border shrink-0" />
             <ToggleBar options={timespans} value={filters.timespan as any} onChange={v => set({ timespan: v })} size="xs" />
           </div>
-        </div>
-
-        <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 shrink-0">
               <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
@@ -105,6 +101,7 @@ export default function Performance() {
             <ToggleBar options={currencies} value={filters.currency as any} onChange={v => set({ currency: v })} size="xs" />
           </div>
         </div>
+      </div>
 
         {/* Row 2: Compare + Breakdown (Nominal Return only) */}
         {isNominal && (
