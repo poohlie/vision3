@@ -32,11 +32,16 @@ type SubTab = typeof subTabs[number];
 const cumRoll = ['Cumulative', 'Rolling', 'Annual'] as const;
 
 export interface PerfFilters {
-  timespan: string;
+  timespans: string[];
   currency: string;
   breakdown: string;
   topN: number;
-  compareTimespans: string[];
+}
+
+// Helper: get the longest timespan from a list
+const timespanOrder = ['1Y', '3Y', '5Y', '10Y', '20Y'];
+function longestTimespan(ts: string[]): string {
+  return ts.reduce((a, b) => timespanOrder.indexOf(a) >= timespanOrder.indexOf(b) ? a : b, ts[0]);
 }
 
 export default function Performance() {
@@ -44,19 +49,10 @@ export default function Performance() {
   const initialTab = subTabs.find(t => t === searchParams.get('tab')) || 'Nominal Return';
   const [sub, setSub] = useState<SubTab>(initialTab);
   const [filters, setFilters] = useState<PerfFilters>({
-    timespan: '1Y', currency: 'USD', breakdown: 'Active Strategies', topN: 8,
-    compareTimespans: ['1Y'],
+    timespans: ['1Y'], currency: 'USD', breakdown: 'Active Strategies', topN: 8,
   });
 
-  const set = (partial: Partial<PerfFilters>) => setFilters(prev => {
-    const next = { ...prev, ...partial };
-    // Keep global timespan always as first item in compareTimespans
-    if (partial.timespan) {
-      const others = prev.compareTimespans.filter(t => t !== partial.timespan && t !== prev.timespan);
-      next.compareTimespans = [partial.timespan, ...others];
-    }
-    return next;
-  });
+  const set = (partial: Partial<PerfFilters>) => setFilters(prev => ({ ...prev, ...partial }));
   const isNominal = sub === 'Nominal Return';
 
   return (
@@ -93,11 +89,11 @@ export default function Performance() {
               <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
               <div>
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Period</span>
-                <p className="text-[9px] text-muted-foreground">All charts</p>
+                <p className="text-[9px] text-muted-foreground">Select up to 3 · right charts use longest</p>
               </div>
             </div>
             <div className="h-8 w-px bg-border shrink-0" />
-            <ToggleBar options={timespans} value={filters.timespan as any} onChange={v => set({ timespan: v })} size="xs" />
+            <TimespanMultiSelect selected={filters.timespans} onChange={v => set({ timespans: v })} />
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 shrink-0">
@@ -113,24 +109,6 @@ export default function Performance() {
         </div>
       </div>
 
-      {/* Compare control (Nominal Return only) */}
-      {isNominal && (
-        <div className="w-1/2 rounded-lg border-2 border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 shrink-0">
-              <div className="w-1 h-8 rounded-full bg-primary" />
-              <div>
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Compare</span>
-                <p className="text-[9px] text-muted-foreground">Left charts only ←</p>
-              </div>
-            </div>
-            <div className="h-8 w-px bg-border shrink-0" />
-            <TimespanMultiSelect selected={filters.compareTimespans} onChange={v => set({ compareTimespans: v })} locked={filters.timespan} />
-          </div>
-        </div>
-      )}
-
-      {/* Tab content */}
       {sub === 'Nominal Return' && <PortfolioPerformance filters={filters} />}
       {sub === 'Market Performance' && <MarketPerformance filters={filters} />}
       {sub === 'Real Return' && <RealReturn filters={filters} />}
@@ -213,25 +191,27 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const sourceData = getSourceData(breakdown);
   const { stratData, contribData, ownData } = buildContribData(sourceData, topN, returnType);
 
-  const waterfallDatasets = filters.compareTimespans.map(ts => ({
+  const primaryTimespan = longestTimespan(filters.timespans);
+
+  const waterfallDatasets = filters.timespans.map(ts => ({
     label: ts,
     data: perfWaterfallData[ts] || perfWaterfallData['1Y'],
   }));
 
   // Build multi-timespan datasets for contribution and own-return charts
-  const contribDatasets = filters.compareTimespans.map(ts => ({
+  const contribDatasets = filters.timespans.map(ts => ({
     label: ts,
     data: contribData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(2) })),
   }));
-  const ownDatasets = filters.compareTimespans.map(ts => ({
+  const ownDatasets = filters.timespans.map(ts => ({
     label: ts,
     data: ownData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) })),
   }));
 
-  const isComparing = filters.compareTimespans.length > 1;
+  const isComparing = filters.timespans.length > 1;
 
-  // Timespan-aware time series — adjusted for return type
-  const tsPerf = generatePerfTimeSeries(filters.timespan);
+  // Timespan-aware time series — use longest timespan for right-side charts
+  const tsPerf = generatePerfTimeSeries(primaryTimespan);
   const adjustedStrats = stratData.slice(0, 6).map(s => {
     const contrib = returnType === 'Benchmark' ? s.bmkContribution
       : returnType === 'Active' ? +(s.contribution - s.bmkContribution).toFixed(3)
@@ -241,13 +221,13 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
       : s.ownReturn;
     return { name: s.name, contribution: contrib, ownReturn: ownRet };
   });
-  const tsContrib = generateContributionTimeSeries(filters.timespan, adjustedStrats);
-  const tsCumulative = generateCumulativePerfSeries(filters.timespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
-  const tsRolling = generateRollingPerfSeries(filters.timespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
+  const tsContrib = generateContributionTimeSeries(primaryTimespan, adjustedStrats);
+  const tsCumulative = generateCumulativePerfSeries(primaryTimespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
+  const tsRolling = generateRollingPerfSeries(primaryTimespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
 
   // Annual data: each year as a category, each strategy as a bar
   const annualData = useMemo(() => {
-    const numYears = filters.timespan === '1Y' ? 1 : filters.timespan === '3Y' ? 3 : filters.timespan === '5Y' ? 5 : filters.timespan === '10Y' ? 10 : 20;
+    const numYears = primaryTimespan === '1Y' ? 1 : primaryTimespan === '3Y' ? 3 : primaryTimespan === '5Y' ? 5 : primaryTimespan === '10Y' ? 10 : 20;
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: numYears }, (_, i) => currentYear - numYears + 1 + i);
     const seed = (y: number, s: number) => { const x = Math.sin(y * 127 + s * 311) * 10000; return x - Math.floor(x); };
@@ -258,7 +238,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
       });
       return row;
     });
-  }, [filters.timespan, adjustedStrats]);
+  }, [primaryTimespan, adjustedStrats]);
 
   return (
     <div className="space-y-4">
@@ -381,7 +361,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
       <ChartCard id="mkt-2" title="Equity Cumulative Performance" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       }>
-        <TrendChart data={marketTimeSeries(eqData, filters.timespan)} lines={eqData.map(d => d.name)} />
+        <TrendChart data={marketTimeSeries(eqData, longestTimespan(filters.timespans))} lines={eqData.map(d => d.name)} />
       </ChartCard>
       <ChartCard id="mkt-3" title="Fixed Income Performance (BBGA)">
         <FinancialBarChart data={fiPerf.map(f => ({ name: f.name, value: f.yield }))} colorByValue={false} barColor="hsl(185, 58%, 38%)" />
@@ -389,7 +369,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
       <ChartCard id="mkt-4" title="Fixed Income Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       }>
-        <TrendChart data={marketTimeSeries(fiPerf, filters.timespan)} lines={fiPerf.map(f => f.name)} />
+        <TrendChart data={marketTimeSeries(fiPerf, longestTimespan(filters.timespans))} lines={fiPerf.map(f => f.name)} />
       </ChartCard>
       <ChartCard id="mkt-5" title="Commodities Performance (BCOM)">
         <FinancialBarChart data={commodityPerf} />
@@ -397,7 +377,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
       <ChartCard id="mkt-6" title="Commodities Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       }>
-        <TrendChart data={marketTimeSeries(commodityPerf, filters.timespan)} lines={commodityPerf.map(d => d.name)} />
+        <TrendChart data={marketTimeSeries(commodityPerf, longestTimespan(filters.timespans))} lines={commodityPerf.map(d => d.name)} />
       </ChartCard>
       <ChartCard id="mkt-7" title="Currency Performance">
         <FinancialBarChart data={currencyPerf.map(c => ({ name: c.name, value: c.value }))} />
@@ -405,23 +385,23 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
       <ChartCard id="mkt-8" title="Currency Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       }>
-        <TrendChart data={marketTimeSeries(currencyPerf, filters.timespan)} lines={currencyPerf.map(c => c.name)} />
+        <TrendChart data={marketTimeSeries(currencyPerf, longestTimespan(filters.timespans))} lines={currencyPerf.map(c => c.name)} />
       </ChartCard>
     </div>
   );
 }
 
 function RealReturn({ filters }: { filters: PerfFilters }) {
-  const wfData = realReturnWaterfall[filters.timespan as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'];
+  const wfData = realReturnWaterfall[longestTimespan(filters.timespans) as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'];
 
   return (
     <div className="grid grid-cols-2 gap-4">
       <ChartCard id="rr-1" title="Real Return Decomposition">
-        <CompareWaterfallChart datasets={[{ label: filters.timespan, data: wfData }]} />
+        <CompareWaterfallChart datasets={[{ label: longestTimespan(filters.timespans), data: wfData }]} />
       </ChartCard>
       <ChartCard id="rr-2" title="Cumulative Nominal & Projected Real Return">
         <TrendChart
-          data={generateCumulativePerfSeries(filters.timespan, activeStrategies.slice(0, 6).map(s => ({ name: s.name, ownReturn: s.ownReturn }))).map((d, i, arr) => ({
+          data={generateCumulativePerfSeries(longestTimespan(filters.timespans), activeStrategies.slice(0, 6).map(s => ({ name: s.name, ownReturn: s.ownReturn }))).map((d, i, arr) => ({
             month: d.month as string,
             'Nominal Return': i <= Math.floor(arr.length * 0.7) ? +((i + 1) / arr.length * 8.5).toFixed(2) : null,
             'Projected Real': i >= Math.floor(arr.length * 0.7) ? +((i + 1) / arr.length * 5.5).toFixed(2) : null,
@@ -455,7 +435,7 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
       </ChartCard>
       <ChartCard id="rr-6" title="Cumulative Inflation by Country">
         <StackedTimeChart
-          data={marketTimeSeries(inflationByCountry, filters.timespan)}
+          data={marketTimeSeries(inflationByCountry, longestTimespan(filters.timespans))}
           categories={inflationByCountry.map(c => c.name)}
         />
       </ChartCard>
@@ -493,7 +473,7 @@ function PeersComparison({ filters }: { filters: PerfFilters }) {
         </div>
       </ChartCard>
       <ChartCard id="peer-2" title="Cumulative Returns">
-        <TrendChart data={marketTimeSeries(peersData.map(p => ({ name: p.name })), filters.timespan)} lines={peersData.map(p => p.name)} />
+        <TrendChart data={marketTimeSeries(peersData.map(p => ({ name: p.name })), longestTimespan(filters.timespans))} lines={peersData.map(p => p.name)} />
       </ChartCard>
       <ChartCard id="peer-3" title="Asset Mix Comparison">
         <div className="overflow-auto text-xs">
