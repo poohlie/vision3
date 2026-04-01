@@ -21,8 +21,6 @@ export default function TimespanMultiSelect({ selected, onChange, max = 3, locke
 
   return (
     <div className="flex items-center gap-1.5">
-      <GitCompareArrows className="h-3 w-3 text-muted-foreground" />
-      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Compare</span>
       <div className="flex rounded-md border bg-muted/50 p-0.5 gap-0.5">
         {timespans.map(ts => (
           <button
