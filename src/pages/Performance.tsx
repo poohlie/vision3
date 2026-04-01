@@ -14,7 +14,7 @@ import ScatterPlot from '@/components/charts/ScatterChart';
 import CompareBarPanel from '@/components/charts/CompareBarPanel';
 import {
   perfWaterfallData, activeStrategies, perfTimeSeries, cumulativePerfSeries, contributionTimeSeries,
-  equityCountryPerf, equitySectorPerf, fiPerf, commodityPerf, currencyPerf, marketTimeSeries,
+  equityCountryPerf, equitySectorPerf, fiPerf, commodityPerf, currencyPerf, marketTimeSeries, marketRollingTimeSeries,
   realReturnWaterfall, eltrrorData, inflationByCountry,
   peersData, peerReturnSeries, peerAssetMix, peerCountryMix, timespans, currencies,
   generatePerfTimeSeries, generateCumulativePerfSeries, generateContributionTimeSeries, generateRollingPerfSeries,
@@ -31,7 +31,7 @@ const subTabsConfig = [
 ];
 const subTabs = subTabsConfig.map(t => t.key);
 type SubTab = typeof subTabs[number];
-const cumRoll = ['Cumulative', 'Rolling', 'Annual'] as const;
+const cumRoll = ['Cumulative', 'Rolling'] as const;
 
 export interface PerfFilters {
   timespans: string[];
@@ -396,34 +396,34 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
       } footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         {isComparing ? <CompareBarPanel datasets={eqDatasets} preserveOrder /> : <FinancialBarChart data={eqData} preserveOrder />}
       </ChartCard>
-      <ChartCard id="mkt-2" title="Equity Cumulative Performance" toolbar={
+      <ChartCard id="mkt-2" title={`Equity ${mode} Performance`} toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       } footer={<><FilterPill label="Period" value={primaryTimespan} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
-        <TrendChart data={marketTimeSeries(eqData, primaryTimespan)} lines={eqData.map(d => d.name)} />
+        <TrendChart data={(mode === 'Rolling' ? marketRollingTimeSeries : marketTimeSeries)(eqData, primaryTimespan)} lines={eqData.map(d => d.name)} />
       </ChartCard>
       <ChartCard id="mkt-3" title="Fixed Income Performance (BBGA)" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         {renderCompareOrSingle(fiDatasets, <FinancialBarChart data={fiPerf.map(f => ({ name: f.name, value: f.yield }))} colorByValue={false} barColor="hsl(185, 58%, 38%)" />)}
       </ChartCard>
-      <ChartCard id="mkt-4" title="Fixed Income Cumulative" toolbar={
+      <ChartCard id="mkt-4" title={`Fixed Income ${mode}`} toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       } footer={<><FilterPill label="Period" value={primaryTimespan} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
-        <TrendChart data={marketTimeSeries(fiPerf, primaryTimespan)} lines={fiPerf.map(f => f.name)} />
+        <TrendChart data={(mode === 'Rolling' ? marketRollingTimeSeries : marketTimeSeries)(fiPerf, primaryTimespan)} lines={fiPerf.map(f => f.name)} />
       </ChartCard>
       <ChartCard id="mkt-5" title="Commodities Performance (BCOM)" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         {renderCompareOrSingle(comDatasets, <FinancialBarChart data={commodityPerf} />)}
       </ChartCard>
-      <ChartCard id="mkt-6" title="Commodities Cumulative" toolbar={
+      <ChartCard id="mkt-6" title={`Commodities ${mode}`} toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       } footer={<><FilterPill label="Period" value={primaryTimespan} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
-        <TrendChart data={marketTimeSeries(commodityPerf, primaryTimespan)} lines={commodityPerf.map(d => d.name)} />
+        <TrendChart data={(mode === 'Rolling' ? marketRollingTimeSeries : marketTimeSeries)(commodityPerf, primaryTimespan)} lines={commodityPerf.map(d => d.name)} />
       </ChartCard>
       <ChartCard id="mkt-7" title="Currency Performance" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         {renderCompareOrSingle(curDatasets, <FinancialBarChart data={currencyPerf.map(c => ({ name: c.name, value: c.value }))} />)}
       </ChartCard>
-      <ChartCard id="mkt-8" title="Currency Cumulative" toolbar={
+      <ChartCard id="mkt-8" title={`Currency ${mode}`} toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       } footer={<><FilterPill label="Period" value={primaryTimespan} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
-        <TrendChart data={marketTimeSeries(currencyPerf, primaryTimespan)} lines={currencyPerf.map(c => c.name)} />
+        <TrendChart data={(mode === 'Rolling' ? marketRollingTimeSeries : marketTimeSeries)(currencyPerf, primaryTimespan)} lines={currencyPerf.map(c => c.name)} />
       </ChartCard>
     </div>
   );
