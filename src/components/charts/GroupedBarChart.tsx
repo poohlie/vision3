@@ -27,11 +27,24 @@ const GROUP_LABELS: Record<string, string> = {
 
 const TOP_N_OPTIONS = [3, 5, 8, 10] as const;
 
-export default function GroupedBarChart({ data, height = 250, colorByValue = false, barColor }: Props) {
+export default function GroupedBarChart({ data, height = 250, colorByValue = false, barColor, totalBar }: Props) {
   const [topN, setTopN] = useState(5);
   const groups = Array.from(new Set(data.map(d => d.group)));
 
-  const chartData: (DataItem & { isTotal?: boolean; displayLabel?: string })[] = [];
+  const chartData: (DataItem & { isTotal?: boolean; isGrandTotal?: boolean; displayLabel?: string })[] = [];
+
+  // Optional top-level total bar (e.g. ACWI)
+  if (totalBar) {
+    chartData.push({
+      name: totalBar.name,
+      value: +totalBar.value.toFixed(1),
+      group: '_total',
+      isTotal: true,
+      isGrandTotal: true,
+      displayLabel: `${totalBar.name} — ${totalBar.value.toFixed(1)}%`,
+    });
+  }
+
   groups.forEach(group => {
     const items = data.filter(d => d.group === group).sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
     const groupTotal = items.reduce((s, d) => s + d.value, 0);
