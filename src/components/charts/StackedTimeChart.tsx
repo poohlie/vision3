@@ -9,6 +9,7 @@ interface Props {
   overlayLine?: string;
   stacked?: boolean;
   negativeCategories?: string[];
+  colorMap?: Record<string, string>;
 }
 
 const tooltipStyle = {
