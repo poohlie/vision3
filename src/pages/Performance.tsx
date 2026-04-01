@@ -19,6 +19,7 @@ import {
 } from '@/data/mockData';
 
 const breakdowns = ['Active Strategies', 'Country', 'Sector'] as const;
+const returnTypes = ['Portfolio', 'Benchmark', 'Active'] as const;
 
 const subTabsConfig = [
   { key: 'Nominal Return' as const, metric: '+10.5%', label: 'Total Return', subtitle: '1Y USD basis' },
@@ -142,39 +143,58 @@ export default function Performance() {
 
 function getSourceData(breakdown: string) {
   const countryContrib = [
-    { name: 'United States', contribution: 0.32, ownReturn: 12.5 },
-    { name: 'Japan', contribution: 0.12, ownReturn: 8.2 },
-    { name: 'United Kingdom', contribution: 0.08, ownReturn: 5.8 },
-    { name: 'Germany', contribution: 0.06, ownReturn: 6.1 },
-    { name: 'China', contribution: 0.15, ownReturn: 9.4 },
-    { name: 'France', contribution: 0.05, ownReturn: 4.2 },
-    { name: 'Canada', contribution: 0.04, ownReturn: 3.8 },
-    { name: 'Australia', contribution: 0.03, ownReturn: 5.1 },
-    { name: 'South Korea', contribution: 0.07, ownReturn: 7.6 },
-    { name: 'India', contribution: 0.08, ownReturn: 11.2 },
+    { name: 'United States', contribution: 0.32, ownReturn: 12.5, bmkContribution: 0.28, bmkReturn: 10.2 },
+    { name: 'Japan', contribution: 0.12, ownReturn: 8.2, bmkContribution: 0.10, bmkReturn: 7.5 },
+    { name: 'United Kingdom', contribution: 0.08, ownReturn: 5.8, bmkContribution: 0.07, bmkReturn: 5.1 },
+    { name: 'Germany', contribution: 0.06, ownReturn: 6.1, bmkContribution: 0.05, bmkReturn: 5.8 },
+    { name: 'China', contribution: 0.15, ownReturn: 9.4, bmkContribution: 0.12, bmkReturn: 8.1 },
+    { name: 'France', contribution: 0.05, ownReturn: 4.2, bmkContribution: 0.04, bmkReturn: 3.9 },
+    { name: 'Canada', contribution: 0.04, ownReturn: 3.8, bmkContribution: 0.03, bmkReturn: 3.5 },
+    { name: 'Australia', contribution: 0.03, ownReturn: 5.1, bmkContribution: 0.02, bmkReturn: 4.8 },
+    { name: 'South Korea', contribution: 0.07, ownReturn: 7.6, bmkContribution: 0.06, bmkReturn: 6.9 },
+    { name: 'India', contribution: 0.08, ownReturn: 11.2, bmkContribution: 0.05, bmkReturn: 9.8 },
   ];
   const sectorContrib = [
-    { name: 'Information Technology', contribution: 0.28, ownReturn: 18.5 },
-    { name: 'Healthcare', contribution: 0.10, ownReturn: 8.2 },
-    { name: 'Financials', contribution: 0.14, ownReturn: 10.1 },
-    { name: 'Consumer Disc.', contribution: 0.06, ownReturn: 5.5 },
-    { name: 'Industrials', contribution: 0.08, ownReturn: 7.8 },
-    { name: 'Energy', contribution: -0.05, ownReturn: -3.2 },
-    { name: 'Materials', contribution: 0.04, ownReturn: 4.1 },
-    { name: 'Real Estate', contribution: 0.03, ownReturn: 6.2 },
-    { name: 'Utilities', contribution: 0.02, ownReturn: 3.5 },
-    { name: 'Comm. Services', contribution: 0.09, ownReturn: 9.8 },
+    { name: 'Information Technology', contribution: 0.28, ownReturn: 18.5, bmkContribution: 0.22, bmkReturn: 15.2 },
+    { name: 'Healthcare', contribution: 0.10, ownReturn: 8.2, bmkContribution: 0.08, bmkReturn: 7.1 },
+    { name: 'Financials', contribution: 0.14, ownReturn: 10.1, bmkContribution: 0.12, bmkReturn: 9.0 },
+    { name: 'Consumer Disc.', contribution: 0.06, ownReturn: 5.5, bmkContribution: 0.05, bmkReturn: 4.8 },
+    { name: 'Industrials', contribution: 0.08, ownReturn: 7.8, bmkContribution: 0.07, bmkReturn: 7.2 },
+    { name: 'Energy', contribution: -0.05, ownReturn: -3.2, bmkContribution: -0.03, bmkReturn: -2.1 },
+    { name: 'Materials', contribution: 0.04, ownReturn: 4.1, bmkContribution: 0.03, bmkReturn: 3.5 },
+    { name: 'Real Estate', contribution: 0.03, ownReturn: 6.2, bmkContribution: 0.02, bmkReturn: 5.5 },
+    { name: 'Utilities', contribution: 0.02, ownReturn: 3.5, bmkContribution: 0.01, bmkReturn: 2.8 },
+    { name: 'Comm. Services', contribution: 0.09, ownReturn: 9.8, bmkContribution: 0.07, bmkReturn: 8.5 },
   ];
-  return breakdown === 'Country' ? countryContrib : breakdown === 'Sector' ? sectorContrib : activeStrategies;
+  const activeStrats = activeStrategies.map(s => ({
+    ...s,
+    bmkContribution: +(s.contribution * 0.8).toFixed(3),
+    bmkReturn: +(s.ownReturn * 0.85).toFixed(1),
+  }));
+  return breakdown === 'Country' ? countryContrib : breakdown === 'Sector' ? sectorContrib : activeStrats;
 }
 
-function buildContribData(sourceData: { name: string; contribution: number; ownReturn: number }[], topN: number) {
+type SourceItem = { name: string; contribution: number; ownReturn: number; bmkContribution: number; bmkReturn: number };
+
+function buildContribData(sourceData: SourceItem[], topN: number, returnType: string) {
   const stratData = sourceData.slice(0, topN);
   const others = sourceData.slice(topN);
-  const contribData = [...stratData.map(s => ({ name: s.name, value: s.contribution })),
-    ...(others.length ? [{ name: 'Others', value: others.reduce((s, o) => s + o.contribution, 0) }] : [])];
-  const ownData = [...stratData.map(s => ({ name: s.name, value: s.ownReturn })),
-    ...(others.length ? [{ name: 'Others', value: others.reduce((s, o) => s + o.ownReturn, 0) / (others.length || 1) }] : [])];
+
+  const getContrib = (s: SourceItem) => {
+    if (returnType === 'Benchmark') return s.bmkContribution;
+    if (returnType === 'Active') return +(s.contribution - s.bmkContribution).toFixed(3);
+    return s.contribution;
+  };
+  const getReturn = (s: SourceItem) => {
+    if (returnType === 'Benchmark') return s.bmkReturn;
+    if (returnType === 'Active') return +(s.ownReturn - s.bmkReturn).toFixed(1);
+    return s.ownReturn;
+  };
+
+  const contribData = [...stratData.map(s => ({ name: s.name, value: getContrib(s) })),
+    ...(others.length ? [{ name: 'Others', value: +others.reduce((sum, o) => sum + getContrib(o), 0).toFixed(3) }] : [])];
+  const ownData = [...stratData.map(s => ({ name: s.name, value: getReturn(s) })),
+    ...(others.length ? [{ name: 'Others', value: +(others.reduce((sum, o) => sum + getReturn(o), 0) / (others.length || 1)).toFixed(1) }] : [])];
   return { stratData, contribData, ownData };
 }
 
@@ -188,9 +208,10 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const [mode, setMode] = useState('Cumulative');
   const [breakdown, setBreakdown] = useState('Active Strategies');
   const [topN, setTopN] = useState(8);
+  const [returnType, setReturnType] = useState<string>('Portfolio');
 
   const sourceData = getSourceData(breakdown);
-  const { stratData, contribData, ownData } = buildContribData(sourceData, topN);
+  const { stratData, contribData, ownData } = buildContribData(sourceData, topN, returnType);
 
   const waterfallDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
@@ -250,6 +271,12 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
             <ToggleBar options={breakdowns} value={breakdown as any} onChange={setBreakdown} size="xs" />
           </div>
           <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-1 h-8 rounded-full bg-accent" />
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Return</span>
+            </div>
+            <div className="h-8 w-px bg-border shrink-0" />
+            <ToggleBar options={returnTypes} value={returnType as any} onChange={setReturnType} size="xs" />
             <div className="h-8 w-px bg-border shrink-0" />
             <TopNSelect value={topN} onChange={setTopN} />
           </div>
