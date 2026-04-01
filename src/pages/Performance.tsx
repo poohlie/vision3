@@ -568,3 +568,38 @@ function PeersComparison({ filters }: { filters: PerfFilters }) {
     </div>
   );
 }
+
+// ─── Annual Cluster Bar Chart ───
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend, LabelList } from 'recharts';
+
+const ANNUAL_COLORS = [
+  'hsl(212, 72%, 55%)', 'hsl(32, 80%, 55%)', 'hsl(145, 52%, 48%)',
+  'hsl(0, 62%, 55%)', 'hsl(270, 50%, 55%)', 'hsl(185, 58%, 45%)',
+];
+
+function AnnualClusterChart({ data, strategies }: { data: Record<string, any>[]; strategies: string[] }) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data} barCategoryGap="18%">
+        <XAxis dataKey="year" tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }} />
+        <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
+        <Tooltip
+          contentStyle={{
+            background: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '6px',
+            fontSize: 11,
+            boxShadow: '0 4px 12px -2px rgba(0,0,0,0.12)',
+          }}
+          formatter={(v: number) => [`${v.toFixed(1)}%`, undefined]}
+        />
+        <Legend wrapperStyle={{ fontSize: 10 }} />
+        {strategies.map((name, i) => (
+          <Bar key={name} dataKey={name} fill={ANNUAL_COLORS[i % ANNUAL_COLORS.length]} radius={[2, 2, 0, 0]}>
+            <LabelList dataKey={name} position="top" fontSize={9} fill="hsl(var(--muted-foreground))" formatter={(v: number) => `${v.toFixed(1)}%`} />
+          </Bar>
+        ))}
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
