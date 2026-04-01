@@ -89,11 +89,11 @@ export default function Performance() {
               <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
               <div>
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Period</span>
-                <p className="text-[9px] text-muted-foreground">All charts</p>
+                <p className="text-[9px] text-muted-foreground">Select up to 3 · right charts use longest</p>
               </div>
             </div>
             <div className="h-8 w-px bg-border shrink-0" />
-            <ToggleBar options={timespans} value={filters.timespan as any} onChange={v => set({ timespan: v })} size="xs" />
+            <TimespanMultiSelect selected={filters.timespans} onChange={v => set({ timespans: v })} />
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 shrink-0">
@@ -107,24 +107,6 @@ export default function Performance() {
             <ToggleBar options={currencies} value={filters.currency as any} onChange={v => set({ currency: v })} size="xs" />
           </div>
         </div>
-      </div>
-
-      {/* Compare control (Nominal Return only) */}
-      {isNominal && (
-        <div className="w-1/2 rounded-lg border-2 border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 shrink-0">
-              <div className="w-1 h-8 rounded-full bg-primary" />
-              <div>
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Compare</span>
-                <p className="text-[9px] text-muted-foreground">Left charts only ←</p>
-              </div>
-            </div>
-            <div className="h-8 w-px bg-border shrink-0" />
-            <TimespanMultiSelect selected={filters.compareTimespans} onChange={v => set({ compareTimespans: v })} locked={filters.timespan} />
-          </div>
-        </div>
-      )}
 
       {/* Tab content */}
       {sub === 'Nominal Return' && <PortfolioPerformance filters={filters} />}
