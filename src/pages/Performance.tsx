@@ -383,36 +383,36 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
     <div className="grid grid-cols-2 gap-4">
       <ChartCard id="mkt-1" title="Equity Performance (MSCI ACWI)" toolbar={
         <ToggleBar options={['Country', 'Sector'] as const} value={eqBd} onChange={setEqBd} size="xs" />
-      }>
+      } footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <FinancialBarChart data={eqData} />
       </ChartCard>
       <ChartCard id="mkt-2" title="Equity Cumulative Performance" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
-      }>
+      } footer={<><FilterPill label="Period" value={longestTimespan(filters.timespans)} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
         <TrendChart data={marketTimeSeries(eqData, longestTimespan(filters.timespans))} lines={eqData.map(d => d.name)} />
       </ChartCard>
-      <ChartCard id="mkt-3" title="Fixed Income Performance (BBGA)">
+      <ChartCard id="mkt-3" title="Fixed Income Performance (BBGA)" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <FinancialBarChart data={fiPerf.map(f => ({ name: f.name, value: f.yield }))} colorByValue={false} barColor="hsl(185, 58%, 38%)" />
       </ChartCard>
       <ChartCard id="mkt-4" title="Fixed Income Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
-      }>
+      } footer={<><FilterPill label="Period" value={longestTimespan(filters.timespans)} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
         <TrendChart data={marketTimeSeries(fiPerf, longestTimespan(filters.timespans))} lines={fiPerf.map(f => f.name)} />
       </ChartCard>
-      <ChartCard id="mkt-5" title="Commodities Performance (BCOM)">
+      <ChartCard id="mkt-5" title="Commodities Performance (BCOM)" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <FinancialBarChart data={commodityPerf} />
       </ChartCard>
       <ChartCard id="mkt-6" title="Commodities Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
-      }>
+      } footer={<><FilterPill label="Period" value={longestTimespan(filters.timespans)} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
         <TrendChart data={marketTimeSeries(commodityPerf, longestTimespan(filters.timespans))} lines={commodityPerf.map(d => d.name)} />
       </ChartCard>
-      <ChartCard id="mkt-7" title="Currency Performance">
+      <ChartCard id="mkt-7" title="Currency Performance" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <FinancialBarChart data={currencyPerf.map(c => ({ name: c.name, value: c.value }))} />
       </ChartCard>
       <ChartCard id="mkt-8" title="Currency Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
-      }>
+      } footer={<><FilterPill label="Period" value={longestTimespan(filters.timespans)} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
         <TrendChart data={marketTimeSeries(currencyPerf, longestTimespan(filters.timespans))} lines={currencyPerf.map(c => c.name)} />
       </ChartCard>
     </div>
