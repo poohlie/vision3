@@ -209,6 +209,11 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
 
   const isComparing = filters.compareTimespans.length > 1;
 
+  // Timespan-aware time series
+  const tsPerf = generatePerfTimeSeries(filters.timespan);
+  const tsContrib = generateContributionTimeSeries(filters.timespan, stratData.slice(0, 6));
+  const tsCumulative = generateCumulativePerfSeries(filters.timespan, stratData.slice(0, 6).map(s => ({ name: s.name, ownReturn: s.ownReturn })));
+
   return (
     <div className="space-y-4">
       {/* Row 1: Top charts — left bordered primary (compare), right bordered accent (breakdown) */}
