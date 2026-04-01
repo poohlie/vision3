@@ -188,29 +188,32 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const [topN, setTopN] = useState(8);
   const [returnType, setReturnType] = useState<typeof returnTypes[number]>('Portfolio Return');
 
+  const gScale = getGlobalScale(filters.timespan, filters.currency);
   const sourceData = getSourceData(breakdown);
   const { stratData, contribData, ownData } = buildContribData(sourceData, topN);
 
   // Return-type scale: simulate different return perspectives
   const rtScale: Record<string, number> = { 'Portfolio Return': 1.0, 'Benchmark Return': 0.7, 'Active Return': 0.3 };
   const rtFactor = rtScale[returnType] || 1;
+  const combinedFactor = rtFactor * gScale;
 
   const applyRt = (data: { name: string; value: number }[]) =>
-    data.map(d => ({ name: d.name, value: +(d.value * rtFactor).toFixed(2) }));
+    data.map(d => ({ name: d.name, value: scaleValue(d.value, combinedFactor) }));
 
+  const cScale = curScales[filters.currency] || 1;
   const waterfallDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
-    data: perfWaterfallData[ts] || perfWaterfallData['1Y'],
+    data: (perfWaterfallData[ts] || perfWaterfallData['1Y']).map(d => ({ ...d, value: scaleValue(d.value, cScale) })),
   }));
 
   // Build multi-timespan datasets for contribution and own-return charts
   const contribDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
-    data: applyRt(contribData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(2) }))),
+    data: applyRt(contribData.map(d => ({ name: d.name, value: scaleValue(d.value, tsScales[ts] || 1) }))),
   }));
   const ownDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
-    data: applyRt(ownData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) }))),
+    data: applyRt(ownData.map(d => ({ name: d.name, value: scaleValue(d.value, tsScales[ts] || 1) }))),
   }));
 
   const isComparing = filters.compareTimespans.length > 1;
