@@ -391,7 +391,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      <ChartCard id="mkt-1" title="Equity Performance (MSCI ACWI)" toolbar={
+      <ChartCard id="mkt-1" title="Equity Performance" toolbar={
         <ToggleBar options={['Country', 'Sector'] as const} value={eqBd} onChange={setEqBd} size="xs" />
       } footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         {isComparing ? <CompareBarPanel datasets={eqDatasets} preserveOrder /> : <FinancialBarChart data={eqData} preserveOrder />}
