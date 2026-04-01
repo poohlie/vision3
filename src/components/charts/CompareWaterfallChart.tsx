@@ -80,7 +80,11 @@ export default function CompareWaterfallChart({ datasets, onBarClick, colorMap }
             radius={[0, 3, 3, 0]}
             onClick={(d) => onBarClick?.(d.name)}
             cursor={onBarClick ? 'pointer' : 'default'}
-          />
+          >
+            {colorMap && chartData.map((row, j) => (
+              <Cell key={j} fill={colorMap[row.name] ?? COMPARE_COLORS[i]} />
+            ))}
+          </Bar>
         ))}
       </BarChart>
     </ResponsiveContainer>
