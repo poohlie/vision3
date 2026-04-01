@@ -296,7 +296,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
       <div className="grid grid-cols-2 gap-4">
         <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
           <ChartCard id="perf-1" title="Return Attribution (Waterfall)" className="h-full">
-            <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
+            <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} horizontal />
           </ChartCard>
         </div>
         <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
