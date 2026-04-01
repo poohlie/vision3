@@ -134,7 +134,7 @@ export default function Performance() {
       {sub === 'Nominal Return' && <PortfolioPerformance filters={filters} />}
       {sub === 'Market Performance' && <MarketPerformance filters={filters} />}
       {sub === 'Real Return' && <RealReturn filters={filters} />}
-      {sub === 'Comparison' && <PeersComparison filters={filters} />}
+      
     </div>
   );
 }
