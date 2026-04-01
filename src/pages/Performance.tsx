@@ -382,16 +382,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
     datasets: { label: string; data: { name: string; value: number }[] }[],
     singleContent: React.ReactNode,
   ) => isComparing ? (
-    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${datasets.length}, 1fr)` }}>
-      {datasets.map((ds, i) => (
-        <div key={ds.label} className="flex flex-col">
-          <span className="text-[10px] font-semibold text-center mb-1" style={{ color: compareColors[i] }}>{ds.label}</span>
-          <div className="min-h-[220px]">
-            <FinancialBarChart data={ds.data} barColor={compareColors[i]} colorByValue={false} height={220} />
-          </div>
-        </div>
-      ))}
-    </div>
+    <CompareBarPanel datasets={datasets} />
   ) : singleContent;
 
   return (
