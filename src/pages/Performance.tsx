@@ -133,7 +133,7 @@ export default function Performance() {
                 </div>
               </div>
               <div className="h-8 w-px bg-border shrink-0" />
-              <TimespanMultiSelect selected={filters.compareTimespans} onChange={v => set({ compareTimespans: v })} />
+              <TimespanMultiSelect selected={filters.compareTimespans} onChange={v => set({ compareTimespans: v })} locked={filters.timespan} />
             </div>
           </div>
           <div /> {/* empty right half */}
