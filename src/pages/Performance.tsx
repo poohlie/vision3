@@ -230,10 +230,19 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
 
   const isComparing = filters.compareTimespans.length > 1;
 
-  // Timespan-aware time series
+  // Timespan-aware time series — adjusted for return type
   const tsPerf = generatePerfTimeSeries(filters.timespan);
-  const tsContrib = generateContributionTimeSeries(filters.timespan, stratData.slice(0, 6));
-  const tsCumulative = generateCumulativePerfSeries(filters.timespan, stratData.slice(0, 6).map(s => ({ name: s.name, ownReturn: s.ownReturn })));
+  const adjustedStrats = stratData.slice(0, 6).map(s => {
+    const contrib = returnType === 'Benchmark' ? s.bmkContribution
+      : returnType === 'Active' ? +(s.contribution - s.bmkContribution).toFixed(3)
+      : s.contribution;
+    const ownRet = returnType === 'Benchmark' ? s.bmkReturn
+      : returnType === 'Active' ? +(s.ownReturn - s.bmkReturn).toFixed(1)
+      : s.ownReturn;
+    return { name: s.name, contribution: contrib, ownReturn: ownRet };
+  });
+  const tsContrib = generateContributionTimeSeries(filters.timespan, adjustedStrats);
+  const tsCumulative = generateCumulativePerfSeries(filters.timespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
 
   return (
     <div className="space-y-4">
