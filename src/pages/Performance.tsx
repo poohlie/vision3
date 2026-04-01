@@ -243,6 +243,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   });
   const tsContrib = generateContributionTimeSeries(filters.timespan, adjustedStrats);
   const tsCumulative = generateCumulativePerfSeries(filters.timespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
+  const tsRolling = generateRollingPerfSeries(filters.timespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
 
   return (
     <div className="space-y-4">
