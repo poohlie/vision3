@@ -396,7 +396,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
       } footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         {isComparing ? <CompareBarPanel datasets={eqDatasets} preserveOrder /> : <FinancialBarChart data={eqData} preserveOrder />}
       </ChartCard>
-      <ChartCard id="mkt-2" title="Equity Cumulative Performance" toolbar={
+      <ChartCard id="mkt-2" title={`Equity ${mode} Performance`} toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       } footer={<><FilterPill label="Period" value={primaryTimespan} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
         <TrendChart data={(mode === 'Rolling' ? marketRollingTimeSeries : marketTimeSeries)(eqData, primaryTimespan)} lines={eqData.map(d => d.name)} />
