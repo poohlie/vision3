@@ -226,7 +226,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
         <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
           <ChartCard id="perf-2" title="Return Attribution (Time Series)" className="h-full">
             <StackedTimeChart
-              data={perfTimeSeries}
+              data={tsPerf}
               categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
               overlayLine="realReturn"
               negativeCategories={['inflation']}
