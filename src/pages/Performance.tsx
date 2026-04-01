@@ -508,16 +508,7 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
       </ChartCard>
       <ChartCard id="rr-5" title="Inflation by Country" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         {isComparing ? (
-          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${inflationDatasets.length}, 1fr)` }}>
-            {inflationDatasets.map((ds, i) => (
-              <div key={ds.label} className="flex flex-col">
-                <span className="text-[10px] font-semibold text-center mb-1" style={{ color: compareColors[i] }}>{ds.label}</span>
-                <div className="min-h-[220px]">
-                  <FinancialBarChart data={ds.data} barColor={compareColors[i]} colorByValue={false} height={220} />
-                </div>
-              </div>
-            ))}
-          </div>
+          <CompareBarPanel datasets={inflationDatasets} />
         ) : (
           <FinancialBarChart data={inflationByCountry} colorByValue={false} barColor="hsl(38, 90%, 50%)" />
         )}
