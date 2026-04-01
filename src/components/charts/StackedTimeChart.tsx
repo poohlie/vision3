@@ -55,7 +55,7 @@ export default function StackedTimeChart({ data, categories, height = 250, xKey 
         <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v > 0 ? '+' : ''}${v.toFixed(2)}%`, undefined]} />
         <Legend wrapperStyle={{ fontSize: 10 }} />
         {categories.map((c, i) => (
-          <Bar key={c} dataKey={c} stackId={stacked ? 's' : undefined} fill={CHART_COLORS[i % CHART_COLORS.length]} barSize={20} radius={[1, 1, 0, 0]} />
+          <Bar key={c} dataKey={c} stackId={stacked ? 's' : undefined} fill={colorMap?.[c] ?? CHART_COLORS[i % CHART_COLORS.length]} barSize={20} radius={[1, 1, 0, 0]} />
         ))}
       </BarChart>
     </ResponsiveContainer>
