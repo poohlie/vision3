@@ -15,7 +15,7 @@ import {
   equityCountryPerf, equitySectorPerf, fiPerf, commodityPerf, currencyPerf, marketTimeSeries,
   realReturnWaterfall, eltrrorData, inflationByCountry,
   peersData, peerReturnSeries, peerAssetMix, peerCountryMix, timespans, currencies,
-  generatePerfTimeSeries, generateCumulativePerfSeries, generateContributionTimeSeries,
+  generatePerfTimeSeries, generateCumulativePerfSeries, generateContributionTimeSeries, generateRollingPerfSeries,
 } from '@/data/mockData';
 
 const breakdowns = ['Active Strategies', 'Country', 'Sector'] as const;
