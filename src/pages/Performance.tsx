@@ -433,7 +433,7 @@ function PeersComparison({ filters }: { filters: PerfFilters }) {
               </tr>
             </thead>
             <tbody>
-              {peersData.map(p => (
+              {scaledPeers.map(p => (
                 <tr key={p.name} className={cn('border-b border-border/50', p.name === 'Our Portfolio' && 'bg-accent/10 font-semibold')}>
                   <td className="py-1.5 px-2">{p.name}</td>
                   <td className="py-1.5 px-2 text-right">{p.returns}%</td>
@@ -447,7 +447,14 @@ function PeersComparison({ filters }: { filters: PerfFilters }) {
         </div>
       </ChartCard>
       <ChartCard id="peer-2" title="Cumulative Returns">
-        <TrendChart data={peerReturnSeries} lines={peersData.map(p => p.name)} />
+        <TrendChart
+          data={peerReturnSeries.map(d => {
+            const scaled: Record<string, any> = { month: d.month };
+            scaledPeers.forEach(p => { if (p.name in d) scaled[p.name] = scaleValue((d as any)[p.name], gScale); });
+            return scaled;
+          })}
+          lines={scaledPeers.map(p => p.name)}
+        />
       </ChartCard>
       <ChartCard id="peer-3" title="Asset Mix Comparison">
         <div className="overflow-auto text-xs">
