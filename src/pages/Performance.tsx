@@ -276,7 +276,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
         </ChartCard>
         <ChartCard id="perf-4" title="Contribution (Time Series)" className="min-h-[280px]">
           <StackedTimeChart
-            data={contributionTimeSeries}
+            data={tsContrib}
             categories={stratData.slice(0, 6).map(s => s.name)}
             overlayLine="Total Portfolio"
           />
