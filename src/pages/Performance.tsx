@@ -299,7 +299,13 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
 
       {/* Row 2 & 3: Bottom 4 charts — accent border (breakdown + TopN) */}
       <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/30 pl-3 ml-1">
-        <ChartCard id="perf-3" title={`Contribution to ${target}`} className="min-h-[280px]">
+        <ChartCard id="perf-3" title={`Contribution to ${target}`} className="min-h-[280px]" footer={
+          <>
+            <FilterPill label="Currency" value={filters.currency} variant="currency" />
+            <FilterPill label="Breakdown" value={breakdown} variant="breakdown" />
+            <FilterPill label="Return" value={returnType} variant="breakdown" />
+          </>
+        }>
           {isComparing ? (
             <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${contribDatasets.length}, 1fr)` }}>
               {contribDatasets.map((ds, i) => (
@@ -315,14 +321,27 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
             <FinancialBarChart data={contribData} />
           )}
         </ChartCard>
-        <ChartCard id="perf-4" title="Contribution (Time Series)" className="min-h-[280px]">
+        <ChartCard id="perf-4" title="Contribution (Time Series)" className="min-h-[280px]" footer={
+          <>
+            <FilterPill label="Period" value={primaryTimespan} variant="period" />
+            <FilterPill label="Currency" value={filters.currency} variant="currency" />
+            <FilterPill label="Breakdown" value={breakdown} variant="breakdown" />
+            <FilterPill label="Return" value={returnType} variant="breakdown" />
+          </>
+        }>
           <StackedTimeChart
             data={tsContrib}
             categories={stratData.slice(0, 6).map(s => s.name)}
             overlayLine="Total Portfolio"
           />
         </ChartCard>
-        <ChartCard id="perf-5" title={`Own-Based Return (${target})`} className="min-h-[280px]">
+        <ChartCard id="perf-5" title={`Own-Based Return (${target})`} className="min-h-[280px]" footer={
+          <>
+            <FilterPill label="Currency" value={filters.currency} variant="currency" />
+            <FilterPill label="Breakdown" value={breakdown} variant="breakdown" />
+            <FilterPill label="Return" value={returnType} variant="breakdown" />
+          </>
+        }>
           {isComparing ? (
             <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${ownDatasets.length}, 1fr)` }}>
               {ownDatasets.map((ds, i) => (
@@ -338,7 +357,14 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
             <FinancialBarChart data={ownData} />
           )}
         </ChartCard>
-        <ChartCard id="perf-6" title="Cumulative Strategy Performance" className="min-h-[280px]">
+        <ChartCard id="perf-6" title="Cumulative Strategy Performance" className="min-h-[280px]" footer={
+          <>
+            <FilterPill label="Period" value={primaryTimespan} variant="period" />
+            <FilterPill label="Currency" value={filters.currency} variant="currency" />
+            <FilterPill label="Breakdown" value={breakdown} variant="breakdown" />
+            <FilterPill label="Return" value={returnType} variant="breakdown" />
+          </>
+        }>
           <TrendChart data={tsCumulative} lines={stratData.slice(0, 6).map(s => s.name)} />
         </ChartCard>
       </div>
