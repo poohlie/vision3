@@ -19,6 +19,7 @@ import {
 } from '@/data/mockData';
 
 const breakdowns = ['Active Strategies', 'Country', 'Sector'] as const;
+const returnTypes = ['Portfolio', 'Benchmark', 'Active'] as const;
 
 const subTabsConfig = [
   { key: 'Nominal Return' as const, metric: '+10.5%', label: 'Total Return', subtitle: '1Y USD basis' },
