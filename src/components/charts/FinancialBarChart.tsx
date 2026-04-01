@@ -86,7 +86,7 @@ export default function FinancialBarChart({ data: rawData, datasets, height = 25
 
   // Single dataset mode (original behavior)
   const singleData = rawData || (datasets ? datasets[0].data : []);
-  const data = [...singleData].sort((a, b) => b.value - a.value);
+  const data = preserveOrder ? singleData : [...singleData].sort((a, b) => b.value - a.value);
 
   if (layout === 'vertical') {
     return (
