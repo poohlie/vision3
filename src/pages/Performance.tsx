@@ -10,6 +10,7 @@ import FinancialBarChart from '@/components/charts/FinancialBarChart';
 import StackedTimeChart from '@/components/charts/StackedTimeChart';
 import TrendChart from '@/components/charts/TrendChart';
 import ScatterPlot from '@/components/charts/ScatterChart';
+import GroupedBarChart from '@/components/charts/GroupedBarChart';
 import {
   perfWaterfallData, activeStrategies, perfTimeSeries, cumulativePerfSeries, contributionTimeSeries,
   equityCountryPerf, equitySectorPerf, fiPerf, commodityPerf, currencyPerf, marketTimeSeries,
@@ -293,17 +294,28 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
             : <FinancialBarChart data={applyRt(ownData)} />
           }
         </ChartCard>
-        <ChartCard id="perf-6" title={`Cumulative Performance (${returnType})`} className="min-h-[280px]" toolbar={
+        <ChartCard id="perf-6" title={`${mode} Performance (${returnType})`} className="min-h-[280px]" toolbar={
           <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
         }>
-          <TrendChart
-            data={cumulativePerfSeries.map(d => {
-              const scaled: Record<string, any> = { month: d.month };
-              activeStrategies.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = scaleValue((d as any)[s.name], combinedFactor); });
-              return scaled;
-            })}
-            lines={activeStrategies.slice(0, 6).map(s => s.name)}
-          />
+          {mode === 'Cumulative' ? (
+            <TrendChart
+              data={cumulativePerfSeries.map(d => {
+                const scaled: Record<string, any> = { month: d.month };
+                stratData.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = scaleValue((d as any)[s.name], combinedFactor); });
+                return scaled;
+              })}
+              lines={stratData.slice(0, 6).map(s => s.name)}
+            />
+          ) : (
+            <GroupedBarChart
+              data={stratData.slice(0, topN).map(s => ({
+                name: s.name,
+                value: scaleValue(s.ownReturn, combinedFactor),
+                group: s.ownReturn >= 0 ? 'DM' : 'EM',
+              }))}
+              colorByValue
+            />
+          )}
         </ChartCard>
       </div>
     </div>
