@@ -12,6 +12,7 @@ interface Props {
   height?: number;
   colorByValue?: boolean;
   barColor?: string;
+  totalBar?: { name: string; value: number };
 }
 
 const GROUP_COLORS: Record<string, string> = {
