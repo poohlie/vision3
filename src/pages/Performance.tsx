@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import ChartCard from '@/components/shared/ChartCard';
@@ -10,9 +10,6 @@ import FinancialBarChart from '@/components/charts/FinancialBarChart';
 import StackedTimeChart from '@/components/charts/StackedTimeChart';
 import TrendChart from '@/components/charts/TrendChart';
 import ScatterPlot from '@/components/charts/ScatterChart';
-import GroupedBarChart from '@/components/charts/GroupedBarChart';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend, CartesianGrid } from 'recharts';
-import { CHART_COLORS } from '@/data/mockData';
 import {
   perfWaterfallData, activeStrategies, perfTimeSeries, cumulativePerfSeries, contributionTimeSeries,
   equityCountryPerf, equitySectorPerf, fiPerf, commodityPerf, currencyPerf, marketTimeSeries,
@@ -21,7 +18,6 @@ import {
 } from '@/data/mockData';
 
 const breakdowns = ['Active Strategies', 'Country', 'Sector'] as const;
-const returnTypes = ['Portfolio Return', 'Benchmark Return', 'Active Return'] as const;
 
 const subTabsConfig = [
   { key: 'Nominal Return' as const, metric: '+10.5%', label: 'Total Return', subtitle: '1Y USD basis' },
@@ -50,21 +46,7 @@ export default function Performance() {
     compareTimespans: ['1Y'],
   });
 
-  const set = (partial: Partial<PerfFilters>) => setFilters(prev => {
-    const next = { ...prev, ...partial };
-    // When global timespan changes, ensure it's always the first in compareTimespans
-    if ('timespan' in partial && partial.timespan) {
-      const others = prev.compareTimespans.filter(t => t !== partial.timespan);
-      next.compareTimespans = [partial.timespan, ...others];
-    }
-    // Ensure global timespan is always included in compareTimespans
-    if ('compareTimespans' in partial && partial.compareTimespans) {
-      if (!partial.compareTimespans.includes(next.timespan)) {
-        next.compareTimespans = [next.timespan, ...partial.compareTimespans];
-      }
-    }
-    return next;
-  });
+  const set = (partial: Partial<PerfFilters>) => setFilters(prev => ({ ...prev, ...partial }));
   const isNominal = sub === 'Nominal Return';
 
   return (
@@ -93,36 +75,39 @@ export default function Performance() {
         ))}
       </div>
 
-      {/* Global controls — full width */}
-      <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
-        <div className="grid grid-cols-2 gap-3">
+      {/* Scoped control cards */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Row 1: Period + Currency — all charts */}
+        <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 shrink-0">
               <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
               <div>
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Global</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Period</span>
                 <p className="text-[9px] text-muted-foreground">All charts</p>
               </div>
             </div>
             <div className="h-8 w-px bg-border shrink-0" />
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Period</span>
-              <ToggleBar options={timespans} value={filters.timespan as any} onChange={v => set({ timespan: v })} size="xs" />
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-px bg-border shrink-0" />
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Currency</span>
-              <ToggleBar options={currencies} value={filters.currency as any} onChange={v => set({ currency: v })} size="xs" />
-            </div>
+            <ToggleBar options={timespans} value={filters.timespan as any} onChange={v => set({ timespan: v })} size="xs" />
           </div>
         </div>
-      </div>
 
-      {/* Compare — left half only (Nominal Return only) */}
-      {isNominal && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Currency</span>
+                <p className="text-[9px] text-muted-foreground">All charts</p>
+              </div>
+            </div>
+            <div className="h-8 w-px bg-border shrink-0" />
+            <ToggleBar options={currencies} value={filters.currency as any} onChange={v => set({ currency: v })} size="xs" />
+          </div>
+        </div>
+
+        {/* Row 2: Compare + Breakdown (Nominal Return only) */}
+        {isNominal && (
           <div className="rounded-lg border-2 border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 shrink-0">
@@ -133,12 +118,29 @@ export default function Performance() {
                 </div>
               </div>
               <div className="h-8 w-px bg-border shrink-0" />
-              <TimespanMultiSelect selected={filters.compareTimespans} onChange={v => set({ compareTimespans: v })} locked={filters.timespan} />
+              <TimespanMultiSelect selected={filters.compareTimespans} onChange={v => set({ compareTimespans: v })} />
             </div>
           </div>
-          <div /> {/* empty right half */}
-        </div>
-      )}
+        )}
+
+        {isNominal && (
+          <div className="rounded-lg border-2 border-accent/30 bg-accent/5 px-4 py-3 shadow-sm">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="w-1 h-8 rounded-full bg-accent" />
+                <div>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Breakdown</span>
+                  <p className="text-[9px] text-muted-foreground">Right charts → · TopN ↓ bottom 4</p>
+                </div>
+              </div>
+              <div className="h-8 w-px bg-border shrink-0" />
+              <ToggleBar options={breakdowns} value={filters.breakdown as any} onChange={v => set({ breakdown: v })} size="xs" />
+              <div className="h-8 w-px bg-border shrink-0" />
+              <TopNSelect value={filters.topN} onChange={n => set({ topN: n })} />
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Tab content */}
       {sub === 'Nominal Return' && <PortfolioPerformance filters={filters} />}
@@ -189,106 +191,19 @@ function buildContribData(sourceData: { name: string; contribution: number; ownR
   return { stratData, contribData, ownData };
 }
 
-// Timespan scale factors for mock variation
-const tsScales: Record<string, number> = { '1Y': 1.0, '3Y': 0.75, '5Y': 0.85, '10Y': 0.65, '20Y': 0.55 };
-const curScales: Record<string, number> = { 'USD': 1.0, 'EUR': 0.92, 'GBP': 0.79, 'JPY': 1.12, 'Local': 1.05 };
-const getGlobalScale = (timespan: string, currency: string) => (tsScales[timespan] || 1) * (curScales[currency] || 1);
-const scaleValue = (v: number, scale: number) => +(v * scale).toFixed(2);
-const scaleData = (data: { name: string; value: number }[], scale: number) => data.map(d => ({ name: d.name, value: scaleValue(d.value, scale) }));
-
-// ─── Rolling Grouped Bar Chart ───
-
-const TIMESPAN_YEARS: Record<string, number[]> = {
-  '1Y': [2025],
-  '3Y': [2023, 2024, 2025],
-  '5Y': [2021, 2022, 2023, 2024, 2025],
-  '10Y': [2016, 2018, 2020, 2022, 2024, 2025],
-  '20Y': [2006, 2010, 2014, 2018, 2022, 2025],
-};
-
-function RollingGroupedBarChart({ stratData, topN, combinedFactor, timespan }: {
-  stratData: { name: string; contribution: number; ownReturn: number }[];
-  topN: number;
-  combinedFactor: number;
-  timespan: string;
-}) {
-  const items = stratData.slice(0, Math.min(topN, 6));
-  const years = TIMESPAN_YEARS[timespan] || TIMESPAN_YEARS['1Y'];
-
-  const chartData = useMemo(() =>
-    years.map(year => {
-      const row: Record<string, any> = { year: String(year) };
-      items.forEach(s => {
-        const seed = (year * 7 + s.name.charCodeAt(0)) % 20;
-        const variation = 0.6 + (seed / 20) * 0.8;
-        row[s.name] = scaleValue(s.ownReturn * variation, combinedFactor);
-      });
-      return row;
-    }), [years, items, combinedFactor]);
-
-  return (
-    <ResponsiveContainer width="100%" height={250}>
-      <BarChart data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
-        <XAxis dataKey="year" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-        <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
-        <Tooltip
-          contentStyle={{
-            background: 'hsl(var(--card))',
-            border: '1px solid hsl(var(--border))',
-            borderRadius: '6px',
-            fontSize: 11,
-            boxShadow: '0 4px 12px -2px rgba(0,0,0,0.12)',
-          }}
-          formatter={(v: number) => [`${v.toFixed(1)}%`, undefined]}
-        />
-        <Legend wrapperStyle={{ fontSize: 10 }} />
-        {items.map((s, i) => (
-          <Bar key={s.name} dataKey={s.name} fill={CHART_COLORS[i % CHART_COLORS.length]} radius={[2, 2, 0, 0]} />
-        ))}
-      </BarChart>
-    </ResponsiveContainer>
-  );
-}
-
 // ─── Sub-tab components ───
 
 function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const [target, setTarget] = useState('Total Portfolio');
   const [mode, setMode] = useState('Cumulative');
-  const [breakdown, setBreakdown] = useState('Active Strategies');
-  const [topN, setTopN] = useState(8);
-  const [returnType, setReturnType] = useState<typeof returnTypes[number]>('Portfolio Return');
 
-  const gScale = getGlobalScale(filters.timespan, filters.currency);
-  const sourceData = getSourceData(breakdown);
-  const { stratData, contribData, ownData } = buildContribData(sourceData, topN);
+  const sourceData = getSourceData(filters.breakdown);
+  const { stratData, contribData, ownData } = buildContribData(sourceData, filters.topN);
 
-  // Return-type scale: simulate different return perspectives
-  const rtScale: Record<string, number> = { 'Portfolio Return': 1.0, 'Benchmark Return': 0.7, 'Active Return': 0.3 };
-  const rtFactor = rtScale[returnType] || 1;
-  const combinedFactor = rtFactor * gScale;
-
-  const applyRt = (data: { name: string; value: number }[]) =>
-    data.map(d => ({ name: d.name, value: scaleValue(d.value, combinedFactor) }));
-
-  const cScale = curScales[filters.currency] || 1;
   const waterfallDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
-    data: (perfWaterfallData[ts] || perfWaterfallData['1Y']).map(d => ({ ...d, value: scaleValue(d.value, cScale) })),
+    data: perfWaterfallData[ts] || perfWaterfallData['1Y'],
   }));
-
-  // Build multi-timespan datasets for contribution and own-return charts
-  const contribDatasets = filters.compareTimespans.map(ts => ({
-    label: ts,
-    data: applyRt(contribData.map(d => ({ name: d.name, value: scaleValue(d.value, tsScales[ts] || 1) }))),
-  }));
-  const ownDatasets = filters.compareTimespans.map(ts => ({
-    label: ts,
-    data: applyRt(ownData.map(d => ({ name: d.name, value: scaleValue(d.value, tsScales[ts] || 1) }))),
-  }));
-
-  const isComparing = filters.compareTimespans.length > 1;
 
   return (
     <div className="space-y-4">
@@ -296,19 +211,13 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
       <div className="grid grid-cols-2 gap-4">
         <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
           <ChartCard id="perf-1" title="Return Attribution (Waterfall)" className="h-full">
-            <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} horizontal />
+            <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
           </ChartCard>
         </div>
-        <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
+        <div className="border-l-2 border-accent/30 pl-3 min-h-[320px]">
           <ChartCard id="perf-2" title="Return Attribution (Time Series)" className="h-full">
             <StackedTimeChart
-              data={perfTimeSeries.map(d => {
-                const scaled: Record<string, any> = { month: d.month };
-                ['strategicPortfolio', 'mts', 'activeStrategies', 'inflation', 'realReturn'].forEach(k => {
-                  if (k in d) scaled[k] = scaleValue((d as any)[k], gScale);
-                });
-                return scaled;
-              })}
+              data={perfTimeSeries}
               categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
               overlayLine="realReturn"
               negativeCategories={['inflation']}
@@ -317,74 +226,25 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
         </div>
       </div>
 
-      {/* Breakdown filter bar — between row 1 and bottom charts, like Exposure filter */}
-      <div className="rounded-lg border-2 border-accent/30 bg-accent/5 px-4 py-3 shadow-sm">
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="w-1 h-8 rounded-full bg-accent" />
-            <div>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Breakdown</span>
-              <p className="text-[9px] text-muted-foreground">Applies to charts below ↓</p>
-            </div>
-          </div>
-          <div className="h-8 w-px bg-border shrink-0" />
-          <ToggleBar options={breakdowns} value={breakdown as any} onChange={setBreakdown} size="xs" />
-          <div className="h-8 w-px bg-border shrink-0" />
-          <TopNSelect value={topN} onChange={setTopN} />
-          <div className="h-8 w-px bg-border shrink-0" />
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Return</span>
-            <ToggleBar options={returnTypes} value={returnType} onChange={v => setReturnType(v as typeof returnTypes[number])} size="xs" />
-          </div>
-        </div>
-      </div>
-
-      {/* Row 2 & 3: Bottom 4 charts — accent border (breakdown + TopN) */}
-      <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/30 pl-3 ml-1">
-        <ChartCard id="perf-3" title={`Contribution to ${target} (${returnType})`} className="min-h-[280px]">
-          {isComparing
-            ? <FinancialBarChart datasets={contribDatasets} />
-            : <FinancialBarChart data={applyRt(contribData)} />
-          }
+      {/* Row 2 & 3: Bottom 4 charts — combined primary+accent border (TopN applies here) */}
+      <div className="grid grid-cols-2 gap-4 border-l-2 pl-3 ml-1" style={{ borderImage: 'linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--accent))) 1' }}>
+        <ChartCard id="perf-3" title={`Contribution to ${target}`} className="min-h-[280px]">
+          <FinancialBarChart data={contribData} />
         </ChartCard>
-        <ChartCard id="perf-4" title={`Contribution Time Series (${returnType})`} className="min-h-[280px]">
+        <ChartCard id="perf-4" title="Contribution (Time Series)" className="min-h-[280px]">
           <StackedTimeChart
-            data={contributionTimeSeries.map(d => {
-              const scaled: Record<string, any> = { month: d.month };
-              stratData.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = scaleValue((d as any)[s.name], combinedFactor); });
-              if ('Total Portfolio' in d) scaled['Total Portfolio'] = scaleValue((d as any)['Total Portfolio'], combinedFactor);
-              return scaled;
-            })}
+            data={contributionTimeSeries}
             categories={stratData.slice(0, 6).map(s => s.name)}
             overlayLine="Total Portfolio"
           />
         </ChartCard>
-        <ChartCard id="perf-5" title={`Own-Based Return (${returnType})`} className="min-h-[280px]">
-          {isComparing
-            ? <FinancialBarChart datasets={ownDatasets} />
-            : <FinancialBarChart data={applyRt(ownData)} />
-          }
+        <ChartCard id="perf-5" title={`Own-Based Return (${target})`} className="min-h-[280px]">
+          <FinancialBarChart data={ownData} />
         </ChartCard>
-        <ChartCard id="perf-6" title={`${mode} Performance (${returnType})`} className="min-h-[280px]" toolbar={
+        <ChartCard id="perf-6" title="Cumulative Strategy Performance" className="min-h-[280px]" toolbar={
           <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
         }>
-          {mode === 'Cumulative' ? (
-            <TrendChart
-              data={cumulativePerfSeries.map(d => {
-                const scaled: Record<string, any> = { month: d.month };
-                stratData.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = scaleValue((d as any)[s.name], combinedFactor); });
-                return scaled;
-              })}
-              lines={stratData.slice(0, 6).map(s => s.name)}
-            />
-          ) : (
-            <RollingGroupedBarChart
-              stratData={stratData}
-              topN={topN}
-              combinedFactor={combinedFactor}
-              timespan={filters.timespan}
-            />
-          )}
+          <TrendChart data={cumulativePerfSeries} lines={activeStrategies.slice(0, 6).map(s => s.name)} />
         </ChartCard>
       </div>
     </div>
@@ -395,12 +255,8 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
 function MarketPerformance({ filters }: { filters: PerfFilters }) {
   const [eqBd, setEqBd] = useState<string>('Country');
   const [mode, setMode] = useState('Cumulative');
-  const gScale = getGlobalScale(filters.timespan, filters.currency);
 
-  const eqData = scaleData(eqBd === 'Country' ? equityCountryPerf : equitySectorPerf, gScale);
-  const fiData = scaleData(fiPerf.map(f => ({ name: f.name, value: f.yield })), gScale);
-  const comData = scaleData(commodityPerf, gScale);
-  const curData = scaleData(currencyPerf.map(c => ({ name: c.name, value: c.value })), gScale);
+  const eqData = eqBd === 'Country' ? equityCountryPerf : equitySectorPerf;
 
   return (
     <div className="grid grid-cols-2 gap-4">
@@ -415,37 +271,35 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
         <TrendChart data={marketTimeSeries(eqData)} lines={eqData.map(d => d.name)} />
       </ChartCard>
       <ChartCard id="mkt-3" title="Fixed Income Performance (BBGA)">
-        <FinancialBarChart data={fiData} colorByValue={false} barColor="hsl(185, 58%, 38%)" />
+        <FinancialBarChart data={fiPerf.map(f => ({ name: f.name, value: f.yield }))} colorByValue={false} barColor="hsl(185, 58%, 38%)" />
       </ChartCard>
       <ChartCard id="mkt-4" title="Fixed Income Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       }>
-        <TrendChart data={marketTimeSeries(fiData)} lines={fiData.map(f => f.name)} />
+        <TrendChart data={marketTimeSeries(fiPerf)} lines={fiPerf.map(f => f.name)} />
       </ChartCard>
       <ChartCard id="mkt-5" title="Commodities Performance (BCOM)">
-        <FinancialBarChart data={comData} />
+        <FinancialBarChart data={commodityPerf} />
       </ChartCard>
       <ChartCard id="mkt-6" title="Commodities Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       }>
-        <TrendChart data={marketTimeSeries(comData)} lines={comData.map(d => d.name)} />
+        <TrendChart data={marketTimeSeries(commodityPerf)} lines={commodityPerf.map(d => d.name)} />
       </ChartCard>
       <ChartCard id="mkt-7" title="Currency Performance">
-        <FinancialBarChart data={curData} />
+        <FinancialBarChart data={currencyPerf.map(c => ({ name: c.name, value: c.value }))} />
       </ChartCard>
       <ChartCard id="mkt-8" title="Currency Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       }>
-        <TrendChart data={marketTimeSeries(curData)} lines={curData.map(c => c.name)} />
+        <TrendChart data={marketTimeSeries(currencyPerf)} lines={currencyPerf.map(c => c.name)} />
       </ChartCard>
     </div>
   );
 }
 
 function RealReturn({ filters }: { filters: PerfFilters }) {
-  const gScale = getGlobalScale(filters.timespan, filters.currency);
-  const wfData = (realReturnWaterfall[filters.timespan as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'])
-    .map(d => ({ ...d, value: scaleValue(d.value, curScales[filters.currency] || 1) }));
+  const wfData = realReturnWaterfall[filters.timespan as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'];
 
   return (
     <div className="grid grid-cols-2 gap-4">
@@ -456,8 +310,8 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
         <TrendChart
           data={cumulativePerfSeries.map((d, i) => ({
             month: d.month,
-            'Nominal Return': i <= 8 ? scaleValue((i + 1) * 0.85, gScale) : null,
-            'Projected Real': i >= 8 ? scaleValue((i + 1) * 0.55, gScale) : null,
+            'Nominal Return': i <= 8 ? +((i + 1) * 0.85).toFixed(2) : null,
+            'Projected Real': i >= 8 ? +((i + 1) * 0.55).toFixed(2) : null,
           }))}
           lines={['Nominal Return', 'Projected Real']}
           lineColors={{ 'Projected Real': 'hsl(0, 72%, 51%)' }}
@@ -465,11 +319,11 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
         />
       </ChartCard>
       <ChartCard id="rr-3" title="Expected Long-Term Rate of Return (ELTRROR)">
-        <FinancialBarChart data={scaleData(eltrrorData, gScale)} colorByValue={false} barColor="hsl(145, 52%, 42%)" />
+        <FinancialBarChart data={eltrrorData} colorByValue={false} barColor="hsl(145, 52%, 42%)" />
       </ChartCard>
       <ChartCard id="rr-4" title="ELTRROR Cone Charts">
         <div className="grid grid-cols-3 grid-rows-2 gap-2 h-full">
-          {scaleData(eltrrorData, gScale).map(ac => (
+          {eltrrorData.map(ac => (
             <div key={ac.name} className="rounded-md border bg-muted/20 p-2 flex flex-col items-center justify-center">
               <p className="text-[9px] font-medium text-muted-foreground mb-1">{ac.name}</p>
               <div className="w-full h-12 relative">
@@ -484,11 +338,11 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
         </div>
       </ChartCard>
       <ChartCard id="rr-5" title="Inflation by Country">
-        <FinancialBarChart data={scaleData(inflationByCountry, gScale)} colorByValue={false} barColor="hsl(38, 90%, 50%)" />
+        <FinancialBarChart data={inflationByCountry} colorByValue={false} barColor="hsl(38, 90%, 50%)" />
       </ChartCard>
       <ChartCard id="rr-6" title="Cumulative Inflation by Country">
         <StackedTimeChart
-          data={marketTimeSeries(scaleData(inflationByCountry, gScale))}
+          data={marketTimeSeries(inflationByCountry)}
           categories={inflationByCountry.map(c => c.name)}
         />
       </ChartCard>
@@ -497,8 +351,6 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
 }
 
 function PeersComparison({ filters }: { filters: PerfFilters }) {
-  const gScale = getGlobalScale(filters.timespan, filters.currency);
-  const scaledPeers = peersData.map(p => ({ ...p, returns: scaleValue(p.returns, gScale), volatility: scaleValue(p.volatility, gScale) }));
   return (
     <div className="grid grid-cols-2 gap-4">
       <ChartCard id="peer-1" title="Peer Performance Metrics">
@@ -514,7 +366,7 @@ function PeersComparison({ filters }: { filters: PerfFilters }) {
               </tr>
             </thead>
             <tbody>
-              {scaledPeers.map(p => (
+              {peersData.map(p => (
                 <tr key={p.name} className={cn('border-b border-border/50', p.name === 'Our Portfolio' && 'bg-accent/10 font-semibold')}>
                   <td className="py-1.5 px-2">{p.name}</td>
                   <td className="py-1.5 px-2 text-right">{p.returns}%</td>
@@ -528,14 +380,7 @@ function PeersComparison({ filters }: { filters: PerfFilters }) {
         </div>
       </ChartCard>
       <ChartCard id="peer-2" title="Cumulative Returns">
-        <TrendChart
-          data={peerReturnSeries.map(d => {
-            const scaled: Record<string, any> = { month: d.month };
-            scaledPeers.forEach(p => { if (p.name in d) scaled[p.name] = scaleValue((d as any)[p.name], gScale); });
-            return scaled;
-          })}
-          lines={scaledPeers.map(p => p.name)}
-        />
+        <TrendChart data={peerReturnSeries} lines={peersData.map(p => p.name)} />
       </ChartCard>
       <ChartCard id="peer-3" title="Asset Mix Comparison">
         <div className="overflow-auto text-xs">
@@ -595,14 +440,14 @@ function PeersComparison({ filters }: { filters: PerfFilters }) {
       </ChartCard>
       <ChartCard id="peer-5" title="Return vs Volatility">
         <ScatterPlot
-          data={scaledPeers.map(p => ({ name: p.name, x: p.volatility, y: p.returns }))}
+          data={peersData.map(p => ({ name: p.name, x: p.volatility, y: p.returns }))}
           xLabel="Volatility (%)"
           yLabel="Returns (%)"
         />
       </ChartCard>
       <ChartCard id="peer-6" title="Return vs EQ Beta">
         <ScatterPlot
-          data={scaledPeers.map(p => ({ name: p.name, x: p.eqBeta, y: p.returns }))}
+          data={peersData.map(p => ({ name: p.name, x: p.eqBeta, y: p.returns }))}
           xLabel="EQ Beta"
           yLabel="Returns (%)"
         />

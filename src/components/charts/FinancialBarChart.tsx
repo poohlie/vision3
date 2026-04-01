@@ -1,32 +1,16 @@
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, ReferenceLine, Tooltip, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, ReferenceLine, Tooltip } from 'recharts';
 
-const COMPARE_COLORS = [
-  'hsl(212, 72%, 42%)',
-  'hsl(185, 58%, 38%)',
-  'hsl(38, 90%, 50%)',
-];
-
-interface SingleProps {
+interface Props {
   data: { name: string; value: number }[];
-  datasets?: never;
   height?: number;
   layout?: 'horizontal' | 'vertical';
   colorByValue?: boolean;
   barColor?: string;
 }
 
-interface MultiProps {
-  data?: never;
-  datasets: { label: string; data: { name: string; value: number }[] }[];
-  height?: number;
-  layout?: 'horizontal' | 'vertical';
-  colorByValue?: boolean;
-  barColor?: string;
-}
+export default function FinancialBarChart({ data: rawData, height = 250, layout = 'vertical', colorByValue = true, barColor }: Props) {
+  const data = [...rawData].sort((a, b) => b.value - a.value);
 
-type Props = SingleProps | MultiProps;
-
-export default function FinancialBarChart({ data: rawData, datasets, height = 250, layout = 'vertical', colorByValue = true, barColor }: Props) {
   const tooltipStyle = {
     background: 'hsl(var(--card))',
     border: '1px solid hsl(var(--border))',
@@ -34,57 +18,6 @@ export default function FinancialBarChart({ data: rawData, datasets, height = 25
     fontSize: 11,
     boxShadow: '0 4px 12px -2px rgba(0,0,0,0.12)',
   };
-
-  // Multi-dataset grouped mode
-  if (datasets && datasets.length > 1) {
-    const names = datasets[0].data.map(d => d.name);
-    const chartData = names.map(name => {
-      const row: Record<string, any> = { name };
-      datasets.forEach(ds => {
-        const item = ds.data.find(d => d.name === name);
-        row[ds.label] = item?.value || 0;
-      });
-      return row;
-    });
-    // Sort by first dataset value descending
-    chartData.sort((a, b) => (b[datasets[0].label] || 0) - (a[datasets[0].label] || 0));
-
-    if (layout === 'vertical') {
-      return (
-        <ResponsiveContainer width="100%" height={height}>
-          <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 20 }}>
-            <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
-            <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} width={120} />
-            <ReferenceLine x={0} stroke="hsl(var(--border))" />
-            <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v > 0 ? '+' : ''}${v.toFixed(1)}%`, undefined]} />
-            <Legend wrapperStyle={{ fontSize: 10 }} />
-            {datasets.map((ds, i) => (
-              <Bar key={ds.label} dataKey={ds.label} fill={COMPARE_COLORS[i]} radius={[0, 3, 3, 0]} barSize={10} />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
-      );
-    }
-
-    return (
-      <ResponsiveContainer width="100%" height={height}>
-        <BarChart data={chartData}>
-          <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-          <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
-          <ReferenceLine y={0} stroke="hsl(var(--border))" />
-          <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v > 0 ? '+' : ''}${v.toFixed(1)}%`, undefined]} />
-          <Legend wrapperStyle={{ fontSize: 10 }} />
-          {datasets.map((ds, i) => (
-            <Bar key={ds.label} dataKey={ds.label} fill={COMPARE_COLORS[i]} radius={[3, 3, 0, 0]} />
-          ))}
-        </BarChart>
-      </ResponsiveContainer>
-    );
-  }
-
-  // Single dataset mode (original behavior)
-  const singleData = rawData || (datasets ? datasets[0].data : []);
-  const data = [...singleData].sort((a, b) => b.value - a.value);
 
   if (layout === 'vertical') {
     return (

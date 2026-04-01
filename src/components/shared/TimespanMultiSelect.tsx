@@ -6,13 +6,11 @@ interface Props {
   selected: string[];
   onChange: (v: string[]) => void;
   max?: number;
-  locked?: string; // timespan that cannot be deselected (global period)
 }
 
-export default function TimespanMultiSelect({ selected, onChange, max = 3, locked }: Props) {
+export default function TimespanMultiSelect({ selected, onChange, max = 3 }: Props) {
   const toggle = (ts: string) => {
     if (selected.includes(ts)) {
-      if (ts === locked) return; // cannot deselect the global timespan
       if (selected.length > 1) onChange(selected.filter(s => s !== ts));
     } else if (selected.length < max) {
       onChange([...selected, ts]);
@@ -31,9 +29,7 @@ export default function TimespanMultiSelect({ selected, onChange, max = 3, locke
             className={cn(
               'px-1.5 py-0.5 text-[10px] rounded-sm font-medium transition-all border',
               selected.includes(ts)
-                ? ts === locked
-                  ? 'bg-primary text-primary-foreground shadow-sm border-primary/50'
-                  : 'bg-accent text-accent-foreground shadow-sm border-accent/50'
+                ? 'bg-accent text-accent-foreground shadow-sm border-accent/50'
                 : 'text-muted-foreground hover:text-foreground border-transparent'
             )}
           >

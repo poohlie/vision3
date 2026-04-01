@@ -3,11 +3,6 @@ import { Pin, PinOff } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useWorkspace } from '@/context/WorkspaceContext';
 
-export interface ChartTag {
-  label: string;
-  color?: 'primary' | 'muted' | 'accent';
-}
-
 interface Props {
   id: string;
   title: string;
@@ -15,10 +10,9 @@ interface Props {
   children: ReactNode;
   toolbar?: ReactNode;
   className?: string;
-  tags?: ChartTag[];
 }
 
-export default function ChartCard({ id, title, subtitle, children, toolbar, className, tags }: Props) {
+export default function ChartCard({ id, title, subtitle, children, toolbar, className }: Props) {
   const { saveChart, isChartSaved } = useWorkspace();
   const saved = isChartSaved(id);
 
@@ -42,21 +36,6 @@ export default function ChartCard({ id, title, subtitle, children, toolbar, clas
         {toolbar && <div className="flex items-center gap-2 flex-shrink-0">{toolbar}</div>}
       </div>
       <div className="flex-1 min-h-0">{children}</div>
-      {tags && tags.length > 0 && (
-        <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border/50">
-          {tags.map((tag, i) => (
-            <span key={i} className={cn(
-              'text-[10px] font-medium px-1.5 py-0.5 rounded border',
-              tag.color === 'primary' && 'text-primary border-primary/40 bg-primary/5',
-              tag.color === 'accent' && 'text-accent border-accent/40 bg-accent/5',
-              tag.color === 'muted' && 'text-muted-foreground border-muted-foreground/30 bg-muted/30',
-              !tag.color && 'text-primary border-primary/40 bg-primary/5',
-            )}>
-              {tag.label}
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
