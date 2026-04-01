@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { timespans } from '@/data/mockData';
-import { GitCompareArrows } from 'lucide-react';
+
 
 interface Props {
   selected: string[];
