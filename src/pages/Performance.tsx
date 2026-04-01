@@ -258,7 +258,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
 
       {/* Breakdown filter bar — between row 1 and bottom charts, like Exposure filter */}
       <div className="rounded-lg border-2 border-accent/30 bg-accent/5 px-4 py-3 shadow-sm">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 shrink-0">
               <div className="w-1 h-8 rounded-full bg-accent" />
@@ -277,7 +277,8 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
             </div>
             <div className="h-8 w-px bg-border shrink-0" />
             <ToggleBar options={returnTypes} value={returnType as any} onChange={setReturnType} size="xs" />
-            <div className="h-8 w-px bg-border shrink-0" />
+          </div>
+          <div className="flex items-center gap-3">
             <TopNSelect value={topN} onChange={setTopN} />
           </div>
         </div>
