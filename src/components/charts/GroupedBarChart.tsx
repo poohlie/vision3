@@ -12,7 +12,6 @@ interface Props {
   height?: number;
   colorByValue?: boolean;
   barColor?: string;
-  totalBar?: { name: string; value: number };
 }
 
 const GROUP_COLORS: Record<string, string> = {
@@ -27,24 +26,11 @@ const GROUP_LABELS: Record<string, string> = {
 
 const TOP_N_OPTIONS = [3, 5, 8, 10] as const;
 
-export default function GroupedBarChart({ data, height = 250, colorByValue = false, barColor, totalBar }: Props) {
+export default function GroupedBarChart({ data, height = 250, colorByValue = false, barColor }: Props) {
   const [topN, setTopN] = useState(5);
   const groups = Array.from(new Set(data.map(d => d.group)));
 
-  const chartData: (DataItem & { isTotal?: boolean; isGrandTotal?: boolean; displayLabel?: string })[] = [];
-
-  // Optional top-level total bar (e.g. ACWI)
-  if (totalBar) {
-    chartData.push({
-      name: totalBar.name,
-      value: +totalBar.value.toFixed(1),
-      group: '_total',
-      isTotal: true,
-      isGrandTotal: true,
-      displayLabel: `${totalBar.name} — ${totalBar.value.toFixed(1)}%`,
-    });
-  }
-
+  const chartData: (DataItem & { isTotal?: boolean; displayLabel?: string })[] = [];
   groups.forEach(group => {
     const items = data.filter(d => d.group === group).sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
     const groupTotal = items.reduce((s, d) => s + d.value, 0);
@@ -115,14 +101,13 @@ export default function GroupedBarChart({ data, height = 250, colorByValue = fal
               fill="hsl(215, 15%, 55%)"
               formatter={(v: number) => `${v}%`}
             />
-            {chartData.map((d: any, i) => {
+            {chartData.map((d, i) => {
+              const baseColor = GROUP_COLORS[d.group] || barColor || 'hsl(212, 72%, 42%)';
               let fill: string;
-              if (d.isGrandTotal) {
-                fill = 'hsl(var(--foreground))';
-              } else if (colorByValue) {
+              if (colorByValue) {
                 fill = d.value >= 0 ? 'hsl(212, 72%, 42%)' : 'hsl(0, 72%, 51%)';
               } else if (d.isTotal) {
-                fill = GROUP_COLORS[d.group] || barColor || 'hsl(212, 72%, 42%)';
+                fill = baseColor;
               } else {
                 fill = d.group === 'DM' ? 'hsl(212, 55%, 68%)' : 'hsl(32, 60%, 70%)';
               }
