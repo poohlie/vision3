@@ -13,6 +13,7 @@ interface SingleProps {
   layout?: 'horizontal' | 'vertical';
   colorByValue?: boolean;
   barColor?: string;
+  preserveOrder?: boolean;
 }
 
 interface MultiProps {
@@ -22,6 +23,7 @@ interface MultiProps {
   layout?: 'horizontal' | 'vertical';
   colorByValue?: boolean;
   barColor?: string;
+  preserveOrder?: boolean;
 }
 
 type Props = SingleProps | MultiProps;
