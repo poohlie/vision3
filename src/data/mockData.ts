@@ -421,11 +421,19 @@ export const equityCountryPerf = [
 ] as { name: string; value: number; isTotal?: boolean }[];
 
 export const equitySectorPerf = [
-  { name: 'Information Technology', value: 18.5 }, { name: 'Healthcare', value: 8.2 },
-  { name: 'Financials', value: 10.1 }, { name: 'Consumer Disc.', value: 5.5 },
-  { name: 'Industrials', value: 7.8 }, { name: 'Energy', value: -3.2 },
-  { name: 'Materials', value: 2.1 }, { name: 'Utilities', value: 4.5 },
-];
+  // Total
+  { name: 'MSCI ACWI', value: 8.4, isTotal: true },
+  // Cyclicals
+  { name: 'Cyclicals', value: 9.2, isTotal: true },
+  { name: 'Information Technology', value: 18.5 }, { name: 'Financials', value: 10.1 },
+  { name: 'Consumer Disc.', value: 5.5 }, { name: 'Industrials', value: 7.8 },
+  { name: 'Energy', value: -3.2 }, { name: 'Materials', value: 2.1 },
+  // Defensives
+  { name: 'Defensives', value: 6.1, isTotal: true },
+  { name: 'Healthcare', value: 8.2 }, { name: 'Utilities', value: 4.5 },
+  { name: 'Consumer Staples', value: 3.8 }, { name: 'Communication Svcs.', value: 6.2 },
+  { name: 'Real Estate', value: 1.5 },
+] as { name: string; value: number; isTotal?: boolean }[];
 
 export const fiPerf = [
   { name: 'US Treasuries', yield: 4.25, spread: 0 }, { name: 'German Bunds', yield: 2.85, spread: 0 },
