@@ -58,10 +58,10 @@ function numericRandom(seed: number) {
 // Time series (monthly, last 12 months) — legacy static for backward compat
 export const perfTimeSeries = months.map((m, i) => {
   const sp = +(3 + Math.sin(i / 2) * 2 + i * 0.5).toFixed(1);
-  const mts = +(0.5 + seededRandom(i * 7 + 1) * 0.8).toFixed(1);
-  const as_ = +(0.2 + seededRandom(i * 7 + 2) * 0.6).toFixed(1);
+  const mts = +(0.5 + numericRandom(i * 7 + 1) * 0.8).toFixed(1);
+  const as_ = +(0.2 + numericRandom(i * 7 + 2) * 0.6).toFixed(1);
   const tp = +(sp + mts + as_).toFixed(1);
-  const inflation = +(-0.2 - seededRandom(i * 7 + 3) * 0.4).toFixed(1);
+  const inflation = +(-0.2 - numericRandom(i * 7 + 3) * 0.4).toFixed(1);
   const realReturn = +(tp + inflation).toFixed(1);
   return { month: m, strategicPortfolio: sp, mts, activeStrategies: as_, totalPortfolio: tp, inflation, realReturn };
 });
@@ -72,10 +72,10 @@ export function generatePerfTimeSeries(timespan: string) {
   return labels.map((m, i) => {
     const frac = (i + 1) / labels.length;
     const sp = +(3 * scale * frac + Math.sin(i / 2) * 2).toFixed(1);
-    const mts = +(0.5 * scale * frac + seededRandom(i * 7 + 1) * 0.8).toFixed(1);
-    const as_ = +(0.2 * scale * frac + seededRandom(i * 7 + 2) * 0.6).toFixed(1);
+    const mts = +(0.5 * scale * frac + numericRandom(i * 7 + 1) * 0.8).toFixed(1);
+    const as_ = +(0.2 * scale * frac + numericRandom(i * 7 + 2) * 0.6).toFixed(1);
     const tp = +(sp + mts + as_).toFixed(1);
-    const inflation = +(-0.2 * scale * frac - seededRandom(i * 7 + 3) * 0.4).toFixed(1);
+    const inflation = +(-0.2 * scale * frac - numericRandom(i * 7 + 3) * 0.4).toFixed(1);
     const realReturn = +(tp + inflation).toFixed(1);
     return { month: m, strategicPortfolio: sp, mts, activeStrategies: as_, totalPortfolio: tp, inflation, realReturn };
   });
@@ -84,9 +84,9 @@ export function generatePerfTimeSeries(timespan: string) {
 export const cumulativePerfSeries = months.map((m, i) => {
   const base: Record<string, number | string> = { month: m };
   activeStrategies.slice(0, 6).forEach(s => {
-    base[s.name] = +((i + 1) * (s.ownReturn / 12) + seededRandom(i * 13 + s.name.length) * 0.5).toFixed(2);
+    base[s.name] = +((i + 1) * (s.ownReturn / 12) + numericRandom(i * 13 + s.name.length) * 0.5).toFixed(2);
   });
-  base['Total Portfolio'] = +((i + 1) * 0.85 + seededRandom(i * 17) * 0.3).toFixed(2);
+  base['Total Portfolio'] = +((i + 1) * 0.85 + numericRandom(i * 17) * 0.3).toFixed(2);
   return base;
 });
 
@@ -96,9 +96,9 @@ export function generateCumulativePerfSeries(timespan: string, strategies: { nam
   return labels.map((m, i) => {
     const base: Record<string, number | string> = { month: m };
     strategies.forEach(s => {
-      base[s.name] = +((i + 1) / labels.length * scale * (s.ownReturn / 1) + seededRandom(i * 13 + s.name.length) * 0.5).toFixed(2);
+      base[s.name] = +((i + 1) / labels.length * scale * (s.ownReturn / 1) + numericRandom(i * 13 + s.name.length) * 0.5).toFixed(2);
     });
-    base['Total Portfolio'] = +((i + 1) / labels.length * scale * 0.85 + seededRandom(i * 17) * 0.3).toFixed(2);
+    base['Total Portfolio'] = +((i + 1) / labels.length * scale * 0.85 + numericRandom(i * 17) * 0.3).toFixed(2);
     return base;
   });
 }
@@ -108,7 +108,7 @@ export const contributionTimeSeries = months.map((m, i) => {
   const base: Record<string, number | string> = { month: m };
   let sum = 0;
   activeStrategies.slice(0, 6).forEach(s => {
-    const val = +(s.contribution * (i + 1) / 6 + (seededRandom(i * 11 + s.name.length) - 0.5) * 0.1).toFixed(2);
+    const val = +(s.contribution * (i + 1) / 6 + (numericRandom(i * 11 + s.name.length) - 0.5) * 0.1).toFixed(2);
     base[s.name] = val;
     sum += val;
   });
@@ -123,7 +123,7 @@ export function generateContributionTimeSeries(timespan: string, strategies: { n
     const base: Record<string, number | string> = { month: m };
     let sum = 0;
     strategies.forEach(s => {
-      const val = +(s.contribution * scale * (i + 1) / labels.length + (seededRandom(i * 11 + s.name.length) - 0.5) * 0.1).toFixed(2);
+      const val = +(s.contribution * scale * (i + 1) / labels.length + (numericRandom(i * 11 + s.name.length) - 0.5) * 0.1).toFixed(2);
       base[s.name] = val;
       sum += val;
     });
