@@ -103,24 +103,22 @@ export default function Performance() {
         </div>
       </div>
 
-        {/* Row 2: Compare + Breakdown (Nominal Return only) */}
-        {isNominal && (
-          <div className="rounded-lg border-2 border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="w-1 h-8 rounded-full bg-primary" />
-                <div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Compare</span>
-                  <p className="text-[9px] text-muted-foreground">Left charts only ←</p>
-                </div>
+      {/* Compare control (Nominal Return only) */}
+      {isNominal && (
+        <div className="rounded-lg border-2 border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-1 h-8 rounded-full bg-primary" />
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Compare</span>
+                <p className="text-[9px] text-muted-foreground">Left charts only ←</p>
               </div>
-              <div className="h-8 w-px bg-border shrink-0" />
-              <TimespanMultiSelect selected={filters.compareTimespans} onChange={v => set({ compareTimespans: v })} />
             </div>
+            <div className="h-8 w-px bg-border shrink-0" />
+            <TimespanMultiSelect selected={filters.compareTimespans} onChange={v => set({ compareTimespans: v })} />
           </div>
-        )}
-
-      </div>
+        </div>
+      )}
 
       {/* Tab content */}
       {sub === 'Nominal Return' && <PortfolioPerformance filters={filters} />}
