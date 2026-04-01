@@ -14,6 +14,7 @@ interface Dataset {
 interface Props {
   datasets: Dataset[];
   height?: number;
+  preserveOrder?: boolean;
 }
 
 const tooltipStyle = {
