@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import ChartCard from '@/components/shared/ChartCard';
+import FilterPill from '@/components/shared/FilterPill';
 import ToggleBar from '@/components/shared/ToggleBar';
 import TimespanMultiSelect from '@/components/shared/TimespanMultiSelect';
 import TopNSelect from '@/components/shared/TopNSelect';
@@ -245,12 +246,19 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
       {/* Row 1: Top charts — left bordered primary (compare), right bordered accent (breakdown) */}
       <div className="grid grid-cols-2 gap-4">
         <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
-          <ChartCard id="perf-1" title="Return Attribution (Waterfall)" className="h-full">
+          <ChartCard id="perf-1" title="Return Attribution (Waterfall)" className="h-full" footer={
+            <><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
+          }>
             <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
           </ChartCard>
         </div>
         <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
-          <ChartCard id="perf-2" title="Return Attribution (Time Series)" className="h-full">
+          <ChartCard id="perf-2" title="Return Attribution (Time Series)" className="h-full" footer={
+            <>
+              <FilterPill label="Period" value={primaryTimespan} variant="period" />
+              <FilterPill label="Currency" value={filters.currency} variant="currency" />
+            </>
+          }>
             <StackedTimeChart
               data={tsPerf}
               categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
@@ -291,7 +299,13 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
 
       {/* Row 2 & 3: Bottom 4 charts — accent border (breakdown + TopN) */}
       <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/30 pl-3 ml-1">
-        <ChartCard id="perf-3" title={`Contribution to ${target}`} className="min-h-[280px]">
+        <ChartCard id="perf-3" title={`Contribution to ${target}`} className="min-h-[280px]" footer={
+          <>
+            <FilterPill label="Currency" value={filters.currency} variant="currency" />
+            <FilterPill label="Breakdown" value={breakdown} variant="breakdown" />
+            <FilterPill label="Return" value={returnType} variant="breakdown" />
+          </>
+        }>
           {isComparing ? (
             <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${contribDatasets.length}, 1fr)` }}>
               {contribDatasets.map((ds, i) => (
@@ -307,14 +321,27 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
             <FinancialBarChart data={contribData} />
           )}
         </ChartCard>
-        <ChartCard id="perf-4" title="Contribution (Time Series)" className="min-h-[280px]">
+        <ChartCard id="perf-4" title="Contribution (Time Series)" className="min-h-[280px]" footer={
+          <>
+            <FilterPill label="Period" value={primaryTimespan} variant="period" />
+            <FilterPill label="Currency" value={filters.currency} variant="currency" />
+            <FilterPill label="Breakdown" value={breakdown} variant="breakdown" />
+            <FilterPill label="Return" value={returnType} variant="breakdown" />
+          </>
+        }>
           <StackedTimeChart
             data={tsContrib}
             categories={stratData.slice(0, 6).map(s => s.name)}
             overlayLine="Total Portfolio"
           />
         </ChartCard>
-        <ChartCard id="perf-5" title={`Own-Based Return (${target})`} className="min-h-[280px]">
+        <ChartCard id="perf-5" title={`Own-Based Return (${target})`} className="min-h-[280px]" footer={
+          <>
+            <FilterPill label="Currency" value={filters.currency} variant="currency" />
+            <FilterPill label="Breakdown" value={breakdown} variant="breakdown" />
+            <FilterPill label="Return" value={returnType} variant="breakdown" />
+          </>
+        }>
           {isComparing ? (
             <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${ownDatasets.length}, 1fr)` }}>
               {ownDatasets.map((ds, i) => (
@@ -330,7 +357,14 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
             <FinancialBarChart data={ownData} />
           )}
         </ChartCard>
-        <ChartCard id="perf-6" title="Cumulative Strategy Performance" className="min-h-[280px]">
+        <ChartCard id="perf-6" title="Cumulative Strategy Performance" className="min-h-[280px]" footer={
+          <>
+            <FilterPill label="Period" value={primaryTimespan} variant="period" />
+            <FilterPill label="Currency" value={filters.currency} variant="currency" />
+            <FilterPill label="Breakdown" value={breakdown} variant="breakdown" />
+            <FilterPill label="Return" value={returnType} variant="breakdown" />
+          </>
+        }>
           <TrendChart data={tsCumulative} lines={stratData.slice(0, 6).map(s => s.name)} />
         </ChartCard>
       </div>
@@ -349,36 +383,36 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
     <div className="grid grid-cols-2 gap-4">
       <ChartCard id="mkt-1" title="Equity Performance (MSCI ACWI)" toolbar={
         <ToggleBar options={['Country', 'Sector'] as const} value={eqBd} onChange={setEqBd} size="xs" />
-      }>
+      } footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <FinancialBarChart data={eqData} />
       </ChartCard>
       <ChartCard id="mkt-2" title="Equity Cumulative Performance" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
-      }>
+      } footer={<><FilterPill label="Period" value={longestTimespan(filters.timespans)} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
         <TrendChart data={marketTimeSeries(eqData, longestTimespan(filters.timespans))} lines={eqData.map(d => d.name)} />
       </ChartCard>
-      <ChartCard id="mkt-3" title="Fixed Income Performance (BBGA)">
+      <ChartCard id="mkt-3" title="Fixed Income Performance (BBGA)" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <FinancialBarChart data={fiPerf.map(f => ({ name: f.name, value: f.yield }))} colorByValue={false} barColor="hsl(185, 58%, 38%)" />
       </ChartCard>
       <ChartCard id="mkt-4" title="Fixed Income Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
-      }>
+      } footer={<><FilterPill label="Period" value={longestTimespan(filters.timespans)} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
         <TrendChart data={marketTimeSeries(fiPerf, longestTimespan(filters.timespans))} lines={fiPerf.map(f => f.name)} />
       </ChartCard>
-      <ChartCard id="mkt-5" title="Commodities Performance (BCOM)">
+      <ChartCard id="mkt-5" title="Commodities Performance (BCOM)" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <FinancialBarChart data={commodityPerf} />
       </ChartCard>
       <ChartCard id="mkt-6" title="Commodities Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
-      }>
+      } footer={<><FilterPill label="Period" value={longestTimespan(filters.timespans)} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
         <TrendChart data={marketTimeSeries(commodityPerf, longestTimespan(filters.timespans))} lines={commodityPerf.map(d => d.name)} />
       </ChartCard>
-      <ChartCard id="mkt-7" title="Currency Performance">
+      <ChartCard id="mkt-7" title="Currency Performance" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <FinancialBarChart data={currencyPerf.map(c => ({ name: c.name, value: c.value }))} />
       </ChartCard>
       <ChartCard id="mkt-8" title="Currency Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
-      }>
+      } footer={<><FilterPill label="Period" value={longestTimespan(filters.timespans)} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
         <TrendChart data={marketTimeSeries(currencyPerf, longestTimespan(filters.timespans))} lines={currencyPerf.map(c => c.name)} />
       </ChartCard>
     </div>
@@ -390,10 +424,12 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      <ChartCard id="rr-1" title="Real Return Decomposition">
+      <ChartCard id="rr-1" title="Real Return Decomposition" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <CompareWaterfallChart datasets={[{ label: longestTimespan(filters.timespans), data: wfData }]} />
       </ChartCard>
-      <ChartCard id="rr-2" title="Cumulative Nominal & Projected Real Return">
+      <ChartCard id="rr-2" title="Cumulative Nominal & Projected Real Return" footer={
+        <><FilterPill label="Period" value={longestTimespan(filters.timespans)} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
+      }>
         <TrendChart
           data={generateCumulativePerfSeries(longestTimespan(filters.timespans), activeStrategies.slice(0, 6).map(s => ({ name: s.name, ownReturn: s.ownReturn }))).map((d, i, arr) => ({
             month: d.month as string,
@@ -405,10 +441,10 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
           connectNulls={false}
         />
       </ChartCard>
-      <ChartCard id="rr-3" title="Expected Long-Term Rate of Return (ELTRROR)">
+      <ChartCard id="rr-3" title="Expected Long-Term Rate of Return (ELTRROR)" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <FinancialBarChart data={eltrrorData} colorByValue={false} barColor="hsl(145, 52%, 42%)" />
       </ChartCard>
-      <ChartCard id="rr-4" title="ELTRROR Cone Charts">
+      <ChartCard id="rr-4" title="ELTRROR Cone Charts" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <div className="grid grid-cols-3 grid-rows-2 gap-2 h-full">
           {eltrrorData.map(ac => (
             <div key={ac.name} className="rounded-md border bg-muted/20 p-2 flex flex-col items-center justify-center">
@@ -424,10 +460,12 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
           ))}
         </div>
       </ChartCard>
-      <ChartCard id="rr-5" title="Inflation by Country">
+      <ChartCard id="rr-5" title="Inflation by Country" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <FinancialBarChart data={inflationByCountry} colorByValue={false} barColor="hsl(38, 90%, 50%)" />
       </ChartCard>
-      <ChartCard id="rr-6" title="Cumulative Inflation by Country">
+      <ChartCard id="rr-6" title="Cumulative Inflation by Country" footer={
+        <><FilterPill label="Period" value={longestTimespan(filters.timespans)} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
+      }>
         <StackedTimeChart
           data={marketTimeSeries(inflationByCountry, longestTimespan(filters.timespans))}
           categories={inflationByCountry.map(c => c.name)}
