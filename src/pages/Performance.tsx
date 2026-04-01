@@ -196,6 +196,49 @@ const getGlobalScale = (timespan: string, currency: string) => (tsScales[timespa
 const scaleValue = (v: number, scale: number) => +(v * scale).toFixed(2);
 const scaleData = (data: { name: string; value: number }[], scale: number) => data.map(d => ({ name: d.name, value: scaleValue(d.value, scale) }));
 
+// ─── Timespan Grouped Bar Chart (vertical columns per timespan) ───
+
+function TimespanGroupedBarChart({ items, timespans, combinedFactor, valueKey }: {
+  items: { name: string; value: number }[];
+  timespans: string[];
+  combinedFactor: number;
+  valueKey: string;
+}) {
+  const chartData = useMemo(() =>
+    timespans.map(ts => {
+      const tsFactor = (tsScales[ts] || 1) / (tsScales[timespans[0]] || 1);
+      const row: Record<string, any> = { timespan: ts };
+      items.forEach(item => {
+        row[item.name] = scaleValue(item.value * tsFactor, combinedFactor);
+      });
+      return row;
+    }), [timespans, items, combinedFactor]);
+
+  return (
+    <ResponsiveContainer width="100%" height={250}>
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+        <XAxis dataKey="timespan" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+        <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
+        <Tooltip
+          contentStyle={{
+            background: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '6px',
+            fontSize: 11,
+            boxShadow: '0 4px 12px -2px rgba(0,0,0,0.12)',
+          }}
+          formatter={(v: number) => [`${v.toFixed(2)}%`, undefined]}
+        />
+        <Legend wrapperStyle={{ fontSize: 10 }} />
+        {items.map((item, i) => (
+          <Bar key={item.name} dataKey={item.name} fill={CHART_COLORS[i % CHART_COLORS.length]} radius={[2, 2, 0, 0]} />
+        ))}
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
 // ─── Rolling Grouped Bar Chart ───
 
 const TIMESPAN_YEARS: Record<string, number[]> = {
