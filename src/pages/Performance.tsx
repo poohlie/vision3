@@ -371,10 +371,10 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
   const eqData = eqBd === 'Country' ? equityCountryPerf : equitySectorPerf;
 
   // Per-timespan datasets for left-side bar charts
-  const scaleData = (data: { name: string; value: number }[]) =>
+  const scaleData = (data: { name: string; value: number; isTotal?: boolean }[]) =>
     filters.timespans.map(ts => ({
       label: ts,
-      data: data.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) })),
+      data: data.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1), ...(d.isTotal ? { isTotal: true } : {}) })),
     }));
 
   const eqDatasets = scaleData(eqData);
