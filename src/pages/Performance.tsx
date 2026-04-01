@@ -395,7 +395,17 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
       <ChartCard id="mkt-1" title="Equity Performance (MSCI ACWI)" toolbar={
         <ToggleBar options={['Country', 'Sector'] as const} value={eqBd} onChange={setEqBd} size="xs" />
       } footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
-        {renderCompareOrSingle(eqDatasets, <FinancialBarChart data={eqData} />)}
+        {eqBd === 'Country' ? (
+          <GroupedBarChart
+            data={equityCountryPerf.map(d => ({ name: d.name, value: d.value, group: d.market }))}
+            totalBar={{ name: 'MSCI ACWI', value: equityCountryPerf.reduce((s, d) => s + d.value, 0) / equityCountryPerf.length * 1.1 }}
+            colorByValue
+          />
+        ) : (
+          isComparing
+            ? <CompareBarPanel datasets={eqDatasets} />
+            : <FinancialBarChart data={eqData} />
+        )}
       </ChartCard>
       <ChartCard id="mkt-2" title="Equity Cumulative Performance" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
