@@ -49,8 +49,8 @@ function getTimeLabels(timespan: string): string[] {
   }
 }
 
-// Seeded random for deterministic results per label
-function seededRandom(seed: number) {
+// Simple deterministic random from numeric seed
+function numericRandom(seed: number) {
   const x = Math.sin(seed) * 10000;
   return x - Math.floor(x);
 }
