@@ -362,7 +362,9 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
 }
 
 function RealReturn({ filters }: { filters: PerfFilters }) {
-  const wfData = realReturnWaterfall[filters.timespan as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'];
+  const gScale = getGlobalScale(filters.timespan, filters.currency);
+  const wfData = (realReturnWaterfall[filters.timespan as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'])
+    .map(d => ({ ...d, value: scaleValue(d.value, curScales[filters.currency] || 1) }));
 
   return (
     <div className="grid grid-cols-2 gap-4">
@@ -373,8 +375,8 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
         <TrendChart
           data={cumulativePerfSeries.map((d, i) => ({
             month: d.month,
-            'Nominal Return': i <= 8 ? +((i + 1) * 0.85).toFixed(2) : null,
-            'Projected Real': i >= 8 ? +((i + 1) * 0.55).toFixed(2) : null,
+            'Nominal Return': i <= 8 ? scaleValue((i + 1) * 0.85, gScale) : null,
+            'Projected Real': i >= 8 ? scaleValue((i + 1) * 0.55, gScale) : null,
           }))}
           lines={['Nominal Return', 'Projected Real']}
           lineColors={{ 'Projected Real': 'hsl(0, 72%, 51%)' }}
@@ -382,11 +384,11 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
         />
       </ChartCard>
       <ChartCard id="rr-3" title="Expected Long-Term Rate of Return (ELTRROR)">
-        <FinancialBarChart data={eltrrorData} colorByValue={false} barColor="hsl(145, 52%, 42%)" />
+        <FinancialBarChart data={scaleData(eltrrorData, gScale)} colorByValue={false} barColor="hsl(145, 52%, 42%)" />
       </ChartCard>
       <ChartCard id="rr-4" title="ELTRROR Cone Charts">
         <div className="grid grid-cols-3 grid-rows-2 gap-2 h-full">
-          {eltrrorData.map(ac => (
+          {scaleData(eltrrorData, gScale).map(ac => (
             <div key={ac.name} className="rounded-md border bg-muted/20 p-2 flex flex-col items-center justify-center">
               <p className="text-[9px] font-medium text-muted-foreground mb-1">{ac.name}</p>
               <div className="w-full h-12 relative">
@@ -401,11 +403,11 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
         </div>
       </ChartCard>
       <ChartCard id="rr-5" title="Inflation by Country">
-        <FinancialBarChart data={inflationByCountry} colorByValue={false} barColor="hsl(38, 90%, 50%)" />
+        <FinancialBarChart data={scaleData(inflationByCountry, gScale)} colorByValue={false} barColor="hsl(38, 90%, 50%)" />
       </ChartCard>
       <ChartCard id="rr-6" title="Cumulative Inflation by Country">
         <StackedTimeChart
-          data={marketTimeSeries(inflationByCountry)}
+          data={marketTimeSeries(scaleData(inflationByCountry, gScale))}
           categories={inflationByCountry.map(c => c.name)}
         />
       </ChartCard>
