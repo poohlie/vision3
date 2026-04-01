@@ -32,11 +32,16 @@ type SubTab = typeof subTabs[number];
 const cumRoll = ['Cumulative', 'Rolling', 'Annual'] as const;
 
 export interface PerfFilters {
-  timespan: string;
+  timespans: string[];
   currency: string;
   breakdown: string;
   topN: number;
-  compareTimespans: string[];
+}
+
+// Helper: get the longest timespan from a list
+const timespanOrder = ['1Y', '3Y', '5Y', '10Y', '20Y'];
+function longestTimespan(ts: string[]): string {
+  return ts.reduce((a, b) => timespanOrder.indexOf(a) >= timespanOrder.indexOf(b) ? a : b, ts[0]);
 }
 
 export default function Performance() {
