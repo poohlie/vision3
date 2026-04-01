@@ -251,7 +251,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
             <><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
           }>
             {isComparing ? (
-              <CompareBarPanel datasets={waterfallDatasets} />
+              <CompareBarPanel datasets={waterfallDatasets} preserveOrder />
             ) : (
               <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
             )}
