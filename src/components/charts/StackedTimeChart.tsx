@@ -35,7 +35,7 @@ export default function StackedTimeChart({ data, categories, height = 250, xKey 
               key={c}
               dataKey={c}
               stackId={stacked ? (negativeCategories.includes(c) ? 'neg' : 's') : undefined}
-              fill={CHART_COLORS[i % CHART_COLORS.length]}
+              fill={colorMap?.[c] ?? CHART_COLORS[i % CHART_COLORS.length]}
               barSize={20}
               radius={[1, 1, 0, 0]}
             />
