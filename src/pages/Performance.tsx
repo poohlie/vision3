@@ -91,6 +91,7 @@ export default function Performance() {
             <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Period</span>
             <ToggleBar options={timespans} value={filters.timespan as any} onChange={v => set({ timespan: v })} size="xs" />
           </div>
+          <div className="flex-1" />
           <div className="h-8 w-px bg-border shrink-0" />
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Currency</span>
