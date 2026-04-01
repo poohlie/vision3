@@ -364,10 +364,10 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
       </ChartCard>
       <ChartCard id="rr-2" title="Cumulative Nominal & Projected Real Return">
         <TrendChart
-          data={cumulativePerfSeries.map((d, i) => ({
-            month: d.month,
-            'Nominal Return': i <= 8 ? +((i + 1) * 0.85).toFixed(2) : null,
-            'Projected Real': i >= 8 ? +((i + 1) * 0.55).toFixed(2) : null,
+          data={generateCumulativePerfSeries(filters.timespan, activeStrategies.slice(0, 6).map(s => ({ name: s.name, ownReturn: s.ownReturn }))).map((d, i, arr) => ({
+            month: d.month as string,
+            'Nominal Return': i <= Math.floor(arr.length * 0.7) ? +((i + 1) / arr.length * 8.5).toFixed(2) : null,
+            'Projected Real': i >= Math.floor(arr.length * 0.7) ? +((i + 1) / arr.length * 5.5).toFixed(2) : null,
           }))}
           lines={['Nominal Return', 'Projected Real']}
           lineColors={{ 'Projected Real': 'hsl(0, 72%, 51%)' }}
