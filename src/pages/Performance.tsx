@@ -335,16 +335,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           </>
         }>
           {isComparing ? (
-            <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${ownDatasets.length}, 1fr)` }}>
-              {ownDatasets.map((ds, i) => (
-                <div key={ds.label} className="flex flex-col">
-                  <span className="text-[10px] font-semibold text-center mb-1" style={{ color: ['hsl(212,72%,42%)', 'hsl(185,58%,38%)', 'hsl(38,90%,50%)'][i] }}>{ds.label}</span>
-                  <div className="min-h-[220px]">
-                    <FinancialBarChart data={ds.data} barColor={['hsl(212,72%,42%)', 'hsl(185,58%,38%)', 'hsl(38,90%,50%)'][i]} colorByValue={false} height={220} />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <CompareBarPanel datasets={ownDatasets} />
           ) : (
             <FinancialBarChart data={ownData} />
           )}
