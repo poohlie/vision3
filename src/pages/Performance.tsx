@@ -416,6 +416,8 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
 }
 
 function PeersComparison({ filters }: { filters: PerfFilters }) {
+  const gScale = getGlobalScale(filters.timespan, filters.currency);
+  const scaledPeers = peersData.map(p => ({ ...p, returns: scaleValue(p.returns, gScale), volatility: scaleValue(p.volatility, gScale) }));
   return (
     <div className="grid grid-cols-2 gap-4">
       <ChartCard id="peer-1" title="Peer Performance Metrics">
