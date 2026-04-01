@@ -309,13 +309,11 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
               lines={stratData.slice(0, 6).map(s => s.name)}
             />
           ) : (
-            <GroupedBarChart
-              data={stratData.slice(0, topN).map(s => ({
-                name: s.name,
-                value: scaleValue(s.ownReturn, combinedFactor),
-                group: s.ownReturn >= 0 ? 'DM' : 'EM',
-              }))}
-              colorByValue
+            <RollingGroupedBarChart
+              stratData={stratData}
+              topN={topN}
+              combinedFactor={combinedFactor}
+              timespan={filters.timespan}
             />
           )}
         </ChartCard>
