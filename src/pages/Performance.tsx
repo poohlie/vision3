@@ -424,10 +424,12 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      <ChartCard id="rr-1" title="Real Return Decomposition">
+      <ChartCard id="rr-1" title="Real Return Decomposition" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <CompareWaterfallChart datasets={[{ label: longestTimespan(filters.timespans), data: wfData }]} />
       </ChartCard>
-      <ChartCard id="rr-2" title="Cumulative Nominal & Projected Real Return">
+      <ChartCard id="rr-2" title="Cumulative Nominal & Projected Real Return" footer={
+        <><FilterPill label="Period" value={longestTimespan(filters.timespans)} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
+      }>
         <TrendChart
           data={generateCumulativePerfSeries(longestTimespan(filters.timespans), activeStrategies.slice(0, 6).map(s => ({ name: s.name, ownReturn: s.ownReturn }))).map((d, i, arr) => ({
             month: d.month as string,
@@ -439,10 +441,10 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
           connectNulls={false}
         />
       </ChartCard>
-      <ChartCard id="rr-3" title="Expected Long-Term Rate of Return (ELTRROR)">
+      <ChartCard id="rr-3" title="Expected Long-Term Rate of Return (ELTRROR)" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <FinancialBarChart data={eltrrorData} colorByValue={false} barColor="hsl(145, 52%, 42%)" />
       </ChartCard>
-      <ChartCard id="rr-4" title="ELTRROR Cone Charts">
+      <ChartCard id="rr-4" title="ELTRROR Cone Charts" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <div className="grid grid-cols-3 grid-rows-2 gap-2 h-full">
           {eltrrorData.map(ac => (
             <div key={ac.name} className="rounded-md border bg-muted/20 p-2 flex flex-col items-center justify-center">
@@ -458,10 +460,12 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
           ))}
         </div>
       </ChartCard>
-      <ChartCard id="rr-5" title="Inflation by Country">
+      <ChartCard id="rr-5" title="Inflation by Country" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         <FinancialBarChart data={inflationByCountry} colorByValue={false} barColor="hsl(38, 90%, 50%)" />
       </ChartCard>
-      <ChartCard id="rr-6" title="Cumulative Inflation by Country">
+      <ChartCard id="rr-6" title="Cumulative Inflation by Country" footer={
+        <><FilterPill label="Period" value={longestTimespan(filters.timespans)} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
+      }>
         <StackedTimeChart
           data={marketTimeSeries(inflationByCountry, longestTimespan(filters.timespans))}
           categories={inflationByCountry.map(c => c.name)}
