@@ -404,7 +404,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
       <ChartCard id="mkt-3" title="Fixed Income Performance (BBGA)" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         {renderCompareOrSingle(fiDatasets, <FinancialBarChart data={fiPerf.map(f => ({ name: f.name, value: f.yield }))} colorByValue={false} barColor="hsl(185, 58%, 38%)" />)}
       </ChartCard>
-      <ChartCard id="mkt-4" title="Fixed Income Cumulative" toolbar={
+      <ChartCard id="mkt-4" title={`Fixed Income ${mode}`} toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       } footer={<><FilterPill label="Period" value={primaryTimespan} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
         <TrendChart data={(mode === 'Rolling' ? marketRollingTimeSeries : marketTimeSeries)(fiPerf, primaryTimespan)} lines={fiPerf.map(f => f.name)} />
