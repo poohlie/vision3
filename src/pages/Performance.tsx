@@ -436,7 +436,7 @@ function PeersComparison({ filters }: { filters: PerfFilters }) {
         </div>
       </ChartCard>
       <ChartCard id="peer-2" title="Cumulative Returns">
-        <TrendChart data={peerReturnSeries} lines={peersData.map(p => p.name)} />
+        <TrendChart data={marketTimeSeries(peersData.map(p => ({ name: p.name })), filters.timespan)} lines={peersData.map(p => p.name)} />
       </ChartCard>
       <ChartCard id="peer-3" title="Asset Mix Comparison">
         <div className="overflow-auto text-xs">
