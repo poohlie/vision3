@@ -93,7 +93,7 @@ export default function Performance() {
               </div>
             </div>
             <div className="h-8 w-px bg-border shrink-0" />
-            <TimespanMultiSelect selected={filters.timespans} onChange={v => set({ timespans: v })} />
+            <TimespanMultiSelect selected={longestTimespan(filters.timespans)s} onChange={v => set({ timespans: v })} />
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 shrink-0">
@@ -191,24 +191,24 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const sourceData = getSourceData(breakdown);
   const { stratData, contribData, ownData } = buildContribData(sourceData, topN, returnType);
 
-  const primaryTimespan = longestTimespan(filters.timespans);
+  const primaryTimespan = longestTimespan(longestTimespan(filters.timespans)s);
 
-  const waterfallDatasets = filters.timespans.map(ts => ({
+  const waterfallDatasets = longestTimespan(filters.timespans)s.map(ts => ({
     label: ts,
     data: perfWaterfallData[ts] || perfWaterfallData['1Y'],
   }));
 
   // Build multi-timespan datasets for contribution and own-return charts
-  const contribDatasets = filters.timespans.map(ts => ({
+  const contribDatasets = longestTimespan(filters.timespans)s.map(ts => ({
     label: ts,
     data: contribData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(2) })),
   }));
-  const ownDatasets = filters.timespans.map(ts => ({
+  const ownDatasets = longestTimespan(filters.timespans)s.map(ts => ({
     label: ts,
     data: ownData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) })),
   }));
 
-  const isComparing = filters.timespans.length > 1;
+  const isComparing = longestTimespan(filters.timespans)s.length > 1;
 
   // Timespan-aware time series — use longest timespan for right-side charts
   const tsPerf = generatePerfTimeSeries(primaryTimespan);
@@ -361,7 +361,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
       <ChartCard id="mkt-2" title="Equity Cumulative Performance" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       }>
-        <TrendChart data={marketTimeSeries(eqData, filters.timespan)} lines={eqData.map(d => d.name)} />
+        <TrendChart data={marketTimeSeries(eqData, longestTimespan(filters.timespans))} lines={eqData.map(d => d.name)} />
       </ChartCard>
       <ChartCard id="mkt-3" title="Fixed Income Performance (BBGA)">
         <FinancialBarChart data={fiPerf.map(f => ({ name: f.name, value: f.yield }))} colorByValue={false} barColor="hsl(185, 58%, 38%)" />
@@ -369,7 +369,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
       <ChartCard id="mkt-4" title="Fixed Income Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       }>
-        <TrendChart data={marketTimeSeries(fiPerf, filters.timespan)} lines={fiPerf.map(f => f.name)} />
+        <TrendChart data={marketTimeSeries(fiPerf, longestTimespan(filters.timespans))} lines={fiPerf.map(f => f.name)} />
       </ChartCard>
       <ChartCard id="mkt-5" title="Commodities Performance (BCOM)">
         <FinancialBarChart data={commodityPerf} />
@@ -377,7 +377,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
       <ChartCard id="mkt-6" title="Commodities Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       }>
-        <TrendChart data={marketTimeSeries(commodityPerf, filters.timespan)} lines={commodityPerf.map(d => d.name)} />
+        <TrendChart data={marketTimeSeries(commodityPerf, longestTimespan(filters.timespans))} lines={commodityPerf.map(d => d.name)} />
       </ChartCard>
       <ChartCard id="mkt-7" title="Currency Performance">
         <FinancialBarChart data={currencyPerf.map(c => ({ name: c.name, value: c.value }))} />
@@ -385,23 +385,23 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
       <ChartCard id="mkt-8" title="Currency Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       }>
-        <TrendChart data={marketTimeSeries(currencyPerf, filters.timespan)} lines={currencyPerf.map(c => c.name)} />
+        <TrendChart data={marketTimeSeries(currencyPerf, longestTimespan(filters.timespans))} lines={currencyPerf.map(c => c.name)} />
       </ChartCard>
     </div>
   );
 }
 
 function RealReturn({ filters }: { filters: PerfFilters }) {
-  const wfData = realReturnWaterfall[filters.timespan as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'];
+  const wfData = realReturnWaterfall[longestTimespan(filters.timespans) as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'];
 
   return (
     <div className="grid grid-cols-2 gap-4">
       <ChartCard id="rr-1" title="Real Return Decomposition">
-        <CompareWaterfallChart datasets={[{ label: filters.timespan, data: wfData }]} />
+        <CompareWaterfallChart datasets={[{ label: longestTimespan(filters.timespans), data: wfData }]} />
       </ChartCard>
       <ChartCard id="rr-2" title="Cumulative Nominal & Projected Real Return">
         <TrendChart
-          data={generateCumulativePerfSeries(filters.timespan, activeStrategies.slice(0, 6).map(s => ({ name: s.name, ownReturn: s.ownReturn }))).map((d, i, arr) => ({
+          data={generateCumulativePerfSeries(longestTimespan(filters.timespans), activeStrategies.slice(0, 6).map(s => ({ name: s.name, ownReturn: s.ownReturn }))).map((d, i, arr) => ({
             month: d.month as string,
             'Nominal Return': i <= Math.floor(arr.length * 0.7) ? +((i + 1) / arr.length * 8.5).toFixed(2) : null,
             'Projected Real': i >= Math.floor(arr.length * 0.7) ? +((i + 1) / arr.length * 5.5).toFixed(2) : null,
@@ -435,7 +435,7 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
       </ChartCard>
       <ChartCard id="rr-6" title="Cumulative Inflation by Country">
         <StackedTimeChart
-          data={marketTimeSeries(inflationByCountry, filters.timespan)}
+          data={marketTimeSeries(inflationByCountry, longestTimespan(filters.timespans))}
           categories={inflationByCountry.map(c => c.name)}
         />
       </ChartCard>
@@ -473,7 +473,7 @@ function PeersComparison({ filters }: { filters: PerfFilters }) {
         </div>
       </ChartCard>
       <ChartCard id="peer-2" title="Cumulative Returns">
-        <TrendChart data={marketTimeSeries(peersData.map(p => ({ name: p.name })), filters.timespan)} lines={peersData.map(p => p.name)} />
+        <TrendChart data={marketTimeSeries(peersData.map(p => ({ name: p.name })), longestTimespan(filters.timespans))} lines={peersData.map(p => p.name)} />
       </ChartCard>
       <ChartCard id="peer-3" title="Asset Mix Comparison">
         <div className="overflow-auto text-xs">
