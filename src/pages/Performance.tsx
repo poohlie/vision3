@@ -174,6 +174,10 @@ function buildContribData(sourceData: { name: string; contribution: number; ownR
 
 // Timespan scale factors for mock variation
 const tsScales: Record<string, number> = { '1Y': 1.0, '3Y': 0.75, '5Y': 0.85, '10Y': 0.65, '20Y': 0.55 };
+const curScales: Record<string, number> = { 'USD': 1.0, 'EUR': 0.92, 'GBP': 0.79, 'JPY': 1.12, 'Local': 1.05 };
+const getGlobalScale = (timespan: string, currency: string) => (tsScales[timespan] || 1) * (curScales[currency] || 1);
+const scaleValue = (v: number, scale: number) => +(v * scale).toFixed(2);
+const scaleData = (data: { name: string; value: number }[], scale: number) => data.map(d => ({ name: d.name, value: scaleValue(d.value, scale) }));
 
 // ─── Sub-tab components ───
 
@@ -184,29 +188,32 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const [topN, setTopN] = useState(8);
   const [returnType, setReturnType] = useState<typeof returnTypes[number]>('Portfolio Return');
 
+  const gScale = getGlobalScale(filters.timespan, filters.currency);
   const sourceData = getSourceData(breakdown);
   const { stratData, contribData, ownData } = buildContribData(sourceData, topN);
 
   // Return-type scale: simulate different return perspectives
   const rtScale: Record<string, number> = { 'Portfolio Return': 1.0, 'Benchmark Return': 0.7, 'Active Return': 0.3 };
   const rtFactor = rtScale[returnType] || 1;
+  const combinedFactor = rtFactor * gScale;
 
   const applyRt = (data: { name: string; value: number }[]) =>
-    data.map(d => ({ name: d.name, value: +(d.value * rtFactor).toFixed(2) }));
+    data.map(d => ({ name: d.name, value: scaleValue(d.value, combinedFactor) }));
 
+  const cScale = curScales[filters.currency] || 1;
   const waterfallDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
-    data: perfWaterfallData[ts] || perfWaterfallData['1Y'],
+    data: (perfWaterfallData[ts] || perfWaterfallData['1Y']).map(d => ({ ...d, value: scaleValue(d.value, cScale) })),
   }));
 
   // Build multi-timespan datasets for contribution and own-return charts
   const contribDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
-    data: applyRt(contribData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(2) }))),
+    data: applyRt(contribData.map(d => ({ name: d.name, value: scaleValue(d.value, tsScales[ts] || 1) }))),
   }));
   const ownDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
-    data: applyRt(ownData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) }))),
+    data: applyRt(ownData.map(d => ({ name: d.name, value: scaleValue(d.value, tsScales[ts] || 1) }))),
   }));
 
   const isComparing = filters.compareTimespans.length > 1;
@@ -223,7 +230,13 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
         <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
           <ChartCard id="perf-2" title="Return Attribution (Time Series)" className="h-full">
             <StackedTimeChart
-              data={perfTimeSeries}
+              data={perfTimeSeries.map(d => {
+                const scaled: Record<string, any> = { month: d.month };
+                ['strategicPortfolio', 'mts', 'activeStrategies', 'inflation', 'realReturn'].forEach(k => {
+                  if (k in d) scaled[k] = scaleValue((d as any)[k], gScale);
+                });
+                return scaled;
+              })}
               categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
               overlayLine="realReturn"
               negativeCategories={['inflation']}
@@ -266,8 +279,8 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           <StackedTimeChart
             data={contributionTimeSeries.map(d => {
               const scaled: Record<string, any> = { month: d.month };
-              stratData.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = +((d as any)[s.name] * rtFactor).toFixed(2); });
-              if ('Total Portfolio' in d) scaled['Total Portfolio'] = +((d as any)['Total Portfolio'] * rtFactor).toFixed(2);
+              stratData.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = scaleValue((d as any)[s.name], combinedFactor); });
+              if ('Total Portfolio' in d) scaled['Total Portfolio'] = scaleValue((d as any)['Total Portfolio'], combinedFactor);
               return scaled;
             })}
             categories={stratData.slice(0, 6).map(s => s.name)}
@@ -286,7 +299,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           <TrendChart
             data={cumulativePerfSeries.map(d => {
               const scaled: Record<string, any> = { month: d.month };
-              activeStrategies.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = +((d as any)[s.name] * rtFactor).toFixed(2); });
+              activeStrategies.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = scaleValue((d as any)[s.name], combinedFactor); });
               return scaled;
             })}
             lines={activeStrategies.slice(0, 6).map(s => s.name)}
@@ -301,8 +314,12 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
 function MarketPerformance({ filters }: { filters: PerfFilters }) {
   const [eqBd, setEqBd] = useState<string>('Country');
   const [mode, setMode] = useState('Cumulative');
+  const gScale = getGlobalScale(filters.timespan, filters.currency);
 
-  const eqData = eqBd === 'Country' ? equityCountryPerf : equitySectorPerf;
+  const eqData = scaleData(eqBd === 'Country' ? equityCountryPerf : equitySectorPerf, gScale);
+  const fiData = scaleData(fiPerf.map(f => ({ name: f.name, value: f.yield })), gScale);
+  const comData = scaleData(commodityPerf, gScale);
+  const curData = scaleData(currencyPerf.map(c => ({ name: c.name, value: c.value })), gScale);
 
   return (
     <div className="grid grid-cols-2 gap-4">
@@ -317,35 +334,37 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
         <TrendChart data={marketTimeSeries(eqData)} lines={eqData.map(d => d.name)} />
       </ChartCard>
       <ChartCard id="mkt-3" title="Fixed Income Performance (BBGA)">
-        <FinancialBarChart data={fiPerf.map(f => ({ name: f.name, value: f.yield }))} colorByValue={false} barColor="hsl(185, 58%, 38%)" />
+        <FinancialBarChart data={fiData} colorByValue={false} barColor="hsl(185, 58%, 38%)" />
       </ChartCard>
       <ChartCard id="mkt-4" title="Fixed Income Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       }>
-        <TrendChart data={marketTimeSeries(fiPerf)} lines={fiPerf.map(f => f.name)} />
+        <TrendChart data={marketTimeSeries(fiData)} lines={fiData.map(f => f.name)} />
       </ChartCard>
       <ChartCard id="mkt-5" title="Commodities Performance (BCOM)">
-        <FinancialBarChart data={commodityPerf} />
+        <FinancialBarChart data={comData} />
       </ChartCard>
       <ChartCard id="mkt-6" title="Commodities Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       }>
-        <TrendChart data={marketTimeSeries(commodityPerf)} lines={commodityPerf.map(d => d.name)} />
+        <TrendChart data={marketTimeSeries(comData)} lines={comData.map(d => d.name)} />
       </ChartCard>
       <ChartCard id="mkt-7" title="Currency Performance">
-        <FinancialBarChart data={currencyPerf.map(c => ({ name: c.name, value: c.value }))} />
+        <FinancialBarChart data={curData} />
       </ChartCard>
       <ChartCard id="mkt-8" title="Currency Cumulative" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       }>
-        <TrendChart data={marketTimeSeries(currencyPerf)} lines={currencyPerf.map(c => c.name)} />
+        <TrendChart data={marketTimeSeries(curData)} lines={curData.map(c => c.name)} />
       </ChartCard>
     </div>
   );
 }
 
 function RealReturn({ filters }: { filters: PerfFilters }) {
-  const wfData = realReturnWaterfall[filters.timespan as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'];
+  const gScale = getGlobalScale(filters.timespan, filters.currency);
+  const wfData = (realReturnWaterfall[filters.timespan as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'])
+    .map(d => ({ ...d, value: scaleValue(d.value, curScales[filters.currency] || 1) }));
 
   return (
     <div className="grid grid-cols-2 gap-4">
@@ -356,8 +375,8 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
         <TrendChart
           data={cumulativePerfSeries.map((d, i) => ({
             month: d.month,
-            'Nominal Return': i <= 8 ? +((i + 1) * 0.85).toFixed(2) : null,
-            'Projected Real': i >= 8 ? +((i + 1) * 0.55).toFixed(2) : null,
+            'Nominal Return': i <= 8 ? scaleValue((i + 1) * 0.85, gScale) : null,
+            'Projected Real': i >= 8 ? scaleValue((i + 1) * 0.55, gScale) : null,
           }))}
           lines={['Nominal Return', 'Projected Real']}
           lineColors={{ 'Projected Real': 'hsl(0, 72%, 51%)' }}
@@ -365,11 +384,11 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
         />
       </ChartCard>
       <ChartCard id="rr-3" title="Expected Long-Term Rate of Return (ELTRROR)">
-        <FinancialBarChart data={eltrrorData} colorByValue={false} barColor="hsl(145, 52%, 42%)" />
+        <FinancialBarChart data={scaleData(eltrrorData, gScale)} colorByValue={false} barColor="hsl(145, 52%, 42%)" />
       </ChartCard>
       <ChartCard id="rr-4" title="ELTRROR Cone Charts">
         <div className="grid grid-cols-3 grid-rows-2 gap-2 h-full">
-          {eltrrorData.map(ac => (
+          {scaleData(eltrrorData, gScale).map(ac => (
             <div key={ac.name} className="rounded-md border bg-muted/20 p-2 flex flex-col items-center justify-center">
               <p className="text-[9px] font-medium text-muted-foreground mb-1">{ac.name}</p>
               <div className="w-full h-12 relative">
@@ -384,11 +403,11 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
         </div>
       </ChartCard>
       <ChartCard id="rr-5" title="Inflation by Country">
-        <FinancialBarChart data={inflationByCountry} colorByValue={false} barColor="hsl(38, 90%, 50%)" />
+        <FinancialBarChart data={scaleData(inflationByCountry, gScale)} colorByValue={false} barColor="hsl(38, 90%, 50%)" />
       </ChartCard>
       <ChartCard id="rr-6" title="Cumulative Inflation by Country">
         <StackedTimeChart
-          data={marketTimeSeries(inflationByCountry)}
+          data={marketTimeSeries(scaleData(inflationByCountry, gScale))}
           categories={inflationByCountry.map(c => c.name)}
         />
       </ChartCard>
@@ -397,6 +416,8 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
 }
 
 function PeersComparison({ filters }: { filters: PerfFilters }) {
+  const gScale = getGlobalScale(filters.timespan, filters.currency);
+  const scaledPeers = peersData.map(p => ({ ...p, returns: scaleValue(p.returns, gScale), volatility: scaleValue(p.volatility, gScale) }));
   return (
     <div className="grid grid-cols-2 gap-4">
       <ChartCard id="peer-1" title="Peer Performance Metrics">
@@ -412,7 +433,7 @@ function PeersComparison({ filters }: { filters: PerfFilters }) {
               </tr>
             </thead>
             <tbody>
-              {peersData.map(p => (
+              {scaledPeers.map(p => (
                 <tr key={p.name} className={cn('border-b border-border/50', p.name === 'Our Portfolio' && 'bg-accent/10 font-semibold')}>
                   <td className="py-1.5 px-2">{p.name}</td>
                   <td className="py-1.5 px-2 text-right">{p.returns}%</td>
@@ -426,7 +447,14 @@ function PeersComparison({ filters }: { filters: PerfFilters }) {
         </div>
       </ChartCard>
       <ChartCard id="peer-2" title="Cumulative Returns">
-        <TrendChart data={peerReturnSeries} lines={peersData.map(p => p.name)} />
+        <TrendChart
+          data={peerReturnSeries.map(d => {
+            const scaled: Record<string, any> = { month: d.month };
+            scaledPeers.forEach(p => { if (p.name in d) scaled[p.name] = scaleValue((d as any)[p.name], gScale); });
+            return scaled;
+          })}
+          lines={scaledPeers.map(p => p.name)}
+        />
       </ChartCard>
       <ChartCard id="peer-3" title="Asset Mix Comparison">
         <div className="overflow-auto text-xs">
@@ -486,14 +514,14 @@ function PeersComparison({ filters }: { filters: PerfFilters }) {
       </ChartCard>
       <ChartCard id="peer-5" title="Return vs Volatility">
         <ScatterPlot
-          data={peersData.map(p => ({ name: p.name, x: p.volatility, y: p.returns }))}
+          data={scaledPeers.map(p => ({ name: p.name, x: p.volatility, y: p.returns }))}
           xLabel="Volatility (%)"
           yLabel="Returns (%)"
         />
       </ChartCard>
       <ChartCard id="peer-6" title="Return vs EQ Beta">
         <ScatterPlot
-          data={peersData.map(p => ({ name: p.name, x: p.eqBeta, y: p.returns }))}
+          data={scaledPeers.map(p => ({ name: p.name, x: p.eqBeta, y: p.returns }))}
           xLabel="EQ Beta"
           yLabel="Returns (%)"
         />
