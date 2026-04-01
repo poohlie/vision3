@@ -406,11 +406,14 @@ export const liquidityCoverageData = [
 
 // ============ MARKET PERFORMANCE ============
 export const equityCountryPerf = [
+  // Developed Markets
   { name: 'United States', value: 12.5 }, { name: 'Japan', value: 8.2 },
-  { name: 'United Kingdom', value: 5.8 }, { name: 'Germany', value: 6.1 },
-  { name: 'France', value: 4.5 }, { name: 'China', value: -2.1 },
-  { name: 'India', value: 15.2 }, { name: 'South Korea', value: 3.8 },
   { name: 'Canada', value: 7.2 }, { name: 'Australia', value: 6.5 },
+  { name: 'Germany', value: 6.1 }, { name: 'United Kingdom', value: 5.8 },
+  { name: 'France', value: 4.5 },
+  // Emerging Markets
+  { name: 'India', value: 15.2 }, { name: 'South Korea', value: 3.8 },
+  { name: 'China', value: -2.1 },
 ];
 
 export const equitySectorPerf = [

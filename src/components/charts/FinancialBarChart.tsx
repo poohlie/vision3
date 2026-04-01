@@ -13,6 +13,7 @@ interface SingleProps {
   layout?: 'horizontal' | 'vertical';
   colorByValue?: boolean;
   barColor?: string;
+  preserveOrder?: boolean;
 }
 
 interface MultiProps {
@@ -22,11 +23,12 @@ interface MultiProps {
   layout?: 'horizontal' | 'vertical';
   colorByValue?: boolean;
   barColor?: string;
+  preserveOrder?: boolean;
 }
 
 type Props = SingleProps | MultiProps;
 
-export default function FinancialBarChart({ data: rawData, datasets, height = 250, layout = 'vertical', colorByValue = true, barColor }: Props) {
+export default function FinancialBarChart({ data: rawData, datasets, height = 250, layout = 'vertical', colorByValue = true, barColor, preserveOrder = false }: Props) {
   const tooltipStyle = {
     background: 'hsl(var(--card))',
     border: '1px solid hsl(var(--border))',
@@ -84,7 +86,7 @@ export default function FinancialBarChart({ data: rawData, datasets, height = 25
 
   // Single dataset mode (original behavior)
   const singleData = rawData || (datasets ? datasets[0].data : []);
-  const data = [...singleData].sort((a, b) => b.value - a.value);
+  const data = preserveOrder ? singleData : [...singleData].sort((a, b) => b.value - a.value);
 
   if (layout === 'vertical') {
     return (
