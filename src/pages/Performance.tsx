@@ -514,14 +514,14 @@ function PeersComparison({ filters }: { filters: PerfFilters }) {
       </ChartCard>
       <ChartCard id="peer-5" title="Return vs Volatility">
         <ScatterPlot
-          data={peersData.map(p => ({ name: p.name, x: p.volatility, y: p.returns }))}
+          data={scaledPeers.map(p => ({ name: p.name, x: p.volatility, y: p.returns }))}
           xLabel="Volatility (%)"
           yLabel="Returns (%)"
         />
       </ChartCard>
       <ChartCard id="peer-6" title="Return vs EQ Beta">
         <ScatterPlot
-          data={peersData.map(p => ({ name: p.name, x: p.eqBeta, y: p.returns }))}
+          data={scaledPeers.map(p => ({ name: p.name, x: p.eqBeta, y: p.returns }))}
           xLabel="EQ Beta"
           yLabel="Returns (%)"
         />
