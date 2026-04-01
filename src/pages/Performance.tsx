@@ -105,7 +105,7 @@ export default function Performance() {
 
       {/* Compare control (Nominal Return only) */}
       {isNominal && (
-        <div className="rounded-lg border-2 border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
+        <div className="w-1/2 rounded-lg border-2 border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 shrink-0">
               <div className="w-1 h-8 rounded-full bg-primary" />
