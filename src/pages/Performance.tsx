@@ -251,7 +251,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
             <><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
           }>
             {isComparing ? (
-              <CompareBarPanel datasets={waterfallDatasets} />
+              <CompareBarPanel datasets={waterfallDatasets} preserveOrder />
             ) : (
               <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
             )}
@@ -457,7 +457,7 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
     <div className="grid grid-cols-2 gap-4">
       <ChartCard id="rr-1" title="Real Return Decomposition" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         {isComparing ? (
-          <CompareBarPanel datasets={wfDatasets} />
+          <CompareBarPanel datasets={wfDatasets} preserveOrder />
         ) : (
           <CompareWaterfallChart datasets={wfDatasets} />
         )}

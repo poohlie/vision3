@@ -14,6 +14,7 @@ interface Dataset {
 interface Props {
   datasets: Dataset[];
   height?: number;
+  preserveOrder?: boolean;
 }
 
 const tooltipStyle = {
@@ -29,10 +30,10 @@ const tooltipStyle = {
  * Labels appear only in the leftmost column; subsequent columns show bars only.
  * Inspired by institutional "Target / Exposure / Delta" triple-panel layouts.
  */
-export default function CompareBarPanel({ datasets, height = 280 }: Props) {
-  // Use first dataset's order (sorted descending)
-  const sorted = [...datasets[0].data].sort((a, b) => b.value - a.value);
-  const names = sorted.map(d => d.name);
+export default function CompareBarPanel({ datasets, height = 280, preserveOrder = false }: Props) {
+  // Use first dataset's order — optionally sorted descending
+  const ordered = preserveOrder ? datasets[0].data : [...datasets[0].data].sort((a, b) => b.value - a.value);
+  const names = ordered.map(d => d.name);
 
   // Align all datasets to same name order
   const aligned = datasets.map(ds => {
