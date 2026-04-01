@@ -18,11 +18,12 @@ const COMPARE_COLORS_LIGHT = [
 interface Props {
   datasets: { label: string; data: WfItem[] }[];
   onBarClick?: (name: string) => void;
+  horizontal?: boolean;
 }
 
-export default function CompareWaterfallChart({ datasets, onBarClick }: Props) {
+export default function CompareWaterfallChart({ datasets, onBarClick, horizontal }: Props) {
   if (datasets.length === 1) {
-    return <SingleWaterfall data={datasets[0].data} onBarClick={onBarClick} />;
+    return <SingleWaterfall data={datasets[0].data} onBarClick={onBarClick} horizontal={horizontal} />;
   }
 
   // Grouped comparison mode
