@@ -12,7 +12,6 @@ import StackedTimeChart from '@/components/charts/StackedTimeChart';
 import TrendChart from '@/components/charts/TrendChart';
 import ScatterPlot from '@/components/charts/ScatterChart';
 import CompareBarPanel from '@/components/charts/CompareBarPanel';
-import GroupedBarChart from '@/components/charts/GroupedBarChart';
 import {
   perfWaterfallData, activeStrategies, perfTimeSeries, cumulativePerfSeries, contributionTimeSeries,
   equityCountryPerf, equitySectorPerf, fiPerf, commodityPerf, currencyPerf, marketTimeSeries,
@@ -395,11 +394,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
       <ChartCard id="mkt-1" title="Equity Performance (MSCI ACWI)" toolbar={
         <ToggleBar options={['Country', 'Sector'] as const} value={eqBd} onChange={setEqBd} size="xs" />
       } footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
-        {eqBd === 'Country' ? (
-          <GroupedBarChart data={equityCountryPerf} colorByValue />
-        ) : (
-          renderCompareOrSingle(eqDatasets, <FinancialBarChart data={eqData} />)
-        )}
+        {renderCompareOrSingle(eqDatasets, <FinancialBarChart data={eqData} />)}
       </ChartCard>
       <ChartCard id="mkt-2" title="Equity Cumulative Performance" toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />

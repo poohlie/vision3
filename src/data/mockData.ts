@@ -406,12 +406,11 @@ export const liquidityCoverageData = [
 
 // ============ MARKET PERFORMANCE ============
 export const equityCountryPerf = [
-  { name: 'United States', value: 12.5, group: 'DM' }, { name: 'Japan', value: 8.2, group: 'DM' },
-  { name: 'United Kingdom', value: 5.8, group: 'DM' }, { name: 'Germany', value: 6.1, group: 'DM' },
-  { name: 'France', value: 4.5, group: 'DM' }, { name: 'Canada', value: 7.2, group: 'DM' },
-  { name: 'Australia', value: 6.5, group: 'DM' },
-  { name: 'China', value: -2.1, group: 'EM' }, { name: 'India', value: 15.2, group: 'EM' },
-  { name: 'South Korea', value: 3.8, group: 'EM' },
+  { name: 'United States', value: 12.5 }, { name: 'Japan', value: 8.2 },
+  { name: 'United Kingdom', value: 5.8 }, { name: 'Germany', value: 6.1 },
+  { name: 'France', value: 4.5 }, { name: 'China', value: -2.1 },
+  { name: 'India', value: 15.2 }, { name: 'South Korea', value: 3.8 },
+  { name: 'Canada', value: 7.2 }, { name: 'Australia', value: 6.5 },
 ];
 
 export const equitySectorPerf = [
