@@ -21,7 +21,7 @@ interface Props {
   colorMap?: Record<string, string>;
 }
 
-export default function CompareWaterfallChart({ datasets, onBarClick }: Props) {
+export default function CompareWaterfallChart({ datasets, onBarClick, colorMap }: Props) {
   const tooltipStyle = {
     background: 'hsl(var(--card))',
     border: '1px solid hsl(var(--border))',
