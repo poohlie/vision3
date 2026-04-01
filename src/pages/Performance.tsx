@@ -49,19 +49,10 @@ export default function Performance() {
   const initialTab = subTabs.find(t => t === searchParams.get('tab')) || 'Nominal Return';
   const [sub, setSub] = useState<SubTab>(initialTab);
   const [filters, setFilters] = useState<PerfFilters>({
-    timespan: '1Y', currency: 'USD', breakdown: 'Active Strategies', topN: 8,
-    compareTimespans: ['1Y'],
+    timespans: ['1Y'], currency: 'USD', breakdown: 'Active Strategies', topN: 8,
   });
 
-  const set = (partial: Partial<PerfFilters>) => setFilters(prev => {
-    const next = { ...prev, ...partial };
-    // Keep global timespan always as first item in compareTimespans
-    if (partial.timespan) {
-      const others = prev.compareTimespans.filter(t => t !== partial.timespan && t !== prev.timespan);
-      next.compareTimespans = [partial.timespan, ...others];
-    }
-    return next;
-  });
+  const set = (partial: Partial<PerfFilters>) => setFilters(prev => ({ ...prev, ...partial }));
   const isNominal = sub === 'Nominal Return';
 
   return (
