@@ -174,6 +174,10 @@ function buildContribData(sourceData: { name: string; contribution: number; ownR
 
 // Timespan scale factors for mock variation
 const tsScales: Record<string, number> = { '1Y': 1.0, '3Y': 0.75, '5Y': 0.85, '10Y': 0.65, '20Y': 0.55 };
+const curScales: Record<string, number> = { 'USD': 1.0, 'EUR': 0.92, 'GBP': 0.79, 'JPY': 1.12, 'Local': 1.05 };
+const getGlobalScale = (timespan: string, currency: string) => (tsScales[timespan] || 1) * (curScales[currency] || 1);
+const scaleValue = (v: number, scale: number) => +(v * scale).toFixed(2);
+const scaleData = (data: { name: string; value: number }[], scale: number) => data.map(d => ({ name: d.name, value: scaleValue(d.value, scale) }));
 
 // ─── Sub-tab components ───
 
