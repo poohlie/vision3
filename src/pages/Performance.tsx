@@ -123,23 +123,6 @@ export default function Performance() {
           </div>
         )}
 
-        {isNominal && (
-          <div className="rounded-lg border-2 border-accent/30 bg-accent/5 px-4 py-3 shadow-sm">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="w-1 h-8 rounded-full bg-accent" />
-                <div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Breakdown</span>
-                  <p className="text-[9px] text-muted-foreground">Right charts → · TopN ↓ bottom 4</p>
-                </div>
-              </div>
-              <div className="h-8 w-px bg-border shrink-0" />
-              <ToggleBar options={breakdowns} value={filters.breakdown as any} onChange={v => set({ breakdown: v })} size="xs" />
-              <div className="h-8 w-px bg-border shrink-0" />
-              <TopNSelect value={filters.topN} onChange={n => set({ topN: n })} />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Tab content */}
@@ -191,19 +174,36 @@ function buildContribData(sourceData: { name: string; contribution: number; ownR
   return { stratData, contribData, ownData };
 }
 
+// Timespan scale factors for mock variation
+const tsScales: Record<string, number> = { '1Y': 1.0, '3Y': 0.75, '5Y': 0.85, '10Y': 0.65, '20Y': 0.55 };
+
 // ─── Sub-tab components ───
 
 function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const [target, setTarget] = useState('Total Portfolio');
   const [mode, setMode] = useState('Cumulative');
+  const [breakdown, setBreakdown] = useState('Active Strategies');
+  const [topN, setTopN] = useState(8);
 
-  const sourceData = getSourceData(filters.breakdown);
-  const { stratData, contribData, ownData } = buildContribData(sourceData, filters.topN);
+  const sourceData = getSourceData(breakdown);
+  const { stratData, contribData, ownData } = buildContribData(sourceData, topN);
 
   const waterfallDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
     data: perfWaterfallData[ts] || perfWaterfallData['1Y'],
   }));
+
+  // Build multi-timespan datasets for contribution and own-return charts
+  const contribDatasets = filters.compareTimespans.map(ts => ({
+    label: ts,
+    data: contribData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(2) })),
+  }));
+  const ownDatasets = filters.compareTimespans.map(ts => ({
+    label: ts,
+    data: ownData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) })),
+  }));
+
+  const isComparing = filters.compareTimespans.length > 1;
 
   return (
     <div className="space-y-4">
@@ -214,7 +214,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
             <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
           </ChartCard>
         </div>
-        <div className="border-l-2 border-accent/30 pl-3 min-h-[320px]">
+        <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
           <ChartCard id="perf-2" title="Return Attribution (Time Series)" className="h-full">
             <StackedTimeChart
               data={perfTimeSeries}
@@ -226,10 +226,30 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
         </div>
       </div>
 
-      {/* Row 2 & 3: Bottom 4 charts — combined primary+accent border (TopN applies here) */}
-      <div className="grid grid-cols-2 gap-4 border-l-2 pl-3 ml-1" style={{ borderImage: 'linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--accent))) 1' }}>
+      {/* Breakdown filter bar — between row 1 and bottom charts, like Exposure filter */}
+      <div className="rounded-lg border-2 border-accent/30 bg-accent/5 px-4 py-3 shadow-sm">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-1 h-8 rounded-full bg-accent" />
+            <div>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Breakdown</span>
+              <p className="text-[9px] text-muted-foreground">Applies to charts below ↓</p>
+            </div>
+          </div>
+          <div className="h-8 w-px bg-border shrink-0" />
+          <ToggleBar options={breakdowns} value={breakdown as any} onChange={setBreakdown} size="xs" />
+          <div className="h-8 w-px bg-border shrink-0" />
+          <TopNSelect value={topN} onChange={setTopN} />
+        </div>
+      </div>
+
+      {/* Row 2 & 3: Bottom 4 charts — accent border (breakdown + TopN) */}
+      <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/30 pl-3 ml-1">
         <ChartCard id="perf-3" title={`Contribution to ${target}`} className="min-h-[280px]">
-          <FinancialBarChart data={contribData} />
+          {isComparing
+            ? <FinancialBarChart datasets={contribDatasets} />
+            : <FinancialBarChart data={contribData} />
+          }
         </ChartCard>
         <ChartCard id="perf-4" title="Contribution (Time Series)" className="min-h-[280px]">
           <StackedTimeChart
@@ -239,7 +259,10 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           />
         </ChartCard>
         <ChartCard id="perf-5" title={`Own-Based Return (${target})`} className="min-h-[280px]">
-          <FinancialBarChart data={ownData} />
+          {isComparing
+            ? <FinancialBarChart datasets={ownDatasets} />
+            : <FinancialBarChart data={ownData} />
+          }
         </ChartCard>
         <ChartCard id="perf-6" title="Cumulative Strategy Performance" className="min-h-[280px]" toolbar={
           <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
