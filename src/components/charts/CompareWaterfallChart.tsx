@@ -53,8 +53,7 @@ export default function CompareWaterfallChart({ datasets, onBarClick, horizontal
     return (
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={finalData} layout="vertical" barCategoryGap="18%">
-          <Y
-
+          <YAxis
             dataKey="name"
             type="category"
             tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
