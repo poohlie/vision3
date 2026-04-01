@@ -20,7 +20,7 @@ const tooltipStyle = {
   boxShadow: '0 4px 12px -2px rgba(0,0,0,0.12)',
 };
 
-export default function StackedTimeChart({ data, categories, height = 250, xKey = 'month', overlayLine, stacked = true, negativeCategories = [] }: Props) {
+export default function StackedTimeChart({ data, categories, height = 250, xKey = 'month', overlayLine, stacked = true, negativeCategories = [], colorMap }: Props) {
   if (overlayLine) {
     return (
       <ResponsiveContainer width="100%" height={height}>
