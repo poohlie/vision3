@@ -9,7 +9,6 @@ interface Props {
   overlayLine?: string;
   stacked?: boolean;
   negativeCategories?: string[];
-  colorMap?: Record<string, string>;
 }
 
 const tooltipStyle = {
@@ -20,7 +19,7 @@ const tooltipStyle = {
   boxShadow: '0 4px 12px -2px rgba(0,0,0,0.12)',
 };
 
-export default function StackedTimeChart({ data, categories, height = 250, xKey = 'month', overlayLine, stacked = true, negativeCategories = [], colorMap }: Props) {
+export default function StackedTimeChart({ data, categories, height = 250, xKey = 'month', overlayLine, stacked = true, negativeCategories = [] }: Props) {
   if (overlayLine) {
     return (
       <ResponsiveContainer width="100%" height={height}>
@@ -35,7 +34,7 @@ export default function StackedTimeChart({ data, categories, height = 250, xKey 
               key={c}
               dataKey={c}
               stackId={stacked ? (negativeCategories.includes(c) ? 'neg' : 's') : undefined}
-              fill={colorMap?.[c] ?? CHART_COLORS[i % CHART_COLORS.length]}
+              fill={CHART_COLORS[i % CHART_COLORS.length]}
               barSize={20}
               radius={[1, 1, 0, 0]}
             />
@@ -55,7 +54,7 @@ export default function StackedTimeChart({ data, categories, height = 250, xKey 
         <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v > 0 ? '+' : ''}${v.toFixed(2)}%`, undefined]} />
         <Legend wrapperStyle={{ fontSize: 10 }} />
         {categories.map((c, i) => (
-          <Bar key={c} dataKey={c} stackId={stacked ? 's' : undefined} fill={colorMap?.[c] ?? CHART_COLORS[i % CHART_COLORS.length]} barSize={20} radius={[1, 1, 0, 0]} />
+          <Bar key={c} dataKey={c} stackId={stacked ? 's' : undefined} fill={CHART_COLORS[i % CHART_COLORS.length]} barSize={20} radius={[1, 1, 0, 0]} />
         ))}
       </BarChart>
     </ResponsiveContainer>

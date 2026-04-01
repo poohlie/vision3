@@ -250,12 +250,11 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           <ChartCard id="perf-1" title="Nominal Return Decomposition" className="h-full" footer={
             <><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
           }>
-            <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} colorMap={{
-              'Strategic Portfolio': 'hsl(145, 52%, 42%)',
-              'MTS': 'hsl(220, 10%, 58%)',
-              'Active Strategies': 'hsl(270, 55%, 50%)',
-              'Total Portfolio': 'hsl(212, 72%, 42%)',
-            }} />
+            {isComparing ? (
+              <CompareBarPanel datasets={waterfallDatasets} preserveOrder />
+            ) : (
+              <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
+            )}
           </ChartCard>
         </div>
         <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
@@ -267,13 +266,9 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           }>
             <StackedTimeChart
               data={tsPerf}
-              categories={['strategicPortfolio', 'mts', 'activeStrategies']}
-              overlayLine="totalPortfolio"
-              colorMap={{
-                strategicPortfolio: 'hsl(145, 52%, 42%)',
-                mts: 'hsl(220, 10%, 58%)',
-                activeStrategies: 'hsl(270, 55%, 50%)',
-              }}
+              categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
+              overlayLine="realReturn"
+              negativeCategories={['inflation']}
             />
           </ChartCard>
         </div>

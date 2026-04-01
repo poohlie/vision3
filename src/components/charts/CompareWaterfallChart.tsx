@@ -18,10 +18,9 @@ const COMPARE_COLORS_LIGHT = [
 interface Props {
   datasets: { label: string; data: WfItem[] }[];
   onBarClick?: (name: string) => void;
-  colorMap?: Record<string, string>;
 }
 
-export default function CompareWaterfallChart({ datasets, onBarClick, colorMap }: Props) {
+export default function CompareWaterfallChart({ datasets, onBarClick }: Props) {
   const tooltipStyle = {
     background: 'hsl(var(--card))',
     border: '1px solid hsl(var(--border))',
@@ -40,13 +39,13 @@ export default function CompareWaterfallChart({ datasets, onBarClick, colorMap }
           <ReferenceLine x={0} stroke="hsl(var(--border))" />
           <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [`${value > 0 ? '+' : ''}${value.toFixed(1)}%`, 'Value']} />
           <Bar dataKey="value" radius={[0, 3, 3, 0]} barSize={14} onClick={(d) => onBarClick?.(d.name)}>
-            {data.map((d, i) => {
-              const fill = colorMap?.[d.name]
-                ?? (d.isTotal ? 'hsl(var(--chart-total))' : d.value >= 0 ? 'hsl(var(--chart-1))' : 'hsl(var(--chart-negative))');
-              return (
-                <Cell key={i} fill={fill} cursor={onBarClick ? 'pointer' : 'default'} />
-              );
-            })}
+            {data.map((d, i) => (
+              <Cell
+                key={i}
+                fill={d.isTotal ? 'hsl(var(--chart-total))' : d.value >= 0 ? 'hsl(var(--chart-1))' : 'hsl(var(--chart-negative))'}
+                cursor={onBarClick ? 'pointer' : 'default'}
+              />
+            ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
@@ -80,11 +79,7 @@ export default function CompareWaterfallChart({ datasets, onBarClick, colorMap }
             radius={[0, 3, 3, 0]}
             onClick={(d) => onBarClick?.(d.name)}
             cursor={onBarClick ? 'pointer' : 'default'}
-          >
-            {colorMap && chartData.map((row, j) => (
-              <Cell key={j} fill={colorMap[row.name] ?? COMPARE_COLORS[i]} />
-            ))}
-          </Bar>
+          />
         ))}
       </BarChart>
     </ResponsiveContainer>
