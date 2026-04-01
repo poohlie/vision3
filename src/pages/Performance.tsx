@@ -230,7 +230,13 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
         <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
           <ChartCard id="perf-2" title="Return Attribution (Time Series)" className="h-full">
             <StackedTimeChart
-              data={perfTimeSeries}
+              data={perfTimeSeries.map(d => {
+                const scaled: Record<string, any> = { month: d.month };
+                ['strategicPortfolio', 'mts', 'activeStrategies', 'inflation', 'realReturn'].forEach(k => {
+                  if (k in d) scaled[k] = scaleValue((d as any)[k], gScale);
+                });
+                return scaled;
+              })}
               categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
               overlayLine="realReturn"
               negativeCategories={['inflation']}
