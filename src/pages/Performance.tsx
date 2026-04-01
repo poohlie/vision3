@@ -246,12 +246,19 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
       {/* Row 1: Top charts — left bordered primary (compare), right bordered accent (breakdown) */}
       <div className="grid grid-cols-2 gap-4">
         <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
-          <ChartCard id="perf-1" title="Return Attribution (Waterfall)" className="h-full">
+          <ChartCard id="perf-1" title="Return Attribution (Waterfall)" className="h-full" footer={
+            <><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
+          }>
             <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
           </ChartCard>
         </div>
         <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
-          <ChartCard id="perf-2" title="Return Attribution (Time Series)" className="h-full">
+          <ChartCard id="perf-2" title="Return Attribution (Time Series)" className="h-full" footer={
+            <>
+              <FilterPill label="Period" value={primaryTimespan} variant="period" />
+              <FilterPill label="Currency" value={filters.currency} variant="currency" />
+            </>
+          }>
             <StackedTimeChart
               data={tsPerf}
               categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
