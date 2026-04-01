@@ -299,7 +299,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           <TrendChart
             data={cumulativePerfSeries.map(d => {
               const scaled: Record<string, any> = { month: d.month };
-              activeStrategies.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = +((d as any)[s.name] * rtFactor).toFixed(2); });
+              activeStrategies.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = scaleValue((d as any)[s.name], combinedFactor); });
               return scaled;
             })}
             lines={activeStrategies.slice(0, 6).map(s => s.name)}
