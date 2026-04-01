@@ -398,7 +398,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
         {eqBd === 'Country' ? (
           <GroupedBarChart
             data={equityCountryPerf.map(d => ({ name: d.name, value: d.value, group: d.market }))}
-            totalBar={{ name: 'MSCI ACWI', value: equityCountryPerf.reduce((s, d) => s + d.value, 0) / equityCountryPerf.length * 1.1 }}
+            totalBar={{ name: 'MSCI ACWI', value: 8.5 }}
             colorByValue
           />
         ) : (
