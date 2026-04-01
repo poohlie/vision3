@@ -6,10 +6,12 @@ interface Props {
   selected: string[];
   onChange: (v: string[]) => void;
   max?: number;
+  locked?: string; // primary timespan that can't be deselected
 }
 
-export default function TimespanMultiSelect({ selected, onChange, max = 3 }: Props) {
+export default function TimespanMultiSelect({ selected, onChange, max = 3, locked }: Props) {
   const toggle = (ts: string) => {
+    if (ts === locked) return; // can't deselect the locked/primary timespan
     if (selected.includes(ts)) {
       if (selected.length > 1) onChange(selected.filter(s => s !== ts));
     } else if (selected.length < max) {

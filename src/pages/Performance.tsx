@@ -46,7 +46,15 @@ export default function Performance() {
     compareTimespans: ['1Y'],
   });
 
-  const set = (partial: Partial<PerfFilters>) => setFilters(prev => ({ ...prev, ...partial }));
+  const set = (partial: Partial<PerfFilters>) => setFilters(prev => {
+    const next = { ...prev, ...partial };
+    // Keep global timespan always as first item in compareTimespans
+    if (partial.timespan) {
+      const others = prev.compareTimespans.filter(t => t !== partial.timespan && t !== prev.timespan);
+      next.compareTimespans = [partial.timespan, ...others];
+    }
+    return next;
+  });
   const isNominal = sub === 'Nominal Return';
 
   return (
@@ -115,7 +123,7 @@ export default function Performance() {
               </div>
             </div>
             <div className="h-8 w-px bg-border shrink-0" />
-            <TimespanMultiSelect selected={filters.compareTimespans} onChange={v => set({ compareTimespans: v })} />
+            <TimespanMultiSelect selected={filters.compareTimespans} onChange={v => set({ compareTimespans: v })} locked={filters.timespan} />
           </div>
         </div>
       )}
