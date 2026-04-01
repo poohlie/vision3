@@ -35,39 +35,104 @@ export const activeStrategies = [
   { name: 'Rates Relative Value', contribution: 0.05, ownReturn: 3.4 },
 ];
 
-// Time series (monthly, last 12 months)
+// Time series helpers — timespan-aware
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function getTimeLabels(timespan: string): string[] {
+  switch (timespan) {
+    case '1Y': return months;
+    case '3Y': return ['Y1 H1', 'Y1 H2', 'Y2 H1', 'Y2 H2', 'Y3 H1', 'Y3 H2'];
+    case '5Y': return ['Y1', 'Y2', 'Y3', 'Y4', 'Y5'];
+    case '10Y': return ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y6', 'Y7', 'Y8', 'Y9', 'Y10'];
+    case '20Y': return ['Y1-2', 'Y3-4', 'Y5-6', 'Y7-8', 'Y9-10', 'Y11-12', 'Y13-14', 'Y15-16', 'Y17-18', 'Y19-20'];
+    default: return months;
+  }
+}
+
+// Simple deterministic random from numeric seed
+function numericRandom(seed: number) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+// Time series (monthly, last 12 months) — legacy static for backward compat
 export const perfTimeSeries = months.map((m, i) => {
   const sp = +(3 + Math.sin(i / 2) * 2 + i * 0.5).toFixed(1);
-  const mts = +(0.5 + Math.random() * 0.8).toFixed(1);
-  const as_ = +(0.2 + Math.random() * 0.6).toFixed(1);
+  const mts = +(0.5 + numericRandom(i * 7 + 1) * 0.8).toFixed(1);
+  const as_ = +(0.2 + numericRandom(i * 7 + 2) * 0.6).toFixed(1);
   const tp = +(sp + mts + as_).toFixed(1);
-  const inflation = +(-0.2 - Math.random() * 0.4).toFixed(1);
+  const inflation = +(-0.2 - numericRandom(i * 7 + 3) * 0.4).toFixed(1);
   const realReturn = +(tp + inflation).toFixed(1);
   return { month: m, strategicPortfolio: sp, mts, activeStrategies: as_, totalPortfolio: tp, inflation, realReturn };
 });
 
+export function generatePerfTimeSeries(timespan: string) {
+  const labels = getTimeLabels(timespan);
+  const scale = timespan === '1Y' ? 1 : timespan === '3Y' ? 3 : timespan === '5Y' ? 5 : timespan === '10Y' ? 10 : 20;
+  return labels.map((m, i) => {
+    const frac = (i + 1) / labels.length;
+    const sp = +(3 * scale * frac + Math.sin(i / 2) * 2).toFixed(1);
+    const mts = +(0.5 * scale * frac + numericRandom(i * 7 + 1) * 0.8).toFixed(1);
+    const as_ = +(0.2 * scale * frac + numericRandom(i * 7 + 2) * 0.6).toFixed(1);
+    const tp = +(sp + mts + as_).toFixed(1);
+    const inflation = +(-0.2 * scale * frac - numericRandom(i * 7 + 3) * 0.4).toFixed(1);
+    const realReturn = +(tp + inflation).toFixed(1);
+    return { month: m, strategicPortfolio: sp, mts, activeStrategies: as_, totalPortfolio: tp, inflation, realReturn };
+  });
+}
+
 export const cumulativePerfSeries = months.map((m, i) => {
   const base: Record<string, number | string> = { month: m };
   activeStrategies.slice(0, 6).forEach(s => {
-    base[s.name] = +((i + 1) * (s.ownReturn / 12) + Math.random() * 0.5).toFixed(2);
+    base[s.name] = +((i + 1) * (s.ownReturn / 12) + numericRandom(i * 13 + s.name.length) * 0.5).toFixed(2);
   });
-  base['Total Portfolio'] = +((i + 1) * 0.85 + Math.random() * 0.3).toFixed(2);
+  base['Total Portfolio'] = +((i + 1) * 0.85 + numericRandom(i * 17) * 0.3).toFixed(2);
   return base;
 });
+
+export function generateCumulativePerfSeries(timespan: string, strategies: { name: string; ownReturn: number }[]) {
+  const labels = getTimeLabels(timespan);
+  const scale = timespan === '1Y' ? 1 : timespan === '3Y' ? 3 : timespan === '5Y' ? 5 : timespan === '10Y' ? 10 : 20;
+  return labels.map((m, i) => {
+    const base: Record<string, number | string> = { month: m };
+    strategies.forEach(s => {
+      base[s.name] = +((i + 1) / labels.length * scale * (s.ownReturn / 1) + numericRandom(i * 13 + s.name.length) * 0.5).toFixed(2);
+    });
+    base['Total Portfolio'] = +((i + 1) / labels.length * scale * 0.85 + numericRandom(i * 17) * 0.3).toFixed(2);
+    return base;
+  });
+}
 
 // Contribution time series
 export const contributionTimeSeries = months.map((m, i) => {
   const base: Record<string, number | string> = { month: m };
   let sum = 0;
   activeStrategies.slice(0, 6).forEach(s => {
-    const val = +(s.contribution * (i + 1) / 6 + (Math.random() - 0.5) * 0.1).toFixed(2);
+    const val = +(s.contribution * (i + 1) / 6 + (numericRandom(i * 11 + s.name.length) - 0.5) * 0.1).toFixed(2);
     base[s.name] = val;
     sum += val;
   });
   base['Total Portfolio'] = +sum.toFixed(2);
   return base;
 });
+
+export function generateContributionTimeSeries(timespan: string, strategies: { name: string; contribution: number }[]) {
+  const labels = getTimeLabels(timespan);
+  const scale = timespan === '1Y' ? 1 : timespan === '3Y' ? 3 : timespan === '5Y' ? 5 : timespan === '10Y' ? 10 : 20;
+  return labels.map((m, i) => {
+    const base: Record<string, number | string> = { month: m };
+    let sum = 0;
+    strategies.forEach(s => {
+      const val = +(s.contribution * scale * (i + 1) / labels.length + (numericRandom(i * 11 + s.name.length) - 0.5) * 0.1).toFixed(2);
+      base[s.name] = val;
+      sum += val;
+    });
+    base['Total Portfolio'] = +sum.toFixed(2);
+    return base;
+  });
+}
+
+export { getTimeLabels };
 
 // ============ COUNTRY EXPOSURE ============
 export const countryExposureData = [
@@ -366,14 +431,17 @@ export const currencyPerf = [
 ];
 
 // Market time series
-export const marketTimeSeries = (items: { name: string }[]) =>
-  months.map((m, i) => {
+export const marketTimeSeries = (items: { name: string }[], timespan: string = '1Y') => {
+  const labels = getTimeLabels(timespan);
+  const scale = timespan === '1Y' ? 1 : timespan === '3Y' ? 3 : timespan === '5Y' ? 5 : timespan === '10Y' ? 10 : 20;
+  return labels.map((m, i) => {
     const base: Record<string, string | number> = { month: m };
-    items.forEach(item => {
-      base[item.name] = +((i + 1) * (Math.random() * 2 - 0.5) + Math.random() * 2).toFixed(2);
+    items.forEach((item, j) => {
+      base[item.name] = +((i + 1) / labels.length * scale * (numericRandom(i * 31 + j * 7) * 2 - 0.5) + numericRandom(i * 17 + j * 3) * 2).toFixed(2);
     });
     return base;
   });
+};
 
 // ============ REAL RETURN ============
 export const realReturnWaterfall = {
