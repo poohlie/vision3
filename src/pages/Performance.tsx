@@ -342,10 +342,12 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
       {/* Row 2 & 3: Bottom 4 charts — accent border (breakdown + TopN) */}
       <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/30 pl-3 ml-1">
         <ChartCard id="perf-3" title={`Contribution to ${target} (${returnType})`} className="min-h-[280px]">
-          {isComparing
-            ? <FinancialBarChart datasets={contribDatasets} />
-            : <FinancialBarChart data={applyRt(contribData)} />
-          }
+          <TimespanGroupedBarChart
+            items={contribData}
+            timespans={filters.compareTimespans}
+            combinedFactor={combinedFactor}
+            valueKey="contribution"
+          />
         </ChartCard>
         <ChartCard id="perf-4" title={`Contribution Time Series (${returnType})`} className="min-h-[280px]">
           <StackedTimeChart
@@ -360,10 +362,12 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           />
         </ChartCard>
         <ChartCard id="perf-5" title={`Own-Based Return (${returnType})`} className="min-h-[280px]">
-          {isComparing
-            ? <FinancialBarChart datasets={ownDatasets} />
-            : <FinancialBarChart data={applyRt(ownData)} />
-          }
+          <TimespanGroupedBarChart
+            items={ownData}
+            timespans={filters.compareTimespans}
+            combinedFactor={combinedFactor}
+            valueKey="ownReturn"
+          />
         </ChartCard>
         <ChartCard id="perf-6" title={`${mode} Performance (${returnType})`} className="min-h-[280px]" toolbar={
           <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
