@@ -28,7 +28,7 @@ interface MultiProps {
 
 type Props = SingleProps | MultiProps;
 
-export default function FinancialBarChart({ data: rawData, datasets, height = 250, layout = 'vertical', colorByValue = true, barColor }: Props) {
+export default function FinancialBarChart({ data: rawData, datasets, height = 250, layout = 'vertical', colorByValue = true, barColor, preserveOrder = false }: Props) {
   const tooltipStyle = {
     background: 'hsl(var(--card))',
     border: '1px solid hsl(var(--border))',
