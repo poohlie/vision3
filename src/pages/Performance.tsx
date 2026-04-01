@@ -93,7 +93,7 @@ export default function Performance() {
               </div>
             </div>
             <div className="h-8 w-px bg-border shrink-0" />
-            <TimespanMultiSelect selected={longestTimespan(filters.timespans)s} onChange={v => set({ timespans: v })} />
+            <TimespanMultiSelect selected={filters.timespans} onChange={v => set({ timespans: v })} />
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 shrink-0">
@@ -191,24 +191,24 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const sourceData = getSourceData(breakdown);
   const { stratData, contribData, ownData } = buildContribData(sourceData, topN, returnType);
 
-  const primaryTimespan = longestTimespan(longestTimespan(filters.timespans)s);
+  const primaryTimespan = longestTimespan(filters.timespans);
 
-  const waterfallDatasets = longestTimespan(filters.timespans)s.map(ts => ({
+  const waterfallDatasets = filters.timespans.map(ts => ({
     label: ts,
     data: perfWaterfallData[ts] || perfWaterfallData['1Y'],
   }));
 
   // Build multi-timespan datasets for contribution and own-return charts
-  const contribDatasets = longestTimespan(filters.timespans)s.map(ts => ({
+  const contribDatasets = filters.timespans.map(ts => ({
     label: ts,
     data: contribData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(2) })),
   }));
-  const ownDatasets = longestTimespan(filters.timespans)s.map(ts => ({
+  const ownDatasets = filters.timespans.map(ts => ({
     label: ts,
     data: ownData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) })),
   }));
 
-  const isComparing = longestTimespan(filters.timespans)s.length > 1;
+  const isComparing = filters.timespans.length > 1;
 
   // Timespan-aware time series — use longest timespan for right-side charts
   const tsPerf = generatePerfTimeSeries(primaryTimespan);
