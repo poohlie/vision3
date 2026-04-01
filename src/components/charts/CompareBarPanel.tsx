@@ -100,6 +100,7 @@ export default function CompareBarPanel({ datasets, height = 280, preserveOrder 
                 <YAxis
                   type="category"
                   dataKey="name"
+                  interval={0}
                   tick={i === 0 ? <CustomYTick /> : false}
                   width={i === 0 ? 120 : 4}
                   axisLine={false}
