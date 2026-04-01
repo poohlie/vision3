@@ -18,6 +18,7 @@ const COMPARE_COLORS_LIGHT = [
 interface Props {
   datasets: { label: string; data: WfItem[] }[];
   onBarClick?: (name: string) => void;
+  colorMap?: Record<string, string>;
 }
 
 export default function CompareWaterfallChart({ datasets, onBarClick }: Props) {
