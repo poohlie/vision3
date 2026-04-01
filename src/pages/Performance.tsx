@@ -107,8 +107,8 @@ export default function Performance() {
             <ToggleBar options={currencies} value={filters.currency as any} onChange={v => set({ currency: v })} size="xs" />
           </div>
         </div>
+      </div>
 
-      {/* Tab content */}
       {sub === 'Nominal Return' && <PortfolioPerformance filters={filters} />}
       {sub === 'Market Performance' && <MarketPerformance filters={filters} />}
       {sub === 'Real Return' && <RealReturn filters={filters} />}
