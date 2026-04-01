@@ -191,25 +191,27 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const sourceData = getSourceData(breakdown);
   const { stratData, contribData, ownData } = buildContribData(sourceData, topN, returnType);
 
-  const waterfallDatasets = filters.compareTimespans.map(ts => ({
+  const primaryTimespan = longestTimespan(filters.timespans);
+
+  const waterfallDatasets = filters.timespans.map(ts => ({
     label: ts,
     data: perfWaterfallData[ts] || perfWaterfallData['1Y'],
   }));
 
   // Build multi-timespan datasets for contribution and own-return charts
-  const contribDatasets = filters.compareTimespans.map(ts => ({
+  const contribDatasets = filters.timespans.map(ts => ({
     label: ts,
     data: contribData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(2) })),
   }));
-  const ownDatasets = filters.compareTimespans.map(ts => ({
+  const ownDatasets = filters.timespans.map(ts => ({
     label: ts,
     data: ownData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) })),
   }));
 
-  const isComparing = filters.compareTimespans.length > 1;
+  const isComparing = filters.timespans.length > 1;
 
-  // Timespan-aware time series — adjusted for return type
-  const tsPerf = generatePerfTimeSeries(filters.timespan);
+  // Timespan-aware time series — use longest timespan for right-side charts
+  const tsPerf = generatePerfTimeSeries(primaryTimespan);
   const adjustedStrats = stratData.slice(0, 6).map(s => {
     const contrib = returnType === 'Benchmark' ? s.bmkContribution
       : returnType === 'Active' ? +(s.contribution - s.bmkContribution).toFixed(3)
@@ -219,13 +221,13 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
       : s.ownReturn;
     return { name: s.name, contribution: contrib, ownReturn: ownRet };
   });
-  const tsContrib = generateContributionTimeSeries(filters.timespan, adjustedStrats);
-  const tsCumulative = generateCumulativePerfSeries(filters.timespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
-  const tsRolling = generateRollingPerfSeries(filters.timespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
+  const tsContrib = generateContributionTimeSeries(primaryTimespan, adjustedStrats);
+  const tsCumulative = generateCumulativePerfSeries(primaryTimespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
+  const tsRolling = generateRollingPerfSeries(primaryTimespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
 
   // Annual data: each year as a category, each strategy as a bar
   const annualData = useMemo(() => {
-    const numYears = filters.timespan === '1Y' ? 1 : filters.timespan === '3Y' ? 3 : filters.timespan === '5Y' ? 5 : filters.timespan === '10Y' ? 10 : 20;
+    const numYears = primaryTimespan === '1Y' ? 1 : primaryTimespan === '3Y' ? 3 : primaryTimespan === '5Y' ? 5 : primaryTimespan === '10Y' ? 10 : 20;
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: numYears }, (_, i) => currentYear - numYears + 1 + i);
     const seed = (y: number, s: number) => { const x = Math.sin(y * 127 + s * 311) * 10000; return x - Math.floor(x); };
@@ -236,7 +238,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
       });
       return row;
     });
-  }, [filters.timespan, adjustedStrats]);
+  }, [primaryTimespan, adjustedStrats]);
 
   return (
     <div className="space-y-4">
