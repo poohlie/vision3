@@ -330,14 +330,8 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
             <FinancialBarChart data={ownData} />
           )}
         </ChartCard>
-        <ChartCard id="perf-6" title={mode === 'Annual' ? 'Annual Strategy Performance' : mode === 'Rolling' ? 'Rolling Strategy Performance' : 'Cumulative Strategy Performance'} className="min-h-[280px]" toolbar={
-          <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
-        }>
-          {mode === 'Annual' ? (
-            <AnnualClusterChart data={annualData} strategies={adjustedStrats.map(s => s.name)} />
-          ) : (
-            <TrendChart data={mode === 'Rolling' ? tsRolling : tsCumulative} lines={stratData.slice(0, 6).map(s => s.name)} />
-          )}
+        <ChartCard id="perf-6" title="Cumulative Strategy Performance" className="min-h-[280px]">
+          <TrendChart data={tsCumulative} lines={stratData.slice(0, 6).map(s => s.name)} />
         </ChartCard>
       </div>
     </div>
