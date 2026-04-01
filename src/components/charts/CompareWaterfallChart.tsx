@@ -38,9 +38,57 @@ export default function CompareWaterfallChart({ datasets, onBarClick, horizontal
     return row;
   });
 
+  // Reverse for horizontal so first category appears at top
+  const finalData = horizontal ? [...chartData].reverse() : chartData;
+
+  const tooltipStyle = {
+    background: 'hsl(var(--card))',
+    border: '1px solid hsl(var(--border))',
+    borderRadius: '6px',
+    fontSize: 11,
+    boxShadow: '0 4px 12px -2px rgba(0,0,0,0.12)',
+  };
+
+  if (horizontal) {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={finalData} layout="vertical" barCategoryGap="18%">
+          <YAxis
+            dataKey="name"
+            type="category"
+            tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+            width={90}
+            interval={0}
+          />
+          <XAxis
+            type="number"
+            tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+            tickFormatter={v => `${v}%`}
+          />
+          <ReferenceLine x={0} stroke="hsl(var(--border))" />
+          <Tooltip
+            contentStyle={tooltipStyle}
+            formatter={(value: number) => [`${value > 0 ? '+' : ''}${value.toFixed(1)}%`, undefined]}
+          />
+          <Legend wrapperStyle={{ fontSize: 10 }} />
+          {datasets.map((ds, i) => (
+            <Bar
+              key={ds.label}
+              dataKey={ds.label}
+              fill={COMPARE_COLORS[i]}
+              radius={[0, 2, 2, 0]}
+              onClick={(d) => onBarClick?.(d.name)}
+              cursor={onBarClick ? 'pointer' : 'default'}
+            />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  }
+
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={chartData} barCategoryGap="18%">
+      <BarChart data={finalData} barCategoryGap="18%">
         <XAxis dataKey="name" tick={({ x, y, payload }) => {
           const words = payload.value.split(' ');
           return (
@@ -54,13 +102,7 @@ export default function CompareWaterfallChart({ datasets, onBarClick, horizontal
         <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
         <ReferenceLine y={0} stroke="hsl(var(--border))" />
         <Tooltip
-          contentStyle={{
-            background: 'hsl(var(--card))',
-            border: '1px solid hsl(var(--border))',
-            borderRadius: '6px',
-            fontSize: 11,
-            boxShadow: '0 4px 12px -2px rgba(0,0,0,0.12)',
-          }}
+          contentStyle={tooltipStyle}
           formatter={(value: number) => [`${value > 0 ? '+' : ''}${value.toFixed(1)}%`, undefined]}
         />
         <Legend wrapperStyle={{ fontSize: 10 }} />
