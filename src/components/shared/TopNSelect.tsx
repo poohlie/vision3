@@ -9,8 +9,9 @@ interface Props {
 
 export default function TopNSelect({ value, onChange }: Props) {
   return (
-    <div className="flex items-center gap-1.5">
-      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Top</span>
+    <div className="flex items-center gap-2">
+      <div className="w-1 h-8 rounded-full bg-accent" />
+      <span className="text-[11px] font-semibold text-foreground uppercase tracking-wider">Top</span>
       <div className="flex rounded-md border bg-muted/50 p-0.5 gap-0.5">
         {options.map(n => (
           <button
