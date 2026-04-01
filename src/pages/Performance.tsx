@@ -279,8 +279,8 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           <StackedTimeChart
             data={contributionTimeSeries.map(d => {
               const scaled: Record<string, any> = { month: d.month };
-              stratData.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = +((d as any)[s.name] * rtFactor).toFixed(2); });
-              if ('Total Portfolio' in d) scaled['Total Portfolio'] = +((d as any)['Total Portfolio'] * rtFactor).toFixed(2);
+              stratData.slice(0, 6).forEach(s => { if (s.name in d) scaled[s.name] = scaleValue((d as any)[s.name], combinedFactor); });
+              if ('Total Portfolio' in d) scaled['Total Portfolio'] = scaleValue((d as any)['Total Portfolio'], combinedFactor);
               return scaled;
             })}
             categories={stratData.slice(0, 6).map(s => s.name)}
