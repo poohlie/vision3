@@ -11,6 +11,7 @@ import FinancialBarChart from '@/components/charts/FinancialBarChart';
 import StackedTimeChart from '@/components/charts/StackedTimeChart';
 import TrendChart from '@/components/charts/TrendChart';
 import ScatterPlot from '@/components/charts/ScatterChart';
+import CompareBarPanel from '@/components/charts/CompareBarPanel';
 import {
   perfWaterfallData, activeStrategies, perfTimeSeries, cumulativePerfSeries, contributionTimeSeries,
   equityCountryPerf, equitySectorPerf, fiPerf, commodityPerf, currencyPerf, marketTimeSeries,
@@ -307,16 +308,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           </>
         }>
           {isComparing ? (
-            <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${contribDatasets.length}, 1fr)` }}>
-              {contribDatasets.map((ds, i) => (
-                <div key={ds.label} className="flex flex-col">
-                  <span className="text-[10px] font-semibold text-center mb-1" style={{ color: ['hsl(212,72%,42%)', 'hsl(185,58%,38%)', 'hsl(38,90%,50%)'][i] }}>{ds.label}</span>
-                  <div className="min-h-[220px]">
-                    <FinancialBarChart data={ds.data} barColor={['hsl(212,72%,42%)', 'hsl(185,58%,38%)', 'hsl(38,90%,50%)'][i]} colorByValue={false} height={220} />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <CompareBarPanel datasets={contribDatasets} />
           ) : (
             <FinancialBarChart data={contribData} />
           )}
@@ -343,16 +335,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           </>
         }>
           {isComparing ? (
-            <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${ownDatasets.length}, 1fr)` }}>
-              {ownDatasets.map((ds, i) => (
-                <div key={ds.label} className="flex flex-col">
-                  <span className="text-[10px] font-semibold text-center mb-1" style={{ color: ['hsl(212,72%,42%)', 'hsl(185,58%,38%)', 'hsl(38,90%,50%)'][i] }}>{ds.label}</span>
-                  <div className="min-h-[220px]">
-                    <FinancialBarChart data={ds.data} barColor={['hsl(212,72%,42%)', 'hsl(185,58%,38%)', 'hsl(38,90%,50%)'][i]} colorByValue={false} height={220} />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <CompareBarPanel datasets={ownDatasets} />
           ) : (
             <FinancialBarChart data={ownData} />
           )}
@@ -399,16 +382,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
     datasets: { label: string; data: { name: string; value: number }[] }[],
     singleContent: React.ReactNode,
   ) => isComparing ? (
-    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${datasets.length}, 1fr)` }}>
-      {datasets.map((ds, i) => (
-        <div key={ds.label} className="flex flex-col">
-          <span className="text-[10px] font-semibold text-center mb-1" style={{ color: compareColors[i] }}>{ds.label}</span>
-          <div className="min-h-[220px]">
-            <FinancialBarChart data={ds.data} barColor={compareColors[i]} colorByValue={false} height={220} />
-          </div>
-        </div>
-      ))}
-    </div>
+    <CompareBarPanel datasets={datasets} />
   ) : singleContent;
 
   return (
@@ -509,16 +483,7 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
       </ChartCard>
       <ChartCard id="rr-3" title="Expected Long-Term Rate of Return (ELTRROR)" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         {isComparing ? (
-          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${eltrrorDatasets.length}, 1fr)` }}>
-            {eltrrorDatasets.map((ds, i) => (
-              <div key={ds.label} className="flex flex-col">
-                <span className="text-[10px] font-semibold text-center mb-1" style={{ color: compareColors[i] }}>{ds.label}</span>
-                <div className="min-h-[220px]">
-                  <FinancialBarChart data={ds.data} barColor={compareColors[i]} colorByValue={false} height={220} />
-                </div>
-              </div>
-            ))}
-          </div>
+          <CompareBarPanel datasets={eltrrorDatasets} />
         ) : (
           <FinancialBarChart data={eltrrorData} colorByValue={false} barColor="hsl(145, 52%, 42%)" />
         )}
@@ -543,16 +508,7 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
       </ChartCard>
       <ChartCard id="rr-5" title="Inflation by Country" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         {isComparing ? (
-          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${inflationDatasets.length}, 1fr)` }}>
-            {inflationDatasets.map((ds, i) => (
-              <div key={ds.label} className="flex flex-col">
-                <span className="text-[10px] font-semibold text-center mb-1" style={{ color: compareColors[i] }}>{ds.label}</span>
-                <div className="min-h-[220px]">
-                  <FinancialBarChart data={ds.data} barColor={compareColors[i]} colorByValue={false} height={220} />
-                </div>
-              </div>
-            ))}
-          </div>
+          <CompareBarPanel datasets={inflationDatasets} />
         ) : (
           <FinancialBarChart data={inflationByCountry} colorByValue={false} barColor="hsl(38, 90%, 50%)" />
         )}
