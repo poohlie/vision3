@@ -246,10 +246,20 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
       {/* Row 2 & 3: Bottom 4 charts — accent border (breakdown + TopN) */}
       <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/30 pl-3 ml-1">
         <ChartCard id="perf-3" title={`Contribution to ${target}`} className="min-h-[280px]">
-          {isComparing
-            ? <FinancialBarChart datasets={contribDatasets} />
-            : <FinancialBarChart data={contribData} />
-          }
+          {isComparing ? (
+            <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${contribDatasets.length}, 1fr)` }}>
+              {contribDatasets.map((ds, i) => (
+                <div key={ds.label} className="flex flex-col">
+                  <span className="text-[10px] font-semibold text-center mb-1" style={{ color: ['hsl(212,72%,42%)', 'hsl(185,58%,38%)', 'hsl(38,90%,50%)'][i] }}>{ds.label}</span>
+                  <div className="min-h-[220px]">
+                    <FinancialBarChart data={ds.data} barColor={['hsl(212,72%,42%)', 'hsl(185,58%,38%)', 'hsl(38,90%,50%)'][i]} colorByValue={false} height={220} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <FinancialBarChart data={contribData} />
+          )}
         </ChartCard>
         <ChartCard id="perf-4" title="Contribution (Time Series)" className="min-h-[280px]">
           <StackedTimeChart
