@@ -412,7 +412,7 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
       <ChartCard id="mkt-5" title="Commodities Performance (BCOM)" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         {renderCompareOrSingle(comDatasets, <FinancialBarChart data={commodityPerf} />)}
       </ChartCard>
-      <ChartCard id="mkt-6" title="Commodities Cumulative" toolbar={
+      <ChartCard id="mkt-6" title={`Commodities ${mode}`} toolbar={
         <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
       } footer={<><FilterPill label="Period" value={primaryTimespan} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>}>
         <TrendChart data={(mode === 'Rolling' ? marketRollingTimeSeries : marketTimeSeries)(commodityPerf, primaryTimespan)} lines={commodityPerf.map(d => d.name)} />
