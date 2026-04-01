@@ -398,7 +398,7 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
       </ChartCard>
       <ChartCard id="rr-6" title="Cumulative Inflation by Country">
         <StackedTimeChart
-          data={marketTimeSeries(inflationByCountry)}
+          data={marketTimeSeries(inflationByCountry, filters.timespan)}
           categories={inflationByCountry.map(c => c.name)}
         />
       </ChartCard>
