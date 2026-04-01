@@ -31,7 +31,9 @@ export default function TimespanMultiSelect({ selected, onChange, max = 3, locke
             className={cn(
               'px-1.5 py-0.5 text-[10px] rounded-sm font-medium transition-all border',
               selected.includes(ts)
-                ? 'bg-accent text-accent-foreground shadow-sm border-accent/50'
+                ? ts === locked
+                  ? 'bg-primary text-primary-foreground shadow-sm border-primary/50'
+                  : 'bg-accent text-accent-foreground shadow-sm border-accent/50'
                 : 'text-muted-foreground hover:text-foreground border-transparent'
             )}
           >
