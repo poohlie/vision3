@@ -247,10 +247,14 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
       {/* Row 1: Top charts — left bordered primary (compare), right bordered accent (breakdown) */}
       <div className="grid grid-cols-2 gap-4">
         <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
-          <ChartCard id="perf-1" title="Return Attribution (Waterfall)" className="h-full" footer={
+          <ChartCard id="perf-1" title="Nominal Return Decomposition" className="h-full" footer={
             <><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
           }>
-            <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
+            {isComparing ? (
+              <CompareBarPanel datasets={waterfallDatasets} />
+            ) : (
+              <CompareWaterfallChart datasets={waterfallDatasets} onBarClick={setTarget} />
+            )}
           </ChartCard>
         </div>
         <div className="border-l-2 border-primary/30 pl-3 min-h-[320px]">
