@@ -271,9 +271,8 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
           }>
             <StackedTimeChart
               data={tsPerf}
-              categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
-              overlayLine="realReturn"
-              negativeCategories={['inflation']}
+              categories={['strategicPortfolio', 'mts', 'activeStrategies']}
+              overlayLine="totalPortfolio"
               colorMap={{
                 strategicPortfolio: 'hsl(145, 52%, 42%)',
                 mts: 'hsl(220, 10%, 58%)',
