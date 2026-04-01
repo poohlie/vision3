@@ -115,13 +115,14 @@ export default function GroupedBarChart({ data, height = 250, colorByValue = fal
               fill="hsl(215, 15%, 55%)"
               formatter={(v: number) => `${v}%`}
             />
-            {chartData.map((d, i) => {
-              const baseColor = GROUP_COLORS[d.group] || barColor || 'hsl(212, 72%, 42%)';
+            {chartData.map((d: any, i) => {
               let fill: string;
-              if (colorByValue) {
+              if (d.isGrandTotal) {
+                fill = 'hsl(var(--foreground))';
+              } else if (colorByValue) {
                 fill = d.value >= 0 ? 'hsl(212, 72%, 42%)' : 'hsl(0, 72%, 51%)';
               } else if (d.isTotal) {
-                fill = baseColor;
+                fill = GROUP_COLORS[d.group] || barColor || 'hsl(212, 72%, 42%)';
               } else {
                 fill = d.group === 'DM' ? 'hsl(212, 55%, 68%)' : 'hsl(32, 60%, 70%)';
               }
