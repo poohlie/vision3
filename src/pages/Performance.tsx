@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import ChartCard from '@/components/shared/ChartCard';
@@ -29,7 +29,7 @@ const subTabsConfig = [
 ];
 const subTabs = subTabsConfig.map(t => t.key);
 type SubTab = typeof subTabs[number];
-const cumRoll = ['Cumulative', 'Rolling'] as const;
+const cumRoll = ['Cumulative', 'Rolling', 'Annual'] as const;
 
 export interface PerfFilters {
   timespan: string;
@@ -245,6 +245,21 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const tsCumulative = generateCumulativePerfSeries(filters.timespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
   const tsRolling = generateRollingPerfSeries(filters.timespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
 
+  // Annual data: each year as a category, each strategy as a bar
+  const annualData = useMemo(() => {
+    const numYears = filters.timespan === '1Y' ? 1 : filters.timespan === '3Y' ? 3 : filters.timespan === '5Y' ? 5 : filters.timespan === '10Y' ? 10 : 20;
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: numYears }, (_, i) => currentYear - numYears + 1 + i);
+    const seed = (y: number, s: number) => { const x = Math.sin(y * 127 + s * 311) * 10000; return x - Math.floor(x); };
+    return years.map(year => {
+      const row: Record<string, any> = { year: String(year) };
+      adjustedStrats.forEach((s, j) => {
+        row[s.name] = +(s.ownReturn * (0.6 + seed(year, j) * 0.8)).toFixed(1);
+      });
+      return row;
+    });
+  }, [filters.timespan, adjustedStrats]);
+
   return (
     <div className="space-y-4">
       {/* Row 1: Top charts — left bordered primary (compare), right bordered accent (breakdown) */}
@@ -335,10 +350,14 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
             <FinancialBarChart data={ownData} />
           )}
         </ChartCard>
-        <ChartCard id="perf-6" title="Cumulative Strategy Performance" className="min-h-[280px]" toolbar={
+        <ChartCard id="perf-6" title={mode === 'Annual' ? 'Annual Strategy Performance' : mode === 'Rolling' ? 'Rolling Strategy Performance' : 'Cumulative Strategy Performance'} className="min-h-[280px]" toolbar={
           <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
         }>
-          <TrendChart data={mode === 'Rolling' ? tsRolling : tsCumulative} lines={stratData.slice(0, 6).map(s => s.name)} />
+          {mode === 'Annual' ? (
+            <AnnualClusterChart data={annualData} strategies={adjustedStrats.map(s => s.name)} />
+          ) : (
+            <TrendChart data={mode === 'Rolling' ? tsRolling : tsCumulative} lines={stratData.slice(0, 6).map(s => s.name)} />
+          )}
         </ChartCard>
       </div>
     </div>
@@ -547,5 +566,40 @@ function PeersComparison({ filters }: { filters: PerfFilters }) {
         />
       </ChartCard>
     </div>
+  );
+}
+
+// ─── Annual Cluster Bar Chart ───
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend, LabelList } from 'recharts';
+
+const ANNUAL_COLORS = [
+  'hsl(212, 72%, 55%)', 'hsl(32, 80%, 55%)', 'hsl(145, 52%, 48%)',
+  'hsl(0, 62%, 55%)', 'hsl(270, 50%, 55%)', 'hsl(185, 58%, 45%)',
+];
+
+function AnnualClusterChart({ data, strategies }: { data: Record<string, any>[]; strategies: string[] }) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data} barCategoryGap="18%">
+        <XAxis dataKey="year" tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }} />
+        <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
+        <Tooltip
+          contentStyle={{
+            background: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '6px',
+            fontSize: 11,
+            boxShadow: '0 4px 12px -2px rgba(0,0,0,0.12)',
+          }}
+          formatter={(v: number) => [`${v.toFixed(1)}%`, undefined]}
+        />
+        <Legend wrapperStyle={{ fontSize: 10 }} />
+        {strategies.map((name, i) => (
+          <Bar key={name} dataKey={name} fill={ANNUAL_COLORS[i % ANNUAL_COLORS.length]} radius={[2, 2, 0, 0]}>
+            <LabelList dataKey={name} position="top" fontSize={9} fill="hsl(var(--muted-foreground))" formatter={(v: number) => `${v.toFixed(1)}%`} />
+          </Bar>
+        ))}
+      </BarChart>
+    </ResponsiveContainer>
   );
 }
