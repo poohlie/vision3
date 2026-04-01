@@ -420,18 +420,52 @@ function MarketPerformance({ filters }: { filters: PerfFilters }) {
 }
 
 function RealReturn({ filters }: { filters: PerfFilters }) {
-  const wfData = realReturnWaterfall[longestTimespan(filters.timespans) as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'];
+  const primaryTimespan = longestTimespan(filters.timespans);
+  const isComparing = filters.timespans.length > 1;
+
+  // Per-timespan waterfall datasets
+  const wfDatasets = filters.timespans.map(ts => ({
+    label: ts,
+    data: realReturnWaterfall[ts as keyof typeof realReturnWaterfall] || realReturnWaterfall['1Y'],
+  }));
+
+  // Per-timespan ELTRROR datasets (scale by tsScales)
+  const eltrrorDatasets = filters.timespans.map(ts => ({
+    label: ts,
+    data: eltrrorData.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) })),
+  }));
+
+  // Per-timespan inflation datasets
+  const inflationDatasets = filters.timespans.map(ts => ({
+    label: ts,
+    data: inflationByCountry.map(d => ({ name: d.name, value: +(d.value * (tsScales[ts] || 1)).toFixed(1) })),
+  }));
+
+  const compareColors = ['hsl(212,72%,42%)', 'hsl(185,58%,38%)', 'hsl(38,90%,50%)'];
 
   return (
     <div className="grid grid-cols-2 gap-4">
       <ChartCard id="rr-1" title="Real Return Decomposition" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
-        <CompareWaterfallChart datasets={[{ label: longestTimespan(filters.timespans), data: wfData }]} />
+        {isComparing ? (
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${wfDatasets.length}, 1fr)` }}>
+            {wfDatasets.map((ds, i) => (
+              <div key={ds.label} className="flex flex-col">
+                <span className="text-[10px] font-semibold text-center mb-1" style={{ color: compareColors[i] }}>{ds.label}</span>
+                <div className="min-h-[220px]">
+                  <CompareWaterfallChart datasets={[{ label: ds.label, data: ds.data }]} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <CompareWaterfallChart datasets={wfDatasets} />
+        )}
       </ChartCard>
       <ChartCard id="rr-2" title="Cumulative Nominal & Projected Real Return" footer={
-        <><FilterPill label="Period" value={longestTimespan(filters.timespans)} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
+        <><FilterPill label="Period" value={primaryTimespan} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
       }>
         <TrendChart
-          data={generateCumulativePerfSeries(longestTimespan(filters.timespans), activeStrategies.slice(0, 6).map(s => ({ name: s.name, ownReturn: s.ownReturn }))).map((d, i, arr) => ({
+          data={generateCumulativePerfSeries(primaryTimespan, activeStrategies.slice(0, 6).map(s => ({ name: s.name, ownReturn: s.ownReturn }))).map((d, i, arr) => ({
             month: d.month as string,
             'Nominal Return': i <= Math.floor(arr.length * 0.7) ? +((i + 1) / arr.length * 8.5).toFixed(2) : null,
             'Projected Real': i >= Math.floor(arr.length * 0.7) ? +((i + 1) / arr.length * 5.5).toFixed(2) : null,
@@ -442,9 +476,24 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
         />
       </ChartCard>
       <ChartCard id="rr-3" title="Expected Long-Term Rate of Return (ELTRROR)" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
-        <FinancialBarChart data={eltrrorData} colorByValue={false} barColor="hsl(145, 52%, 42%)" />
+        {isComparing ? (
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${eltrrorDatasets.length}, 1fr)` }}>
+            {eltrrorDatasets.map((ds, i) => (
+              <div key={ds.label} className="flex flex-col">
+                <span className="text-[10px] font-semibold text-center mb-1" style={{ color: compareColors[i] }}>{ds.label}</span>
+                <div className="min-h-[220px]">
+                  <FinancialBarChart data={ds.data} barColor={compareColors[i]} colorByValue={false} height={220} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <FinancialBarChart data={eltrrorData} colorByValue={false} barColor="hsl(145, 52%, 42%)" />
+        )}
       </ChartCard>
-      <ChartCard id="rr-4" title="ELTRROR Cone Charts" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
+      <ChartCard id="rr-4" title="ELTRROR Cone Charts" footer={
+        <><FilterPill label="Period" value={primaryTimespan} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
+      }>
         <div className="grid grid-cols-3 grid-rows-2 gap-2 h-full">
           {eltrrorData.map(ac => (
             <div key={ac.name} className="rounded-md border bg-muted/20 p-2 flex flex-col items-center justify-center">
@@ -461,13 +510,26 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
         </div>
       </ChartCard>
       <ChartCard id="rr-5" title="Inflation by Country" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
-        <FinancialBarChart data={inflationByCountry} colorByValue={false} barColor="hsl(38, 90%, 50%)" />
+        {isComparing ? (
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${inflationDatasets.length}, 1fr)` }}>
+            {inflationDatasets.map((ds, i) => (
+              <div key={ds.label} className="flex flex-col">
+                <span className="text-[10px] font-semibold text-center mb-1" style={{ color: compareColors[i] }}>{ds.label}</span>
+                <div className="min-h-[220px]">
+                  <FinancialBarChart data={ds.data} barColor={compareColors[i]} colorByValue={false} height={220} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <FinancialBarChart data={inflationByCountry} colorByValue={false} barColor="hsl(38, 90%, 50%)" />
+        )}
       </ChartCard>
       <ChartCard id="rr-6" title="Cumulative Inflation by Country" footer={
-        <><FilterPill label="Period" value={longestTimespan(filters.timespans)} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
+        <><FilterPill label="Period" value={primaryTimespan} variant="period" /><FilterPill label="Currency" value={filters.currency} variant="currency" /></>
       }>
         <StackedTimeChart
-          data={marketTimeSeries(inflationByCountry, longestTimespan(filters.timespans))}
+          data={marketTimeSeries(inflationByCountry, primaryTimespan)}
           categories={inflationByCountry.map(c => c.name)}
         />
       </ChartCard>
