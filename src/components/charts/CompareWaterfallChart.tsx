@@ -79,7 +79,7 @@ export default function CompareWaterfallChart({ datasets, onBarClick, horizontal
   );
 }
 
-function SingleWaterfall({ data, onBarClick }: { data: WfItem[]; onBarClick?: (name: string) => void }) {
+function SingleWaterfall({ data, onBarClick, horizontal }: { data: WfItem[]; onBarClick?: (name: string) => void; horizontal?: boolean }) {
   let running = 0;
   const processed = data.map(d => {
     if (d.isTotal) {
@@ -92,9 +92,57 @@ function SingleWaterfall({ data, onBarClick }: { data: WfItem[]; onBarClick?: (n
     return { ...d, invisible, visible: Math.abs(d.value), label: d.value };
   });
 
+  // For horizontal layout, reverse so top item appears first
+  const chartData = horizontal ? [...processed].reverse() : processed;
+
+  const tooltipStyle = {
+    background: 'hsl(var(--card))',
+    border: '1px solid hsl(var(--border))',
+    borderRadius: '6px',
+    fontSize: 11,
+    boxShadow: '0 4px 12px -2px rgba(0,0,0,0.12)',
+  };
+
+  const tooltipFormatter = (value: number, name: string) => {
+    if (name === 'invisible') return [null, null];
+    return [`${value > 0 ? '+' : ''}${value.toFixed(1)}%`, 'Value'];
+  };
+
+  const cellFill = (d: typeof processed[0]) =>
+    d.isTotal ? 'hsl(var(--chart-total))' : d.value >= 0 ? 'hsl(var(--chart-1))' : 'hsl(var(--chart-negative))';
+
+  if (horizontal) {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartData} layout="vertical" barCategoryGap="10%">
+          <YAxis
+            dataKey="name"
+            type="category"
+            tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+            width={90}
+            interval={0}
+          />
+          <XAxis
+            type="number"
+            tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+            tickFormatter={v => `${v}%`}
+          />
+          <ReferenceLine x={0} stroke="hsl(var(--border))" />
+          <Tooltip contentStyle={tooltipStyle} formatter={tooltipFormatter} />
+          <Bar dataKey="invisible" stackId="s" fill="transparent" />
+          <Bar dataKey="visible" stackId="s" radius={[0, 2, 2, 0]} onClick={(d) => onBarClick?.(d.name)}>
+            {chartData.map((d, i) => (
+              <Cell key={i} fill={cellFill(d)} cursor={onBarClick ? 'pointer' : 'default'} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  }
+
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={processed} barCategoryGap="10%">
+      <BarChart data={chartData} barCategoryGap="10%">
         <XAxis dataKey="name" tick={({ x, y, payload }) => {
           const words = payload.value.split(' ');
           return (
@@ -107,27 +155,11 @@ function SingleWaterfall({ data, onBarClick }: { data: WfItem[]; onBarClick?: (n
         }} interval={0} height={45} />
         <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
         <ReferenceLine y={0} stroke="hsl(var(--border))" />
-        <Tooltip
-          contentStyle={{
-            background: 'hsl(var(--card))',
-            border: '1px solid hsl(var(--border))',
-            borderRadius: '6px',
-            fontSize: 11,
-            boxShadow: '0 4px 12px -2px rgba(0,0,0,0.12)',
-          }}
-          formatter={(value: number, name: string) => {
-            if (name === 'invisible') return [null, null];
-            return [`${value > 0 ? '+' : ''}${value.toFixed(1)}%`, 'Value'];
-          }}
-        />
+        <Tooltip contentStyle={tooltipStyle} formatter={tooltipFormatter} />
         <Bar dataKey="invisible" stackId="s" fill="transparent" />
         <Bar dataKey="visible" stackId="s" radius={[2, 2, 0, 0]} onClick={(d) => onBarClick?.(d.name)}>
-          {processed.map((d, i) => (
-            <Cell
-              key={i}
-              fill={d.isTotal ? 'hsl(var(--chart-total))' : d.value >= 0 ? 'hsl(var(--chart-1))' : 'hsl(var(--chart-negative))'}
-              cursor={onBarClick ? 'pointer' : 'default'}
-            />
+          {chartData.map((d, i) => (
+            <Cell key={i} fill={cellFill(d)} cursor={onBarClick ? 'pointer' : 'default'} />
           ))}
         </Bar>
       </BarChart>
