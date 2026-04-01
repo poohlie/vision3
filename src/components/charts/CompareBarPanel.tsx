@@ -6,9 +6,15 @@ const COMPARE_COLORS = [
   'hsl(38, 90%, 50%)',
 ];
 
+interface DataItem {
+  name: string;
+  value: number;
+  isTotal?: boolean;
+}
+
 interface Dataset {
   label: string;
-  data: { name: string; value: number }[];
+  data: DataItem[];
 }
 
 interface Props {
@@ -28,21 +34,37 @@ const tooltipStyle = {
 /**
  * Renders multiple horizontal bar charts side-by-side with shared y-axis labels.
  * Labels appear only in the leftmost column; subsequent columns show bars only.
- * Inspired by institutional "Target / Exposure / Delta" triple-panel layouts.
+ * Items with isTotal render with bolder styling.
  */
 export default function CompareBarPanel({ datasets, height = 280, preserveOrder = false }: Props) {
-  // Use first dataset's order — optionally sorted descending
   const ordered = preserveOrder ? datasets[0].data : [...datasets[0].data].sort((a, b) => b.value - a.value);
   const names = ordered.map(d => d.name);
+  const totalSet = new Set(datasets[0].data.filter(d => d.isTotal).map(d => d.name));
 
-  // Align all datasets to same name order
   const aligned = datasets.map(ds => {
     const map = Object.fromEntries(ds.data.map(d => [d.name, d.value]));
     return {
       label: ds.label,
-      data: names.map(name => ({ name, value: map[name] ?? 0 })),
+      data: names.map(name => ({ name, value: map[name] ?? 0, isTotal: totalSet.has(name) })),
     };
   });
+
+  const CustomYTick = ({ x, y, payload }: any) => {
+    const isTotal = totalSet.has(payload.value);
+    return (
+      <text
+        x={x}
+        y={y}
+        dy={4}
+        textAnchor="end"
+        fontSize={isTotal ? 10 : 9}
+        fontWeight={isTotal ? 700 : 400}
+        fill={isTotal ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))'}
+      >
+        {payload.value}
+      </text>
+    );
+  };
 
   return (
     <div className="flex w-full h-full gap-2" style={{ minHeight: height }}>
@@ -78,8 +100,8 @@ export default function CompareBarPanel({ datasets, height = 280, preserveOrder 
                 <YAxis
                   type="category"
                   dataKey="name"
-                  tick={i === 0 ? { fontSize: 9, fill: 'hsl(var(--muted-foreground))' } : false}
-                  width={i === 0 ? 100 : 4}
+                  tick={i === 0 ? <CustomYTick /> : false}
+                  width={i === 0 ? 120 : 4}
                   axisLine={false}
                   tickLine={false}
                 />
@@ -89,8 +111,14 @@ export default function CompareBarPanel({ datasets, height = 280, preserveOrder 
                   formatter={(v: number) => [`${v > 0 ? '+' : ''}${v.toFixed(1)}%`, ds.label]}
                 />
                 <Bar dataKey="value" radius={[0, 3, 3, 0]} barSize={12}>
-                  {ds.data.map((_, j) => (
-                    <Cell key={j} fill={COMPARE_COLORS[i]} />
+                  {ds.data.map((d, j) => (
+                    <Cell
+                      key={j}
+                      fill={d.isTotal ? COMPARE_COLORS[i] : COMPARE_COLORS[i]}
+                      fillOpacity={d.isTotal ? 1 : 0.65}
+                      stroke={d.isTotal ? COMPARE_COLORS[i] : 'none'}
+                      strokeWidth={d.isTotal ? 1.5 : 0}
+                    />
                   ))}
                 </Bar>
               </BarChart>
