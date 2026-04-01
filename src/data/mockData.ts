@@ -103,6 +103,19 @@ export function generateCumulativePerfSeries(timespan: string, strategies: { nam
   });
 }
 
+export function generateRollingPerfSeries(timespan: string, strategies: { name: string; ownReturn: number }[]) {
+  const labels = getTimeLabels(timespan);
+  return labels.map((m, i) => {
+    const base: Record<string, number | string> = { month: m };
+    strategies.forEach(s => {
+      // Rolling returns fluctuate around the strategy's annualized return (flat, not cumulative)
+      base[s.name] = +(s.ownReturn + (numericRandom(i * 19 + s.name.length) - 0.5) * 4).toFixed(2);
+    });
+    base['Total Portfolio'] = +(strategies.reduce((sum, s) => sum + (base[s.name] as number), 0) / strategies.length).toFixed(2);
+    return base;
+  });
+}
+
 // Contribution time series
 export const contributionTimeSeries = months.map((m, i) => {
   const base: Record<string, number | string> = { month: m };

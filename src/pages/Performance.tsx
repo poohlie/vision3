@@ -15,7 +15,7 @@ import {
   equityCountryPerf, equitySectorPerf, fiPerf, commodityPerf, currencyPerf, marketTimeSeries,
   realReturnWaterfall, eltrrorData, inflationByCountry,
   peersData, peerReturnSeries, peerAssetMix, peerCountryMix, timespans, currencies,
-  generatePerfTimeSeries, generateCumulativePerfSeries, generateContributionTimeSeries,
+  generatePerfTimeSeries, generateCumulativePerfSeries, generateContributionTimeSeries, generateRollingPerfSeries,
 } from '@/data/mockData';
 
 const breakdowns = ['Active Strategies', 'Country', 'Sector'] as const;
@@ -243,6 +243,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   });
   const tsContrib = generateContributionTimeSeries(filters.timespan, adjustedStrats);
   const tsCumulative = generateCumulativePerfSeries(filters.timespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
+  const tsRolling = generateRollingPerfSeries(filters.timespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
 
   return (
     <div className="space-y-4">
@@ -337,7 +338,7 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
         <ChartCard id="perf-6" title="Cumulative Strategy Performance" className="min-h-[280px]" toolbar={
           <ToggleBar options={cumRoll} value={mode as any} onChange={setMode} size="xs" />
         }>
-          <TrendChart data={tsCumulative} lines={stratData.slice(0, 6).map(s => s.name)} />
+          <TrendChart data={mode === 'Rolling' ? tsRolling : tsCumulative} lines={stratData.slice(0, 6).map(s => s.name)} />
         </ChartCard>
       </div>
     </div>
