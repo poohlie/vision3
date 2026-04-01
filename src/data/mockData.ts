@@ -1,13 +1,11 @@
 // ============ PERFORMANCE DATA ============
 type WfItem = { name: string; value: number; isTotal: boolean };
 
-const mkWf = (sp: number, mts: number, as_val: number, inf: number): WfItem[] => [
+const mkWf = (sp: number, mts: number, as_val: number, _inf: number): WfItem[] => [
   { name: 'Strategic Portfolio', value: sp, isTotal: false },
   { name: 'MTS', value: mts, isTotal: false },
   { name: 'Active Strategies', value: as_val, isTotal: false },
   { name: 'Total Portfolio', value: sp + mts + as_val, isTotal: true },
-  { name: 'Inflation', value: inf, isTotal: false },
-  { name: 'Real Return', value: sp + mts + as_val + inf, isTotal: true },
 ];
 
 export const perfWaterfallData: Record<string, WfItem[]> = {
