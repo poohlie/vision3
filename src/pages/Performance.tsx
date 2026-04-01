@@ -208,9 +208,10 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const [mode, setMode] = useState('Cumulative');
   const [breakdown, setBreakdown] = useState('Active Strategies');
   const [topN, setTopN] = useState(8);
+  const [returnType, setReturnType] = useState<string>('Portfolio');
 
   const sourceData = getSourceData(breakdown);
-  const { stratData, contribData, ownData } = buildContribData(sourceData, topN);
+  const { stratData, contribData, ownData } = buildContribData(sourceData, topN, returnType);
 
   const waterfallDatasets = filters.compareTimespans.map(ts => ({
     label: ts,
