@@ -9,10 +9,11 @@ interface Props {
   subtitle?: string;
   children: ReactNode;
   toolbar?: ReactNode;
+  footer?: ReactNode;
   className?: string;
 }
 
-export default function ChartCard({ id, title, subtitle, children, toolbar, className }: Props) {
+export default function ChartCard({ id, title, subtitle, children, toolbar, footer, className }: Props) {
   const { saveChart, isChartSaved } = useWorkspace();
   const saved = isChartSaved(id);
 
@@ -36,6 +37,7 @@ export default function ChartCard({ id, title, subtitle, children, toolbar, clas
         {toolbar && <div className="flex items-center gap-2 flex-shrink-0">{toolbar}</div>}
       </div>
       <div className="flex-1 min-h-0">{children}</div>
+      {footer && <div className="mt-2 flex flex-wrap gap-1.5">{footer}</div>}
     </div>
   );
 }
