@@ -25,7 +25,7 @@ const subTabsConfig = [
   { key: 'Nominal Return' as const, metric: '+10.5%', label: 'Total Return', subtitle: '1Y USD basis' },
   { key: 'Real Return' as const, metric: '+7.3%', label: 'Real Return', subtitle: 'Inflation adjusted' },
   { key: 'Market Performance' as const, metric: '+6.1%', label: 'MSCI ACWI', subtitle: 'Equity benchmark' },
-  { key: 'Comparison' as const, metric: 'P75', label: 'Peer Ranking', subtitle: '75th percentile' },
+  
 ];
 const subTabs = subTabsConfig.map(t => t.key);
 type SubTab = typeof subTabs[number];
