@@ -431,14 +431,17 @@ export const currencyPerf = [
 ];
 
 // Market time series
-export const marketTimeSeries = (items: { name: string }[]) =>
-  months.map((m, i) => {
+export const marketTimeSeries = (items: { name: string }[], timespan: string = '1Y') => {
+  const labels = getTimeLabels(timespan);
+  const scale = timespan === '1Y' ? 1 : timespan === '3Y' ? 3 : timespan === '5Y' ? 5 : timespan === '10Y' ? 10 : 20;
+  return labels.map((m, i) => {
     const base: Record<string, string | number> = { month: m };
-    items.forEach(item => {
-      base[item.name] = +((i + 1) * (Math.random() * 2 - 0.5) + Math.random() * 2).toFixed(2);
+    items.forEach((item, j) => {
+      base[item.name] = +((i + 1) / labels.length * scale * (numericRandom(i * 31 + j * 7) * 2 - 0.5) + numericRandom(i * 17 + j * 3) * 2).toFixed(2);
     });
     return base;
   });
+};
 
 // ============ REAL RETURN ============
 export const realReturnWaterfall = {
