@@ -453,16 +453,7 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
     <div className="grid grid-cols-2 gap-4">
       <ChartCard id="rr-1" title="Real Return Decomposition" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         {isComparing ? (
-          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${wfDatasets.length}, 1fr)` }}>
-            {wfDatasets.map((ds, i) => (
-              <div key={ds.label} className="flex flex-col">
-                <span className="text-[10px] font-semibold text-center mb-1" style={{ color: compareColors[i] }}>{ds.label}</span>
-                <div className="min-h-[220px]">
-                  <CompareWaterfallChart datasets={[{ label: ds.label, data: ds.data }]} />
-                </div>
-              </div>
-            ))}
-          </div>
+          <CompareBarPanel datasets={wfDatasets} />
         ) : (
           <CompareWaterfallChart datasets={wfDatasets} />
         )}

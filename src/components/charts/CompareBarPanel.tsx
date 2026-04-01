@@ -44,12 +44,15 @@ export default function CompareBarPanel({ datasets, height = 280 }: Props) {
   });
 
   return (
-    <div className="flex w-full h-full" style={{ minHeight: height }}>
+    <div className="flex w-full h-full gap-2" style={{ minHeight: height }}>
       {aligned.map((ds, i) => (
         <div
           key={ds.label}
-          className="flex flex-col h-full"
-          style={{ flex: i === 0 ? '1.4 1 0%' : '1 1 0%' }}
+          className="flex flex-col h-full rounded-md border p-2"
+          style={{
+            flex: i === 0 ? '1.4 1 0%' : '1 1 0%',
+            borderColor: COMPARE_COLORS[i] + '33',
+          }}
         >
           <span
             className="text-[10px] font-semibold text-center mb-1 shrink-0"
