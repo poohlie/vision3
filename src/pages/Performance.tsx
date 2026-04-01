@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import ChartCard from '@/components/shared/ChartCard';
@@ -11,6 +11,8 @@ import StackedTimeChart from '@/components/charts/StackedTimeChart';
 import TrendChart from '@/components/charts/TrendChart';
 import ScatterPlot from '@/components/charts/ScatterChart';
 import GroupedBarChart from '@/components/charts/GroupedBarChart';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend, CartesianGrid } from 'recharts';
+import { CHART_COLORS } from '@/data/mockData';
 import {
   perfWaterfallData, activeStrategies, perfTimeSeries, cumulativePerfSeries, contributionTimeSeries,
   equityCountryPerf, equitySectorPerf, fiPerf, commodityPerf, currencyPerf, marketTimeSeries,
@@ -180,6 +182,61 @@ const getGlobalScale = (timespan: string, currency: string) => (tsScales[timespa
 const scaleValue = (v: number, scale: number) => +(v * scale).toFixed(2);
 const scaleData = (data: { name: string; value: number }[], scale: number) => data.map(d => ({ name: d.name, value: scaleValue(d.value, scale) }));
 
+// ─── Rolling Grouped Bar Chart ───
+
+const TIMESPAN_YEARS: Record<string, number[]> = {
+  '1Y': [2025],
+  '3Y': [2023, 2024, 2025],
+  '5Y': [2021, 2022, 2023, 2024, 2025],
+  '10Y': [2016, 2018, 2020, 2022, 2024, 2025],
+  '20Y': [2006, 2010, 2014, 2018, 2022, 2025],
+};
+
+function RollingGroupedBarChart({ stratData, topN, combinedFactor, timespan }: {
+  stratData: { name: string; contribution: number; ownReturn: number }[];
+  topN: number;
+  combinedFactor: number;
+  timespan: string;
+}) {
+  const items = stratData.slice(0, Math.min(topN, 6));
+  const years = TIMESPAN_YEARS[timespan] || TIMESPAN_YEARS['1Y'];
+
+  const chartData = useMemo(() =>
+    years.map(year => {
+      const row: Record<string, any> = { year: String(year) };
+      items.forEach(s => {
+        const seed = (year * 7 + s.name.charCodeAt(0)) % 20;
+        const variation = 0.6 + (seed / 20) * 0.8;
+        row[s.name] = scaleValue(s.ownReturn * variation, combinedFactor);
+      });
+      return row;
+    }), [years, items, combinedFactor]);
+
+  return (
+    <ResponsiveContainer width="100%" height={250}>
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+        <XAxis dataKey="year" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+        <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
+        <Tooltip
+          contentStyle={{
+            background: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '6px',
+            fontSize: 11,
+            boxShadow: '0 4px 12px -2px rgba(0,0,0,0.12)',
+          }}
+          formatter={(v: number) => [`${v.toFixed(1)}%`, undefined]}
+        />
+        <Legend wrapperStyle={{ fontSize: 10 }} />
+        {items.map((s, i) => (
+          <Bar key={s.name} dataKey={s.name} fill={CHART_COLORS[i % CHART_COLORS.length]} radius={[2, 2, 0, 0]} />
+        ))}
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
 // ─── Sub-tab components ───
 
 function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
@@ -307,13 +364,11 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
               lines={stratData.slice(0, 6).map(s => s.name)}
             />
           ) : (
-            <GroupedBarChart
-              data={stratData.slice(0, topN).map(s => ({
-                name: s.name,
-                value: scaleValue(s.ownReturn, combinedFactor),
-                group: s.ownReturn >= 0 ? 'DM' : 'EM',
-              }))}
-              colorByValue
+            <RollingGroupedBarChart
+              stratData={stratData}
+              topN={topN}
+              combinedFactor={combinedFactor}
+              timespan={filters.timespan}
             />
           )}
         </ChartCard>
