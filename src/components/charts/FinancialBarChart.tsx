@@ -87,19 +87,31 @@ export default function FinancialBarChart({ data: rawData, datasets, height = 25
   // Single dataset mode (original behavior)
   const singleData = rawData || (datasets ? datasets[0].data : []);
   const data = preserveOrder ? singleData : [...singleData].sort((a, b) => b.value - a.value);
+  const totalSet = new Set(singleData.filter((d: any) => d.isTotal).map((d: any) => d.name));
+
+  const CustomYTick = ({ x, y, payload }: any) => {
+    const isTotal = totalSet.has(payload.value);
+    return (
+      <text x={x} y={y} dy={4} textAnchor="end" fontSize={isTotal ? 11 : 10} fontWeight={isTotal ? 700 : 400} fill={isTotal ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))'}>
+        {payload.value}
+      </text>
+    );
+  };
 
   if (layout === 'vertical') {
     return (
       <ResponsiveContainer width="100%" height={height}>
         <BarChart data={data} layout="vertical" margin={{ left: 10, right: 20 }}>
           <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
-          <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} width={120} />
+          <YAxis type="category" dataKey="name" tick={totalSet.size > 0 ? <CustomYTick /> : { fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} width={120} />
           <ReferenceLine x={0} stroke="hsl(var(--border))" />
           <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v > 0 ? '+' : ''}${v.toFixed(1)}%`, 'Value']} />
           <Bar dataKey="value" radius={[0, 3, 3, 0]} barSize={14}>
-            {data.map((d, i) => (
-              <Cell key={i} fill={colorByValue ? (d.value >= 0 ? 'hsl(var(--chart-1))' : 'hsl(var(--chart-negative))') : (barColor || 'hsl(var(--chart-1))')} />
-            ))}
+            {data.map((d: any, i: number) => {
+              const isTotal = totalSet.has(d.name);
+              const fill = colorByValue ? (d.value >= 0 ? 'hsl(var(--chart-1))' : 'hsl(var(--chart-negative))') : (barColor || 'hsl(var(--chart-1))');
+              return <Cell key={i} fill={fill} fillOpacity={isTotal ? 1 : 0.65} stroke={isTotal ? fill : 'none'} strokeWidth={isTotal ? 1.5 : 0} />;
+            })}
           </Bar>
         </BarChart>
       </ResponsiveContainer>

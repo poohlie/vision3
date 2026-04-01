@@ -406,15 +406,19 @@ export const liquidityCoverageData = [
 
 // ============ MARKET PERFORMANCE ============
 export const equityCountryPerf = [
+  // Total
+  { name: 'MSCI ACWI', value: 8.4, isTotal: true },
   // Developed Markets
+  { name: 'MSCI DM', value: 7.3, isTotal: true },
   { name: 'United States', value: 12.5 }, { name: 'Japan', value: 8.2 },
   { name: 'Canada', value: 7.2 }, { name: 'Australia', value: 6.5 },
   { name: 'Germany', value: 6.1 }, { name: 'United Kingdom', value: 5.8 },
   { name: 'France', value: 4.5 },
   // Emerging Markets
+  { name: 'MSCI EM', value: 5.6, isTotal: true },
   { name: 'India', value: 15.2 }, { name: 'South Korea', value: 3.8 },
   { name: 'China', value: -2.1 },
-];
+] as { name: string; value: number; isTotal?: boolean }[];
 
 export const equitySectorPerf = [
   { name: 'Information Technology', value: 18.5 }, { name: 'Healthcare', value: 8.2 },
