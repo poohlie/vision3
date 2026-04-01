@@ -274,6 +274,11 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
               categories={['strategicPortfolio', 'mts', 'activeStrategies', 'inflation']}
               overlayLine="realReturn"
               negativeCategories={['inflation']}
+              colorMap={{
+                strategicPortfolio: 'hsl(145, 52%, 42%)',
+                mts: 'hsl(220, 10%, 58%)',
+                activeStrategies: 'hsl(270, 55%, 50%)',
+              }}
             />
           </ChartCard>
         </div>
