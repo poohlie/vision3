@@ -245,6 +245,21 @@ function PortfolioPerformance({ filters }: { filters: PerfFilters }) {
   const tsCumulative = generateCumulativePerfSeries(filters.timespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
   const tsRolling = generateRollingPerfSeries(filters.timespan, adjustedStrats.map(s => ({ name: s.name, ownReturn: s.ownReturn })));
 
+  // Annual data: each year as a category, each strategy as a bar
+  const annualData = useMemo(() => {
+    const numYears = filters.timespan === '1Y' ? 1 : filters.timespan === '3Y' ? 3 : filters.timespan === '5Y' ? 5 : filters.timespan === '10Y' ? 10 : 20;
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: numYears }, (_, i) => currentYear - numYears + 1 + i);
+    const seed = (y: number, s: number) => { const x = Math.sin(y * 127 + s * 311) * 10000; return x - Math.floor(x); };
+    return years.map(year => {
+      const row: Record<string, any> = { year: String(year) };
+      adjustedStrats.forEach((s, j) => {
+        row[s.name] = +(s.ownReturn * (0.6 + seed(year, j) * 0.8)).toFixed(1);
+      });
+      return row;
+    });
+  }, [filters.timespan, adjustedStrats]);
+
   return (
     <div className="space-y-4">
       {/* Row 1: Top charts — left bordered primary (compare), right bordered accent (breakdown) */}
