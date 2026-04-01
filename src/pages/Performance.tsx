@@ -11,6 +11,7 @@ import FinancialBarChart from '@/components/charts/FinancialBarChart';
 import StackedTimeChart from '@/components/charts/StackedTimeChart';
 import TrendChart from '@/components/charts/TrendChart';
 import ScatterPlot from '@/components/charts/ScatterChart';
+import CompareBarPanel from '@/components/charts/CompareBarPanel';
 import {
   perfWaterfallData, activeStrategies, perfTimeSeries, cumulativePerfSeries, contributionTimeSeries,
   equityCountryPerf, equitySectorPerf, fiPerf, commodityPerf, currencyPerf, marketTimeSeries,
