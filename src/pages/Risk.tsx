@@ -14,7 +14,7 @@ import {
 
 const riskTabsConfig = [
   { key: 'Absolute Risk' as const, metric: '11.5%', label: 'Total Vol (P)', subtitle: 'vs 10.2% Benchmark' },
-  { key: 'Active Risk' as const, metric: '—', label: 'Active Risk', subtitle: 'Placeholder' },
+  { key: 'Active Risk' as const, metric: '2.8%', label: 'Tracking Error', subtitle: 'vs Benchmark' },
   { key: 'Other Risk Metrics' as const, metric: '—', label: 'Other Risk Metrics', subtitle: 'Placeholder' },
 ];
 const riskTabs = riskTabsConfig.map(t => t.key);
@@ -52,7 +52,7 @@ export default function Risk() {
         ))}
       </div>
       {tab === 'Absolute Risk' && <AbsoluteRiskSection />}
-      {tab === 'Active Risk' && <PlaceholderSection title="Active Risk" />}
+      {tab === 'Active Risk' && <ActiveRiskSection />}
       {tab === 'Other Risk Metrics' && <PlaceholderSection title="Other Risk Metrics" />}
     </div>
   );
@@ -358,6 +358,230 @@ function VolGaugeCompare({ portfolio, benchmark }: { portfolio: number; benchmar
           />
         </div>
         <div className="mt-2 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Benchmark</div>
+      </div>
+    </div>
+  );
+}
+
+// ============ ACTIVE RISK ============
+// Tracking error contribution by active strategy (uses portfolio components only — no toggle).
+const ACTIVE_RISK_COMPONENTS = riskContribution.map(s => ({
+  name: s.name,
+  ownTE: +s.ownTE.toFixed(2),
+  contribution: +s.contribution.toFixed(2),
+}));
+
+function ActiveRiskSection() {
+  const [topN, setTopN] = useState(5);
+  const [period, setPeriod] = useState<string>('1Y');
+
+  const portfolioTE = 2.8;          // total ex-ante tracking error
+  const trackingLimit = 5.0;        // limit/budget for context
+
+  const xKey = 'label';
+  const labels = useMemo(() => {
+    if (period === '1Y') return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    if (period === '5Y') return ['Q1 22','Q2 22','Q3 22','Q4 22','Q1 23','Q2 23','Q3 23','Q4 23','Q1 24','Q2 24','Q3 24','Q4 24','Q1 25','Q2 25','Q3 25','Q4 25','Q1 26','Q2 26','Q3 26','Q4 26'];
+    return ['2017','2018','2019','2020','2021','2022','2023','2024','2025','2026'];
+  }, [period]);
+
+  const bars = useMemo(() => {
+    const sorted = [...ACTIVE_RISK_COMPONENTS].sort((a, b) => b.contribution - a.contribution);
+    const top = sorted.slice(0, topN);
+    const rest = sorted.slice(topN);
+    const items = [...top];
+    if (rest.length) {
+      items.push({
+        name: 'Others',
+        ownTE: +(rest.reduce((s, r) => s + r.ownTE, 0) / rest.length).toFixed(2),
+        contribution: +rest.reduce((s, r) => s + r.contribution, 0).toFixed(2),
+      });
+    }
+    return items;
+  }, [topN]);
+
+  const teTrend = useMemo(() => labels.map((m, i) => ({
+    [xKey]: m,
+    'Tracking Error': +(portfolioTE + Math.sin(i / 2.2) * 0.4 + ((i * 11) % 5) / 60).toFixed(2),
+    Limit: trackingLimit,
+  })), [labels]);
+
+  const contribTrend = useMemo(() => labels.map((m, i) => {
+    const row: Record<string, string | number> = { [xKey]: m };
+    bars.forEach((b, j) => {
+      const wobble = 1 + Math.sin((i + j) / 2) * 0.15;
+      row[b.name] = +(b.contribution * wobble).toFixed(2);
+    });
+    row['Total'] = +(portfolioTE + Math.sin(i / 2) * 0.3).toFixed(2);
+    return row;
+  }), [bars, labels]);
+
+  const ownTrend = useMemo(() => labels.map((m, i) => {
+    const row: Record<string, string | number> = { [xKey]: m };
+    bars.forEach((b, j) => {
+      row[b.name] = +(b.ownTE + Math.sin((i + j * 1.3) / 2) * 0.3).toFixed(2);
+    });
+    return row;
+  }), [bars, labels]);
+
+  return (
+    <div className="space-y-4">
+      {/* Period control */}
+      <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
+            <div>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Period</span>
+              <p className="text-[9px] text-muted-foreground">Trend charts only (right column) →</p>
+            </div>
+          </div>
+          <div className="h-8 w-px bg-border shrink-0" />
+          <ToggleBar options={['1Y', '5Y', '10Y'] as const} value={period} onChange={setPeriod} size="sm" />
+          <span className="text-[9px] text-muted-foreground font-medium">({periodDescriptions[period]})</span>
+        </div>
+      </div>
+
+      {/* Row 1: TE gauge + TE trend */}
+      <div className="grid grid-cols-2 gap-4">
+        <ChartCard
+          id="acr-1"
+          title="Ex-Ante Tracking Error"
+          subtitle="Annualised, current snapshot vs limit"
+        >
+          <TrackingErrorGauge te={portfolioTE} limit={trackingLimit} />
+        </ChartCard>
+        <div className="border-l-2 border-muted-foreground/30 pl-3">
+          <ChartCard
+            id="acr-2"
+            title="Ex-Ante Tracking Error Trend"
+            subtitle="Portfolio TE over time"
+            footer={<FilterPill label="Period" value={`${period} (${periodDescriptions[period]})`} variant="period" />}
+          >
+            <TrendChart
+              data={teTrend}
+              xKey={xKey}
+              lines={['Tracking Error', 'Limit']}
+              lineColors={{ 'Tracking Error': 'hsl(212, 72%, 42%)', Limit: 'hsl(0, 60%, 55%)' }}
+            />
+          </ChartCard>
+        </div>
+      </div>
+
+      {/* Top N control — accent, scoped to rows 2 & 3 */}
+      <div className="rounded-lg border-2 border-accent/30 bg-accent/5 px-4 py-3 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-1 h-8 rounded-full bg-accent" />
+            <div>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Strategies</span>
+              <p className="text-[9px] text-muted-foreground">Applies to rows 2 &amp; 3 below ↓</p>
+            </div>
+          </div>
+          <div className="h-8 w-px bg-border shrink-0" />
+          <TopNSelect value={topN} onChange={setTopN} />
+        </div>
+      </div>
+
+      {/* Rows 2 & 3 */}
+      <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/30 pl-3 ml-1">
+        <ChartCard
+          id="acr-3"
+          title="Tracking Error Contribution"
+          subtitle="Active strategies → Portfolio TE"
+          footer={<FilterPill label="Top" value={String(topN)} variant="breakdown" />}
+        >
+          <FinancialBarChart
+            data={bars.map(b => ({ name: b.name, value: b.contribution }))}
+            colorByValue={false}
+            barColor="hsl(212, 72%, 42%)"
+          />
+        </ChartCard>
+
+        <div className="border-l-2 border-muted-foreground/30 pl-3 -ml-3">
+          <ChartCard
+            id="acr-4"
+            title="Contribution to Tracking Error — Trend"
+            subtitle="Stacked contributions with total TE overlay"
+            footer={
+              <>
+                <FilterPill label="Period" value={`${period} (${periodDescriptions[period]})`} variant="period" />
+                <FilterPill label="Top" value={String(topN)} variant="breakdown" />
+              </>
+            }
+          >
+            <StackedTimeChart
+              data={contribTrend}
+              categories={bars.map(b => b.name)}
+              overlayLine="Total"
+              xKey={xKey}
+            />
+          </ChartCard>
+        </div>
+
+        <ChartCard
+          id="acr-5"
+          title="Own-Based Tracking Error"
+          subtitle="Active strategies, standalone TE"
+          footer={<FilterPill label="Top" value={String(topN)} variant="breakdown" />}
+        >
+          <FinancialBarChart
+            data={bars.map(b => ({ name: b.name, value: b.ownTE }))}
+            colorByValue={false}
+            barColor="hsl(32, 80%, 50%)"
+          />
+        </ChartCard>
+
+        <div className="border-l-2 border-muted-foreground/30 pl-3 -ml-3">
+          <ChartCard
+            id="acr-6"
+            title="Own-Based Tracking Error — Trend"
+            subtitle="Per-strategy standalone TE"
+            footer={
+              <>
+                <FilterPill label="Period" value={`${period} (${periodDescriptions[period]})`} variant="period" />
+                <FilterPill label="Top" value={String(topN)} variant="breakdown" />
+              </>
+            }
+          >
+            <TrendChart data={ownTrend} lines={bars.map(b => b.name)} xKey={xKey} />
+          </ChartCard>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// TE gauge: horizontal bar showing TE used vs limit, with prominent value
+function TrackingErrorGauge({ te, limit }: { te: number; limit: number }) {
+  const pct = Math.min((te / limit) * 100, 100);
+  const utilization = ((te / limit) * 100).toFixed(0);
+
+  return (
+    <div className="flex flex-col justify-center h-[250px] px-2 gap-6">
+      <div className="text-center">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Portfolio Tracking Error</div>
+        <div className="text-5xl font-bold tracking-tight text-foreground mt-1">{te.toFixed(2)}<span className="text-2xl text-muted-foreground">%</span></div>
+        <div className="text-[10px] text-muted-foreground mt-1">{utilization}% of {limit.toFixed(1)}% limit</div>
+      </div>
+
+      <div className="space-y-2 px-4">
+        <div className="relative h-6 bg-muted/40 rounded-md overflow-hidden">
+          <div
+            className="absolute inset-y-0 left-0 rounded-md transition-all"
+            style={{
+              width: `${pct}%`,
+              background: 'linear-gradient(90deg, hsl(212, 72%, 52%) 0%, hsl(212, 72%, 35%) 100%)',
+            }}
+          />
+          {/* Limit marker */}
+          <div className="absolute inset-y-0 right-0 w-0.5 bg-destructive" />
+        </div>
+        <div className="flex justify-between text-[10px] text-muted-foreground">
+          <span>0%</span>
+          <span className="font-semibold text-foreground">Used: {te.toFixed(2)}%</span>
+          <span className="text-destructive font-semibold">Limit: {limit.toFixed(1)}%</span>
+        </div>
       </div>
     </div>
   );
