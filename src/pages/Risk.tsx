@@ -15,7 +15,7 @@ import {
 const riskTabsConfig = [
   { key: 'Absolute Risk' as const, metric: '11.5%', label: 'Total Vol (P)', subtitle: 'vs 10.2% Benchmark' },
   { key: 'Active Risk' as const, metric: '2.8%', label: 'Tracking Error', subtitle: 'vs Benchmark' },
-  { key: 'Other Risk Metrics' as const, metric: '—', label: 'Other Risk Metrics', subtitle: 'Placeholder' },
+  { key: 'Other Risk Metrics' as const, metric: '1.54x', label: 'Ext. Leverage', subtitle: 'LCR 2.19x', secondary: { metric: '2.19x', label: 'LCR' } },
 ];
 const riskTabs = riskTabsConfig.map(t => t.key);
 type RiskTab = typeof riskTabs[number];
