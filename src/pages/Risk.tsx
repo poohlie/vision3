@@ -8,8 +8,7 @@ import FinancialBarChart from '@/components/charts/FinancialBarChart';
 import StackedTimeChart from '@/components/charts/StackedTimeChart';
 import TrendChart from '@/components/charts/TrendChart';
 import {
-  riskContribution, trackingErrorSeries, contributionTimeSeries,
-  assetClassExposureData, timespans,
+  riskContribution, assetClassExposureData, getTimeLabels,
 } from '@/data/mockData';
 
 const riskTabsConfig = [
@@ -87,6 +86,9 @@ const BENCHMARK_COMPONENTS = assetClassExposureData.map((a, i) => {
   return { name: a.name, vol, contribution };
 });
 
+const periodToggles = ['1Y', '5Y', '10Y'] as const;
+const periodDescriptions: Record<string, string> = { '1Y': 'Monthly', '5Y': 'Quarterly', '10Y': 'Yearly' };
+
 function AbsoluteRiskSection() {
   const [contribView, setContribView] = useState<View>('Portfolio');
   const [ownView, setOwnView] = useState<View>('Portfolio');
@@ -96,7 +98,15 @@ function AbsoluteRiskSection() {
   const portfolioVol = 11.5;
   const benchmarkVol = 10.2;
 
-  // Source list, sorted desc, with Top N + Others (only for portfolio; benchmark fully shown if small)
+  // Period labels: 1Y monthly, 5Y quarterly, 10Y yearly (matches Exposure)
+  const xKey = 'label';
+  const labels = useMemo(() => {
+    if (period === '1Y') return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    if (period === '5Y') return ['Q1 22','Q2 22','Q3 22','Q4 22','Q1 23','Q2 23','Q3 23','Q4 23','Q1 24','Q2 24','Q3 24','Q4 24','Q1 25','Q2 25','Q3 25','Q4 25','Q1 26','Q2 26','Q3 26','Q4 26'];
+    return ['2017','2018','2019','2020','2021','2022','2023','2024','2025','2026'];
+  }, [period]);
+
+  // Source list, sorted desc, with Top N + Others
   const buildBars = (view: View) => {
     const src = view === 'Portfolio' ? PORTFOLIO_COMPONENTS : BENCHMARK_COMPONENTS;
     const sorted = [...src].sort((a, b) => b.contribution - a.contribution);
@@ -112,19 +122,18 @@ function AbsoluteRiskSection() {
   const contribBars = useMemo(() => buildBars(contribView), [contribView, topN]);
   const ownBars = useMemo(() => buildBars(ownView), [ownView, topN]);
 
-  // Trend data: scale trackingErrorSeries to vol levels
-  const volTrend = useMemo(() => trackingErrorSeries.map((d, i) => ({
-    month: d.month,
-    Portfolio: +(portfolioVol + Math.sin(i / 2) * 0.6 + (Math.random() - 0.5) * 0.2).toFixed(2),
-    Benchmark: +(benchmarkVol + Math.sin(i / 2.5) * 0.5 + (Math.random() - 0.5) * 0.2).toFixed(2),
-  })), []);
+  // Trend: vol comparison (Portfolio vs Benchmark)
+  const volTrend = useMemo(() => labels.map((m, i) => ({
+    [xKey]: m,
+    Portfolio: +(portfolioVol + Math.sin(i / 2) * 0.6 + ((i * 13) % 7) / 50).toFixed(2),
+    Benchmark: +(benchmarkVol + Math.sin(i / 2.5) * 0.5 + ((i * 7) % 5) / 50).toFixed(2),
+  })), [labels]);
 
   // Stacked contribution-over-time trend (chart iv)
   const contribTrend = useMemo(() => {
-    const totals = contribBars.reduce((s, b) => s + b.contribution, 0);
     const totalLine = contribView === 'Portfolio' ? portfolioVol : benchmarkVol;
-    return trackingErrorSeries.map((d, i) => {
-      const row: Record<string, string | number> = { month: d.month };
+    return labels.map((m, i) => {
+      const row: Record<string, string | number> = { [xKey]: m };
       contribBars.forEach((b, j) => {
         const wobble = 1 + Math.sin((i + j) / 2) * 0.15;
         row[b.name] = +(b.contribution * wobble).toFixed(2);
@@ -132,51 +141,84 @@ function AbsoluteRiskSection() {
       row['Total'] = +(totalLine + Math.sin(i / 2) * 0.5).toFixed(2);
       return row;
     });
-  }, [contribBars, contribView]);
+  }, [contribBars, contribView, labels]);
 
-  // Own-based trend (chart vi) - one line per component
-  const ownTrend = useMemo(() => trackingErrorSeries.map((d, i) => {
-    const row: Record<string, string | number> = { month: d.month };
+  // Own-based trend (chart vi)
+  const ownTrend = useMemo(() => labels.map((m, i) => {
+    const row: Record<string, string | number> = { [xKey]: m };
     ownBars.forEach((b, j) => {
       row[b.name] = +(b.vol + Math.sin((i + j * 1.3) / 2) * 0.4).toFixed(2);
     });
     return row;
-  }), [ownBars]);
+  }), [ownBars, labels]);
 
   return (
     <div className="space-y-4">
-      {/* Period filter aligned with Performance/Exposure */}
-      <div className="flex items-center gap-3">
-        <span className="text-[11px] font-semibold text-foreground uppercase tracking-wider">Period</span>
-        <ToggleBar options={timespans as unknown as readonly string[]} value={period} onChange={setPeriod} size="xs" />
+      {/* Period control — muted, scoped to right-column trend charts (mirrors Exposure) */}
+      <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
+            <div>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Period</span>
+              <p className="text-[9px] text-muted-foreground">Trend charts only (right column) →</p>
+            </div>
+          </div>
+          <div className="h-8 w-px bg-border shrink-0" />
+          <ToggleBar options={periodToggles} value={period} onChange={setPeriod} size="sm" />
+          <span className="text-[9px] text-muted-foreground font-medium">({periodDescriptions[period]})</span>
+        </div>
       </div>
 
+      {/* Row 1: Vol comparison + trend */}
       <div className="grid grid-cols-2 gap-4">
-        {/* i) Vol comparison */}
         <ChartCard id="ar-1" title="Ex-Ante Volatility: Portfolio vs Benchmark" subtitle="Annualised, current snapshot">
           <VolGaugeCompare portfolio={portfolioVol} benchmark={benchmarkVol} />
         </ChartCard>
+        <div className="border-l-2 border-muted-foreground/30 pl-3">
+          <ChartCard id="ar-2" title="Ex-Ante Volatility Trend" subtitle={`Portfolio vs Benchmark · ${period} (${periodDescriptions[period]})`}>
+            <TrendChart
+              data={volTrend}
+              xKey={xKey}
+              lines={['Portfolio', 'Benchmark']}
+              lineColors={{ Portfolio: 'hsl(212, 72%, 42%)', Benchmark: 'hsl(215, 15%, 55%)' }}
+            />
+          </ChartCard>
+        </div>
+      </div>
 
-        {/* ii) Vol trend */}
-        <ChartCard id="ar-2" title="Ex-Ante Volatility Trend" subtitle="Portfolio vs Benchmark, rolling">
-          <TrendChart
-            data={volTrend}
-            lines={['Portfolio', 'Benchmark']}
-            lineColors={{ Portfolio: 'hsl(212, 72%, 42%)', Benchmark: 'hsl(215, 15%, 55%)' }}
-          />
-        </ChartCard>
+      {/* Breakdown filter bar — accent, scoped to rows 2 & 3 (mirrors Performance) */}
+      <div className="rounded-lg border-2 border-accent/30 bg-accent/5 px-4 py-3 shadow-sm">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-1 h-8 rounded-full bg-accent" />
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">View</span>
+                <p className="text-[9px] text-muted-foreground">Applies to rows 2 &amp; 3 below ↓</p>
+              </div>
+            </div>
+            <div className="h-8 w-px bg-border shrink-0" />
+            <ToggleBar
+              options={['Portfolio', 'Benchmark'] as const}
+              value={contribView}
+              onChange={(v) => { setContribView(v); setOwnView(v); }}
+              size="sm"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <TopNSelect value={topN} onChange={setTopN} />
+          </div>
+        </div>
+      </div>
 
+      {/* Rows 2 & 3: bordered accent (controls applied) + muted on right column trends */}
+      <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/30 pl-3 ml-1">
         {/* iii) Contribution */}
         <ChartCard
           id="ar-3"
           title="Volatility Contribution"
           subtitle={contribView === 'Portfolio' ? 'Active strategies → Portfolio vol' : 'Asset classes → Benchmark vol'}
-          toolbar={
-            <div className="flex items-center gap-2">
-              <ToggleBar options={['Portfolio', 'Benchmark'] as const} value={contribView} onChange={(v) => setContribView(v as View)} size="xs" />
-              <TopNSelect value={topN} onChange={setTopN} />
-            </div>
-          }
         >
           <FinancialBarChart
             data={contribBars.map(b => ({ name: b.name, value: b.contribution }))}
@@ -185,30 +227,27 @@ function AbsoluteRiskSection() {
           />
         </ChartCard>
 
-        {/* iv) Contribution trend - stacked + total line */}
-        <ChartCard
-          id="ar-4"
-          title="Contribution to Volatility — Trend"
-          subtitle={`Stacked contributions with ${contribView} total vol overlay`}
-        >
-          <StackedTimeChart
-            data={contribTrend}
-            categories={contribBars.map(b => b.name)}
-            overlayLine="Total"
-          />
-        </ChartCard>
+        {/* iv) Contribution trend */}
+        <div className="border-l-2 border-muted-foreground/30 pl-3 -ml-3">
+          <ChartCard
+            id="ar-4"
+            title="Contribution to Volatility — Trend"
+            subtitle={`Stacked contributions · ${period} (${periodDescriptions[period]})`}
+          >
+            <StackedTimeChart
+              data={contribTrend}
+              categories={contribBars.map(b => b.name)}
+              overlayLine="Total"
+              xKey={xKey}
+            />
+          </ChartCard>
+        </div>
 
         {/* v) Own-based vol */}
         <ChartCard
           id="ar-5"
           title="Own-Based Volatility"
           subtitle={ownView === 'Portfolio' ? 'Active strategies, standalone vol' : 'Asset classes, standalone vol'}
-          toolbar={
-            <div className="flex items-center gap-2">
-              <ToggleBar options={['Portfolio', 'Benchmark'] as const} value={ownView} onChange={(v) => setOwnView(v as View)} size="xs" />
-              <TopNSelect value={topN} onChange={setTopN} />
-            </div>
-          }
         >
           <FinancialBarChart
             data={ownBars.map(b => ({ name: b.name, value: b.vol }))}
@@ -218,13 +257,15 @@ function AbsoluteRiskSection() {
         </ChartCard>
 
         {/* vi) Own-based trend */}
-        <ChartCard
-          id="ar-6"
-          title="Own-Based Volatility — Trend"
-          subtitle={`Per-component standalone vol, ${ownView}`}
-        >
-          <TrendChart data={ownTrend} lines={ownBars.map(b => b.name)} />
-        </ChartCard>
+        <div className="border-l-2 border-muted-foreground/30 pl-3 -ml-3">
+          <ChartCard
+            id="ar-6"
+            title="Own-Based Volatility — Trend"
+            subtitle={`Per-component standalone vol · ${period} (${periodDescriptions[period]})`}
+          >
+            <TrendChart data={ownTrend} lines={ownBars.map(b => b.name)} xKey={xKey} />
+          </ChartCard>
+        </div>
       </div>
     </div>
   );
