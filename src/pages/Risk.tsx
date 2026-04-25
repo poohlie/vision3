@@ -75,6 +75,12 @@ export default function Risk() {
       {tab === 'Absolute Risk' && <AbsoluteRiskSection />}
       {tab === 'Active Risk' && <ActiveRiskSection />}
       {tab === 'Other Risk Metrics' && <OtherRiskMetricsSection />}
+      {tab === 'Enterprise Risk Map' && (
+        <div className="rounded-lg border border-dashed border-border bg-card/50 p-12 text-center">
+          <p className="text-sm font-bold uppercase tracking-wider text-foreground">Enterprise Risk Map</p>
+          <p className="text-xs text-muted-foreground mt-2">Placeholder — coming soon</p>
+        </div>
+      )}
     </div>
   );
 }
