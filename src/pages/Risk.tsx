@@ -363,26 +363,32 @@ function AbsoluteRiskSection() {
   );
 }
 
-// Creative comparison: side-by-side vertical "vol bars" with delta callout
-function VolGaugeCompare({ portfolio, benchmark }: { portfolio: number; benchmark: number }) {
-  const max = Math.max(portfolio, benchmark) * 1.25;
-  const pPct = (portfolio / max) * 100;
-  const bPct = (benchmark / max) * 100;
+// Creative comparison: side-by-side vertical bars with delta callout.
+// Works for both Volatility (positive) and ETL (negative loss values).
+function VolGaugeCompare({ portfolio, benchmark, measure = 'Volatility' }: { portfolio: number; benchmark: number; measure?: RiskMeasure }) {
+  const absP = Math.abs(portfolio);
+  const absB = Math.abs(benchmark);
+  const max = Math.max(absP, absB) * 1.25;
+  const pPct = (absP / max) * 100;
+  const bPct = (absB / max) * 100;
   const delta = +(portfolio - benchmark).toFixed(2);
-  const deltaPositive = delta >= 0;
+  // For ETL, smaller |loss| is good (positive delta means portfolio loses less)
+  const deltaPositive = measure === 'ETL' ? delta >= 0 : delta >= 0;
+  const fmt = (v: number) => `${v.toFixed(2)}%`;
+
+  const pGradient = measure === 'ETL'
+    ? 'linear-gradient(180deg, hsl(0, 60%, 60%) 0%, hsl(0, 70%, 38%) 100%)'
+    : 'linear-gradient(180deg, hsl(212, 72%, 52%) 0%, hsl(212, 72%, 35%) 100%)';
 
   return (
     <div className="flex items-end justify-around h-[250px] gap-6 px-4 pb-2 relative">
       {/* Portfolio column */}
       <div className="flex flex-col items-center justify-end h-full flex-1 max-w-[120px]">
-        <div className="text-xs font-semibold text-foreground mb-1">{portfolio.toFixed(2)}%</div>
+        <div className="text-xs font-semibold text-foreground mb-1">{fmt(portfolio)}</div>
         <div className="w-full bg-muted/40 rounded-md relative" style={{ height: '85%' }}>
           <div
             className="absolute bottom-0 left-0 right-0 rounded-md transition-all"
-            style={{
-              height: `${pPct}%`,
-              background: 'linear-gradient(180deg, hsl(212, 72%, 52%) 0%, hsl(212, 72%, 35%) 100%)',
-            }}
+            style={{ height: `${pPct}%`, background: pGradient }}
           />
         </div>
         <div className="mt-2 text-[10px] uppercase tracking-wider font-semibold text-foreground">Portfolio</div>
@@ -403,7 +409,7 @@ function VolGaugeCompare({ portfolio, benchmark }: { portfolio: number; benchmar
 
       {/* Benchmark column */}
       <div className="flex flex-col items-center justify-end h-full flex-1 max-w-[120px]">
-        <div className="text-xs font-semibold text-foreground mb-1">{benchmark.toFixed(2)}%</div>
+        <div className="text-xs font-semibold text-foreground mb-1">{fmt(benchmark)}</div>
         <div className="w-full bg-muted/40 rounded-md relative" style={{ height: '85%' }}>
           <div
             className="absolute bottom-0 left-0 right-0 rounded-md transition-all"
