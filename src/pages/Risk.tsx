@@ -14,10 +14,9 @@ import {
 } from '@/data/mockData';
 
 const riskTabsConfig = [
-  { key: 'ETL' as const, metric: '4.2%', label: 'Expected Tail Loss', subtitle: 'Portfolio ETL' },
-  { key: 'Beta & Duration' as const, metric: '0.70 / 4.2y', label: 'Beta · Duration', subtitle: 'Portfolio sensitivity' },
-  { key: 'Liquidity & Leverage' as const, metric: '8.2%', label: 'External Borrowing', subtitle: 'of NAV — within limit' },
-  { key: 'Enterprise Risk Map' as const, metric: '—', label: 'Enterprise Risk Map', subtitle: 'Placeholder' },
+  { key: 'Absolute Risk' as const, metric: '—', label: 'Absolute Risk', subtitle: 'Placeholder' },
+  { key: 'Active Risk' as const, metric: '—', label: 'Active Risk', subtitle: 'Placeholder' },
+  { key: 'Other Risk Metrics' as const, metric: '—', label: 'Other Risk Metrics', subtitle: 'Placeholder' },
 ];
 const riskTabs = riskTabsConfig.map(t => t.key);
 type RiskTab = typeof riskTabs[number];
@@ -26,12 +25,12 @@ const measures = ['Tracking Error', 'Volatility'] as const;
 
 export default function Risk() {
   const [searchParams] = useSearchParams();
-  const initialTab = riskTabs.find(t => t === searchParams.get('tab')) || 'ETL';
+  const initialTab = riskTabs.find(t => t === searchParams.get('tab')) || 'Absolute Risk';
   const [tab, setTab] = useState<RiskTab>(initialTab);
 
   return (
     <div className="p-6 space-y-4">
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {riskTabsConfig.map(t => (
           <button
             key={t.key}
@@ -55,10 +54,21 @@ export default function Risk() {
           </button>
         ))}
       </div>
-      {tab === 'ETL' && <StrategicRisk />}
-      {tab === 'Beta & Duration' && <PortfolioResilience />}
-      {tab === 'Liquidity & Leverage' && <OperationalResilience />}
-      {tab === 'Enterprise Risk Map' && <EnterpriseRiskMap />}
+      {tab === 'Absolute Risk' && <PlaceholderSection title="Absolute Risk" />}
+      {tab === 'Active Risk' && <PlaceholderSection title="Active Risk" />}
+      {tab === 'Other Risk Metrics' && <PlaceholderSection title="Other Risk Metrics" />}
+    </div>
+  );
+}
+
+function PlaceholderSection({ title }: { title: string }) {
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <ChartCard id={`ph-${title}`} title={title}>
+        <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm border-2 border-dashed border-border rounded-lg">
+          {title} — Placeholder
+        </div>
+      </ChartCard>
     </div>
   );
 }
