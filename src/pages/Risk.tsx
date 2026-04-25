@@ -53,17 +53,136 @@ export default function Risk() {
       </div>
       {tab === 'Absolute Risk' && <AbsoluteRiskSection />}
       {tab === 'Active Risk' && <ActiveRiskSection />}
-      {tab === 'Other Risk Metrics' && <PlaceholderSection title="Other Risk Metrics" />}
+      {tab === 'Other Risk Metrics' && <OtherRiskMetricsSection />}
     </div>
   );
 }
 
-function PlaceholderSection({ title }: { title: string }) {
+// ============ OTHER RISK METRICS ============
+const equityBetaData = [
+  { name: 'Developed Equity', value: 0.92 },
+  { name: 'Emerging Equity', value: 0.78 },
+  { name: 'Private Equity', value: 0.65 },
+  { name: 'Real Estate', value: 0.42 },
+  { name: 'Infrastructure', value: 0.28 },
+  { name: 'Hedge Funds', value: 0.35 },
+];
+
+const durationData = [
+  { name: 'Government Bonds', value: 7.2 },
+  { name: 'Corporate IG', value: 5.8 },
+  { name: 'High Yield', value: 3.4 },
+  { name: 'EM Debt', value: 6.1 },
+  { name: 'Inflation-Linked', value: 8.5 },
+  { name: 'Cash & Equivalents', value: 0.3 },
+];
+
+const externalBorrowingData = [
+  { strategy: 'Real Estate Strategies', direct: 5.2, sigIndirect: 2.1, otherIndirect: 1.5, ltv: 0.35, leverage: 1.42 },
+  { strategy: 'Infrastructure Strategies', direct: 3.8, sigIndirect: 1.5, otherIndirect: 0.8, ltv: 0.28, leverage: 1.35 },
+  { strategy: 'Private Equity Strategies', direct: 0.0, sigIndirect: 4.2, otherIndirect: 2.1, ltv: 0.45, leverage: 1.68 },
+  { strategy: 'Integrated Strategies', direct: 1.5, sigIndirect: 0.8, otherIndirect: 0.5, ltv: 0.18, leverage: 1.15 },
+  { strategy: 'Enhanced ILB Strategy', direct: 2.1, sigIndirect: 0.5, otherIndirect: 0.3, ltv: 0.12, leverage: 1.08 },
+];
+const externalBorrowingTotals = [
+  { strategy: 'Investment-Related Borrowings', direct: 12.6, sigIndirect: 9.1, otherIndirect: 5.2, ltv: 0.16, leverage: 1.54 },
+  { strategy: 'Operational Borrowings', direct: 1.5, sigIndirect: 0.0, otherIndirect: 0.0, ltv: 0.05, leverage: 1.02 },
+];
+
+const liquidityData = [
+  { category: 'Supply', item: 'Cash & Near-Cash', current: 15.2, gfc: 8.5, stag: 10.1 },
+  { category: 'Supply', item: 'Committed Credit Lines', current: 12.8, gfc: 12.8, stag: 12.8 },
+  { category: 'Demand', item: 'Margin Calls', current: -5.2, gfc: -18.5, stag: -12.2 },
+  { category: 'Demand', item: 'Redemptions', current: -3.1, gfc: -8.2, stag: -6.5 },
+  { category: 'Demand', item: 'Capital Calls', current: -4.5, gfc: -2.1, stag: -3.2 },
+];
+const liquidityNet = { current: 15.2, gfc: -7.5, stag: 1.0 };
+
+function OtherRiskMetricsSection() {
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <ChartCard id={`ph-${title}`} title={title}>
-        <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm border-2 border-dashed border-border rounded-lg">
-          {title} — Placeholder
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <ChartCard id="orm-1" title="Equity Market Sensitivity (Beta)" subtitle="Portfolio beta to equity markets by asset class">
+          <FinancialBarChart data={equityBetaData} height={260} colorByValue={false} barColor="hsl(212, 72%, 42%)" />
+        </ChartCard>
+        <ChartCard id="orm-2" title="Fixed Income Sensitivity (Duration, years)" subtitle="Effective duration in years by fixed income segment">
+          <FinancialBarChart data={durationData} height={260} colorByValue={false} barColor="hsl(212, 72%, 42%)" />
+        </ChartCard>
+      </div>
+
+      <ChartCard id="orm-3" title="External Borrowing">
+        <div className="overflow-auto text-xs">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b text-muted-foreground">
+                <th className="text-left py-2 px-3 font-medium">Strategy</th>
+                <th className="text-right py-2 px-3 font-medium">Direct Borrowing (%)</th>
+                <th className="text-right py-2 px-3 font-medium">Sig. Indirect (%)</th>
+                <th className="text-right py-2 px-3 font-medium">Other Indirect (%)</th>
+                <th className="text-right py-2 px-3 font-medium">Loan-to-Value</th>
+                <th className="text-right py-2 px-3 font-medium">Leverage Ratio</th>
+              </tr>
+            </thead>
+            <tbody>
+              {externalBorrowingData.map(r => (
+                <tr key={r.strategy} className="border-b border-border/50">
+                  <td className="py-2 px-3 font-medium">{r.strategy}</td>
+                  <td className="py-2 px-3 text-right tabular-nums">{r.direct.toFixed(1)}</td>
+                  <td className="py-2 px-3 text-right tabular-nums">{r.sigIndirect.toFixed(1)}</td>
+                  <td className="py-2 px-3 text-right tabular-nums">{r.otherIndirect.toFixed(1)}</td>
+                  <td className="py-2 px-3 text-right tabular-nums">{r.ltv.toFixed(2)}</td>
+                  <td className="py-2 px-3 text-right tabular-nums">{r.leverage.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              {externalBorrowingTotals.map(r => (
+                <tr key={r.strategy} className="font-semibold border-t border-border">
+                  <td className="py-2 px-3">{r.strategy}</td>
+                  <td className="py-2 px-3 text-right tabular-nums">{r.direct.toFixed(1)}</td>
+                  <td className="py-2 px-3 text-right tabular-nums">{r.sigIndirect.toFixed(1)}</td>
+                  <td className="py-2 px-3 text-right tabular-nums">{r.otherIndirect.toFixed(1)}</td>
+                  <td className="py-2 px-3 text-right tabular-nums">{r.ltv.toFixed(2)}</td>
+                  <td className="py-2 px-3 text-right tabular-nums">{r.leverage.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tfoot>
+          </table>
+        </div>
+      </ChartCard>
+
+      <ChartCard id="orm-4" title="Liquidity Coverage Ratio">
+        <div className="overflow-auto text-xs">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b text-muted-foreground">
+                <th className="text-left py-2 px-3 font-medium">Category</th>
+                <th className="text-left py-2 px-3 font-medium">Item</th>
+                <th className="text-right py-2 px-3 font-medium">Current (%)</th>
+                <th className="text-right py-2 px-3 font-medium">GFC Stress (%)</th>
+                <th className="text-right py-2 px-3 font-medium">Stagflation (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {liquidityData.map(r => (
+                <tr key={r.item} className="border-b border-border/50">
+                  <td className="py-2 px-3 font-medium">{r.category}</td>
+                  <td className="py-2 px-3">{r.item}</td>
+                  <td className={cn('py-2 px-3 text-right tabular-nums', r.current < 0 && 'text-chart-negative')}>{r.current.toFixed(1)}</td>
+                  <td className={cn('py-2 px-3 text-right tabular-nums', r.gfc < 0 && 'text-chart-negative')}>{r.gfc.toFixed(1)}</td>
+                  <td className={cn('py-2 px-3 text-right tabular-nums', r.stag < 0 && 'text-chart-negative')}>{r.stag.toFixed(1)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="font-semibold border-t border-border">
+                <td className="py-2 px-3" colSpan={2}>Net Liquidity Coverage</td>
+                <td className={cn('py-2 px-3 text-right tabular-nums', liquidityNet.current < 0 && 'text-chart-negative')}>{liquidityNet.current.toFixed(1)}</td>
+                <td className={cn('py-2 px-3 text-right tabular-nums', liquidityNet.gfc < 0 && 'text-chart-negative')}>{liquidityNet.gfc.toFixed(1)}</td>
+                <td className={cn('py-2 px-3 text-right tabular-nums', liquidityNet.stag < 0 && 'text-chart-negative')}>{liquidityNet.stag.toFixed(1)}</td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
       </ChartCard>
     </div>
