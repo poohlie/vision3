@@ -476,7 +476,7 @@ function RealReturn({ filters }: { filters: PerfFilters }) {
           connectNulls={false}
         />
       </ChartCard>
-      <ChartCard id="rr-3" title="Expected Long-Term Rate of Return (ELTRROR)" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
+      <ChartCard id="rr-3" title="Realised Asset Class Real Rate of Return" footer={<FilterPill label="Currency" value={filters.currency} variant="currency" />}>
         {isComparing ? (
           <CompareBarPanel datasets={eltrrorDatasets} />
         ) : (
