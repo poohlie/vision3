@@ -90,14 +90,29 @@ const BENCHMARK_COMPONENTS = assetClassExposureData.map((a, i) => {
 const periodToggles = ['1Y', '5Y', '10Y'] as const;
 const periodDescriptions: Record<string, string> = { '1Y': 'Monthly', '5Y': 'Quarterly', '10Y': 'Yearly' };
 
+type RiskMeasure = 'Volatility' | 'ETL';
+const riskMeasureLabels: Record<RiskMeasure, string> = {
+  Volatility: 'Ex-Ante Volatility',
+  ETL: 'Expected Tail Loss',
+};
+const riskMeasureShort: Record<RiskMeasure, string> = {
+  Volatility: 'Vol',
+  ETL: 'ETL',
+};
+
 function AbsoluteRiskSection() {
+  const [measure, setMeasure] = useState<RiskMeasure>('Volatility');
   const [contribView, setContribView] = useState<View>('Portfolio');
   const [ownView, setOwnView] = useState<View>('Portfolio');
   const [topN, setTopN] = useState(5);
   const [period, setPeriod] = useState<string>('1Y');
 
-  const portfolioVol = 11.5;
-  const benchmarkVol = 10.2;
+  // Scale factor: ETL ≈ -1.4× vol (1-day 97.5%-ish), shown as negative loss
+  const measureScale = measure === 'Volatility' ? 1 : -1.4;
+  const portfolioBase = 11.5;
+  const benchmarkBase = 10.2;
+  const portfolioMetric = +(portfolioBase * Math.abs(measureScale)).toFixed(2) * (measure === 'ETL' ? -1 : 1);
+  const benchmarkMetric = +(benchmarkBase * Math.abs(measureScale)).toFixed(2) * (measure === 'ETL' ? -1 : 1);
 
   // Period labels: 1Y monthly, 5Y quarterly, 10Y yearly (matches Exposure)
   const xKey = 'label';
@@ -107,10 +122,15 @@ function AbsoluteRiskSection() {
     return ['2017','2018','2019','2020','2021','2022','2023','2024','2025','2026'];
   }, [period]);
 
-  // Source list, sorted desc, with Top N + Others
+  // Source list, sorted desc by abs contribution, with Top N + Others
   const buildBars = (view: View) => {
     const src = view === 'Portfolio' ? PORTFOLIO_COMPONENTS : BENCHMARK_COMPONENTS;
-    const sorted = [...src].sort((a, b) => b.contribution - a.contribution);
+    const scaled = src.map(s => ({
+      name: s.name,
+      vol: +(s.vol * measureScale).toFixed(2),
+      contribution: +(s.contribution * measureScale).toFixed(2),
+    }));
+    const sorted = [...scaled].sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
     const top = sorted.slice(0, topN);
     const rest = sorted.slice(topN);
     const restContrib = rest.reduce((s, r) => s + r.contribution, 0);
@@ -120,72 +140,100 @@ function AbsoluteRiskSection() {
     return items;
   };
 
-  const contribBars = useMemo(() => buildBars(contribView), [contribView, topN]);
-  const ownBars = useMemo(() => buildBars(ownView), [ownView, topN]);
+  const contribBars = useMemo(() => buildBars(contribView), [contribView, topN, measure]);
+  const ownBars = useMemo(() => buildBars(ownView), [ownView, topN, measure]);
 
-  // Trend: vol comparison (Portfolio vs Benchmark)
+  // Trend: P vs BM
   const volTrend = useMemo(() => labels.map((m, i) => ({
     [xKey]: m,
-    Portfolio: +(portfolioVol + Math.sin(i / 2) * 0.6 + ((i * 13) % 7) / 50).toFixed(2),
-    Benchmark: +(benchmarkVol + Math.sin(i / 2.5) * 0.5 + ((i * 7) % 5) / 50).toFixed(2),
-  })), [labels]);
+    Portfolio: +(portfolioMetric + Math.sin(i / 2) * 0.6 * Math.sign(measureScale) + ((i * 13) % 7) / 50).toFixed(2),
+    Benchmark: +(benchmarkMetric + Math.sin(i / 2.5) * 0.5 * Math.sign(measureScale) + ((i * 7) % 5) / 50).toFixed(2),
+  })), [labels, measure]);
 
   // Stacked contribution-over-time trend (chart iv)
   const contribTrend = useMemo(() => {
-    const totalLine = contribView === 'Portfolio' ? portfolioVol : benchmarkVol;
+    const totalLine = contribView === 'Portfolio' ? portfolioMetric : benchmarkMetric;
     return labels.map((m, i) => {
       const row: Record<string, string | number> = { [xKey]: m };
       contribBars.forEach((b, j) => {
         const wobble = 1 + Math.sin((i + j) / 2) * 0.15;
         row[b.name] = +(b.contribution * wobble).toFixed(2);
       });
-      row['Total'] = +(totalLine + Math.sin(i / 2) * 0.5).toFixed(2);
+      row['Total'] = +(totalLine + Math.sin(i / 2) * 0.5 * Math.sign(measureScale)).toFixed(2);
       return row;
     });
-  }, [contribBars, contribView, labels]);
+  }, [contribBars, contribView, labels, measure]);
 
   // Own-based trend (chart vi)
   const ownTrend = useMemo(() => labels.map((m, i) => {
     const row: Record<string, string | number> = { [xKey]: m };
     ownBars.forEach((b, j) => {
-      row[b.name] = +(b.vol + Math.sin((i + j * 1.3) / 2) * 0.4).toFixed(2);
+      row[b.name] = +(b.vol + Math.sin((i + j * 1.3) / 2) * 0.4 * Math.sign(measureScale)).toFixed(2);
     });
     return row;
-  }), [ownBars, labels]);
+  }), [ownBars, labels, measure]);
+
+  const measurePill = <FilterPill label="Risk" value={riskMeasureShort[measure]} variant="breakdown" />;
 
   return (
     <div className="space-y-4">
-      {/* Period control — muted, scoped to right-column trend charts (mirrors Exposure) */}
-      <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
-            <div>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Period</span>
-              <p className="text-[9px] text-muted-foreground">Trend charts only (right column) →</p>
+      {/* Top-level controls: Risk Measure (left, primary) + Period (right, muted) */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-lg border-2 border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-1 h-8 rounded-full bg-primary" />
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Risk Measure</span>
+                <p className="text-[9px] text-muted-foreground">All charts</p>
+              </div>
             </div>
+            <div className="h-8 w-px bg-border shrink-0" />
+            <ToggleBar
+              options={['Volatility', 'ETL'] as const}
+              value={measure}
+              onChange={(v) => setMeasure(v)}
+              size="sm"
+            />
           </div>
-          <div className="h-8 w-px bg-border shrink-0" />
-          <ToggleBar options={periodToggles} value={period} onChange={setPeriod} size="sm" />
-          <span className="text-[9px] text-muted-foreground font-medium">({periodDescriptions[period]})</span>
+        </div>
+        <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Period</span>
+                <p className="text-[9px] text-muted-foreground">Trend charts only (right column) →</p>
+              </div>
+            </div>
+            <div className="h-8 w-px bg-border shrink-0" />
+            <ToggleBar options={periodToggles} value={period} onChange={setPeriod} size="sm" />
+            <span className="text-[9px] text-muted-foreground font-medium">({periodDescriptions[period]})</span>
+          </div>
         </div>
       </div>
 
-      {/* Row 1: Vol comparison + trend */}
+      {/* Row 1: Comparison + trend */}
       <div className="grid grid-cols-2 gap-4">
         <ChartCard
           id="ar-1"
-          title="Ex-Ante Volatility: Portfolio vs Benchmark"
-          subtitle="Annualised, current snapshot"
+          title={`${riskMeasureLabels[measure]}: Portfolio vs Benchmark`}
+          subtitle={measure === 'Volatility' ? 'Annualised, current snapshot' : '1-day 97.5% ETL, current snapshot'}
+          footer={measurePill}
         >
-          <VolGaugeCompare portfolio={portfolioVol} benchmark={benchmarkVol} />
+          <VolGaugeCompare portfolio={portfolioMetric} benchmark={benchmarkMetric} measure={measure} />
         </ChartCard>
         <div className="border-l-2 border-muted-foreground/30 pl-3">
           <ChartCard
             id="ar-2"
-            title="Ex-Ante Volatility Trend"
+            title={`${riskMeasureLabels[measure]} Trend`}
             subtitle="Portfolio vs Benchmark"
-            footer={<FilterPill label="Period" value={`${period} (${periodDescriptions[period]})`} variant="period" />}
+            footer={
+              <>
+                {measurePill}
+                <FilterPill label="Period" value={`${period} (${periodDescriptions[period]})`} variant="period" />
+              </>
+            }
           >
             <TrendChart
               data={volTrend}
@@ -222,15 +270,18 @@ function AbsoluteRiskSection() {
         </div>
       </div>
 
-      {/* Rows 2 & 3: bordered accent (controls applied) + muted on right column trends */}
+      {/* Rows 2 & 3 */}
       <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/30 pl-3 ml-1">
         {/* iii) Contribution */}
         <ChartCard
           id="ar-3"
-          title="Volatility Contribution"
-          subtitle={contribView === 'Portfolio' ? 'Active strategies → Portfolio vol' : 'Asset classes → Benchmark vol'}
+          title={`${riskMeasureLabels[measure]} Contribution`}
+          subtitle={contribView === 'Portfolio'
+            ? `Active strategies → Portfolio ${riskMeasureShort[measure]}`
+            : `Asset classes → Benchmark ${riskMeasureShort[measure]}`}
           footer={
             <>
+              {measurePill}
               <FilterPill label="View" value={contribView} variant="breakdown" />
               <FilterPill label="Top" value={String(topN)} variant="breakdown" />
             </>
@@ -247,10 +298,11 @@ function AbsoluteRiskSection() {
         <div className="border-l-2 border-muted-foreground/30 pl-3 -ml-3">
           <ChartCard
             id="ar-4"
-            title="Contribution to Volatility — Trend"
-            subtitle="Stacked contributions with total vol overlay"
+            title={`Contribution to ${riskMeasureLabels[measure]} — Trend`}
+            subtitle={`Stacked contributions with total ${riskMeasureShort[measure]} overlay`}
             footer={
               <>
+                {measurePill}
                 <FilterPill label="Period" value={`${period} (${periodDescriptions[period]})`} variant="period" />
                 <FilterPill label="View" value={contribView} variant="breakdown" />
                 <FilterPill label="Top" value={String(topN)} variant="breakdown" />
@@ -266,13 +318,16 @@ function AbsoluteRiskSection() {
           </ChartCard>
         </div>
 
-        {/* v) Own-based vol */}
+        {/* v) Own-based */}
         <ChartCard
           id="ar-5"
-          title="Own-Based Volatility"
-          subtitle={ownView === 'Portfolio' ? 'Active strategies, standalone vol' : 'Asset classes, standalone vol'}
+          title={`Own-Based ${riskMeasureLabels[measure]}`}
+          subtitle={ownView === 'Portfolio'
+            ? `Active strategies, standalone ${riskMeasureShort[measure]}`
+            : `Asset classes, standalone ${riskMeasureShort[measure]}`}
           footer={
             <>
+              {measurePill}
               <FilterPill label="View" value={ownView} variant="breakdown" />
               <FilterPill label="Top" value={String(topN)} variant="breakdown" />
             </>
@@ -289,10 +344,11 @@ function AbsoluteRiskSection() {
         <div className="border-l-2 border-muted-foreground/30 pl-3 -ml-3">
           <ChartCard
             id="ar-6"
-            title="Own-Based Volatility — Trend"
-            subtitle="Per-component standalone vol"
+            title={`Own-Based ${riskMeasureLabels[measure]} — Trend`}
+            subtitle={`Per-component standalone ${riskMeasureShort[measure]}`}
             footer={
               <>
+                {measurePill}
                 <FilterPill label="Period" value={`${period} (${periodDescriptions[period]})`} variant="period" />
                 <FilterPill label="View" value={ownView} variant="breakdown" />
                 <FilterPill label="Top" value={String(topN)} variant="breakdown" />
@@ -307,26 +363,32 @@ function AbsoluteRiskSection() {
   );
 }
 
-// Creative comparison: side-by-side vertical "vol bars" with delta callout
-function VolGaugeCompare({ portfolio, benchmark }: { portfolio: number; benchmark: number }) {
-  const max = Math.max(portfolio, benchmark) * 1.25;
-  const pPct = (portfolio / max) * 100;
-  const bPct = (benchmark / max) * 100;
+// Creative comparison: side-by-side vertical bars with delta callout.
+// Works for both Volatility (positive) and ETL (negative loss values).
+function VolGaugeCompare({ portfolio, benchmark, measure = 'Volatility' }: { portfolio: number; benchmark: number; measure?: RiskMeasure }) {
+  const absP = Math.abs(portfolio);
+  const absB = Math.abs(benchmark);
+  const max = Math.max(absP, absB) * 1.25;
+  const pPct = (absP / max) * 100;
+  const bPct = (absB / max) * 100;
   const delta = +(portfolio - benchmark).toFixed(2);
-  const deltaPositive = delta >= 0;
+  // For ETL, smaller |loss| is good (positive delta means portfolio loses less)
+  const deltaPositive = measure === 'ETL' ? delta >= 0 : delta >= 0;
+  const fmt = (v: number) => `${v.toFixed(2)}%`;
+
+  const pGradient = measure === 'ETL'
+    ? 'linear-gradient(180deg, hsl(0, 60%, 60%) 0%, hsl(0, 70%, 38%) 100%)'
+    : 'linear-gradient(180deg, hsl(212, 72%, 52%) 0%, hsl(212, 72%, 35%) 100%)';
 
   return (
     <div className="flex items-end justify-around h-[250px] gap-6 px-4 pb-2 relative">
       {/* Portfolio column */}
       <div className="flex flex-col items-center justify-end h-full flex-1 max-w-[120px]">
-        <div className="text-xs font-semibold text-foreground mb-1">{portfolio.toFixed(2)}%</div>
+        <div className="text-xs font-semibold text-foreground mb-1">{fmt(portfolio)}</div>
         <div className="w-full bg-muted/40 rounded-md relative" style={{ height: '85%' }}>
           <div
             className="absolute bottom-0 left-0 right-0 rounded-md transition-all"
-            style={{
-              height: `${pPct}%`,
-              background: 'linear-gradient(180deg, hsl(212, 72%, 52%) 0%, hsl(212, 72%, 35%) 100%)',
-            }}
+            style={{ height: `${pPct}%`, background: pGradient }}
           />
         </div>
         <div className="mt-2 text-[10px] uppercase tracking-wider font-semibold text-foreground">Portfolio</div>
@@ -347,7 +409,7 @@ function VolGaugeCompare({ portfolio, benchmark }: { portfolio: number; benchmar
 
       {/* Benchmark column */}
       <div className="flex flex-col items-center justify-end h-full flex-1 max-w-[120px]">
-        <div className="text-xs font-semibold text-foreground mb-1">{benchmark.toFixed(2)}%</div>
+        <div className="text-xs font-semibold text-foreground mb-1">{fmt(benchmark)}</div>
         <div className="w-full bg-muted/40 rounded-md relative" style={{ height: '85%' }}>
           <div
             className="absolute bottom-0 left-0 right-0 rounded-md transition-all"
