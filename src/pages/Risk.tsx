@@ -13,14 +13,12 @@ import {
 } from '@/data/mockData';
 
 const riskTabsConfig = [
-  { key: 'Absolute Risk' as const, metric: '—', label: 'Absolute Risk', subtitle: 'Placeholder' },
+  { key: 'Absolute Risk' as const, metric: '11.5%', label: 'Total Vol (P)', subtitle: 'vs 10.2% Benchmark' },
   { key: 'Active Risk' as const, metric: '—', label: 'Active Risk', subtitle: 'Placeholder' },
   { key: 'Other Risk Metrics' as const, metric: '—', label: 'Other Risk Metrics', subtitle: 'Placeholder' },
 ];
 const riskTabs = riskTabsConfig.map(t => t.key);
 type RiskTab = typeof riskTabs[number];
-const breakdowns = ['Active Strategies', 'Country', 'Sector'] as const;
-const measures = ['Tracking Error', 'Volatility'] as const;
 
 export default function Risk() {
   const [searchParams] = useSearchParams();
@@ -53,7 +51,7 @@ export default function Risk() {
           </button>
         ))}
       </div>
-      {tab === 'Absolute Risk' && <PlaceholderSection title="Absolute Risk" />}
+      {tab === 'Absolute Risk' && <AbsoluteRiskSection />}
       {tab === 'Active Risk' && <PlaceholderSection title="Active Risk" />}
       {tab === 'Other Risk Metrics' && <PlaceholderSection title="Other Risk Metrics" />}
     </div>
@@ -72,272 +70,218 @@ function PlaceholderSection({ title }: { title: string }) {
   );
 }
 
-function StrategicRisk() {
-  const [bd, setBd] = useState<string>('Active Strategies');
-  const [topN, setTopN] = useState(6);
-  const [measure, setMeasure] = useState<string>('Tracking Error');
-  const [sliderVal, setSliderVal] = useState(12);
+// ============ ABSOLUTE RISK ============
+type View = 'Portfolio' | 'Benchmark';
 
-  const countryRisk = [
-    { name: 'United States', contribution: 1.2, ownTE: 3.8 },
-    { name: 'Japan', contribution: 0.4, ownTE: 2.9 },
-    { name: 'United Kingdom', contribution: 0.3, ownTE: 2.1 },
-    { name: 'Germany', contribution: 0.25, ownTE: 2.5 },
-    { name: 'China', contribution: 0.35, ownTE: 4.2 },
-    { name: 'France', contribution: 0.15, ownTE: 1.8 },
-    { name: 'Canada', contribution: 0.1, ownTE: 1.5 },
-    { name: 'Australia', contribution: 0.08, ownTE: 1.9 },
-  ];
-  const sectorRisk = [
-    { name: 'Information Technology', contribution: 0.95, ownTE: 4.5 },
-    { name: 'Financials', contribution: 0.55, ownTE: 3.2 },
-    { name: 'Healthcare', contribution: 0.3, ownTE: 2.8 },
-    { name: 'Energy', contribution: 0.4, ownTE: 5.1 },
-    { name: 'Consumer Disc.', contribution: 0.25, ownTE: 3.0 },
-    { name: 'Industrials', contribution: 0.2, ownTE: 2.4 },
-    { name: 'Materials', contribution: 0.15, ownTE: 3.6 },
-    { name: 'Comm. Services', contribution: 0.18, ownTE: 2.7 },
-  ];
+// Components aligned with Performance/Exposure tabs
+const PORTFOLIO_COMPONENTS = riskContribution.map(s => ({
+  name: s.name,
+  vol: +(s.ownTE * 1.6).toFixed(2),       // own-based vol
+  contribution: +(s.contribution * 4).toFixed(2), // contribution to portfolio vol
+}));
 
-  const sourceData = bd === 'Country' ? countryRisk : bd === 'Sector' ? sectorRisk : riskContribution;
-  const riskData = sourceData.slice(0, topN);
-  const others = sourceData.slice(topN);
-  const contribData = [...riskData.map(s => ({ name: s.name, value: s.contribution })),
-    ...(others.length ? [{ name: 'Others', value: others.reduce((s, o) => s + o.contribution, 0) }] : [])];
-  const ownData = [...riskData.map(s => ({ name: s.name, value: s.ownTE })),
-    ...(others.length ? [{ name: 'Others', value: others.reduce((s, o) => s + o.ownTE, 0) / (others.length || 1) }] : [])];
+const BENCHMARK_COMPONENTS = assetClassExposureData.map((a, i) => {
+  const seed = (i + 1) * 1.7;
+  const vol = +(6 + Math.sin(seed) * 4 + a.benchmark / 12).toFixed(2);
+  const contribution = +(a.benchmark / 100 * vol * 0.85).toFixed(2);
+  return { name: a.name, vol, contribution };
+});
 
-  const trendLines = measure === 'Tracking Error' ? ['trackingError'] : ['totalVol', 'benchmarkVol'];
+function AbsoluteRiskSection() {
+  const [contribView, setContribView] = useState<View>('Portfolio');
+  const [ownView, setOwnView] = useState<View>('Portfolio');
+  const [topN, setTopN] = useState(5);
+  const [period, setPeriod] = useState<string>('1Y');
 
-  return (
-    <div className="grid grid-cols-2 gap-4">
-      <ChartCard id="sr-1" title="Portfolio Risk Geometry">
-        <RiskTriangleChart volP={11.5} volB1={14.0} volB2={9.5} teP_B1={4.5} teP_B2={3.2} />
-      </ChartCard>
-      <ChartCard id="sr-2" title={`${measure} Trend`} toolbar={
-        <div className="flex gap-2 items-center">
-          <ToggleBar options={measures} value={measure as any} onChange={setMeasure} size="xs" />
-          <label className="text-[10px] text-muted-foreground">Period:</label>
-          <input type="range" min={3} max={12} value={sliderVal} onChange={e => setSliderVal(+e.target.value)} className="w-16 h-1" />
-        </div>
-      }>
-        <TrendChart data={trackingErrorSeries.slice(0, sliderVal)} lines={trendLines} />
-      </ChartCard>
-      <ChartCard id="sr-3" title="TE Contribution by Strategy" toolbar={
-        <div className="flex gap-2 items-center">
-          <ToggleBar options={breakdowns} value={bd as any} onChange={setBd} size="xs" />
-          <label className="text-[10px] text-muted-foreground">Top N:</label>
-          <input type="range" min={3} max={8} value={topN} onChange={e => setTopN(+e.target.value)} className="w-16 h-1" />
-          <span className="text-[10px] w-4">{topN}</span>
-        </div>
-      }>
-        <FinancialBarChart data={contribData} colorByValue={false} barColor="hsl(212, 72%, 42%)" />
-      </ChartCard>
-      <ChartCard id="sr-4" title="TE Contribution Over Time">
-        <StackedTimeChart
-          data={contributionTimeSeries}
-          categories={riskData.slice(0, 6).map(s => s.name)}
-          overlayLine="Total Portfolio"
-        />
-      </ChartCard>
-      <ChartCard id="sr-5" title="Own-Based TE by Strategy" toolbar={
-        <div className="flex gap-2 items-center">
-          <ToggleBar options={breakdowns} value={bd as any} onChange={setBd} size="xs" />
-          <label className="text-[10px] text-muted-foreground">Top N:</label>
-          <input type="range" min={3} max={8} value={topN} onChange={e => setTopN(+e.target.value)} className="w-16 h-1" />
-          <span className="text-[10px] w-4">{topN}</span>
-        </div>
-      }>
-        <FinancialBarChart data={ownData} />
-      </ChartCard>
-      <ChartCard id="sr-6" title="Strategy TE Trend" toolbar={
-        <div className="flex gap-2 items-center">
-          <ToggleBar options={measures} value={measure as any} onChange={setMeasure} size="xs" />
-          <label className="text-[10px] text-muted-foreground">Period:</label>
-          <input type="range" min={3} max={12} value={sliderVal} onChange={e => setSliderVal(+e.target.value)} className="w-16 h-1" />
-        </div>
-      }>
-        <TrendChart data={trackingErrorSeries.slice(0, sliderVal)} lines={trendLines} />
-      </ChartCard>
-    </div>
-  );
-}
+  const portfolioVol = 11.5;
+  const benchmarkVol = 10.2;
 
-function PortfolioResilience() {
-  const [mode, setMode] = useState<string>('Stress Loss');
-  const [bd, setBd] = useState<string>('Active Strategies');
-  const [topN, setTopN] = useState(6);
-  const [sliderVal, setSliderVal] = useState(12);
-  const factorBd = ['Active Strategies', 'Factor Group'] as const;
+  // Source list, sorted desc, with Top N + Others (only for portfolio; benchmark fully shown if small)
+  const buildBars = (view: View) => {
+    const src = view === 'Portfolio' ? PORTFOLIO_COMPONENTS : BENCHMARK_COMPONENTS;
+    const sorted = [...src].sort((a, b) => b.contribution - a.contribution);
+    const top = sorted.slice(0, topN);
+    const rest = sorted.slice(topN);
+    const restContrib = rest.reduce((s, r) => s + r.contribution, 0);
+    const restVol = rest.length ? rest.reduce((s, r) => s + r.vol, 0) / rest.length : 0;
+    const items = [...top];
+    if (rest.length) items.push({ name: 'Others', vol: +restVol.toFixed(2), contribution: +restContrib.toFixed(2) });
+    return items;
+  };
 
-  const wfData = mode === 'Stress Loss' ? resilienceWaterfallData.stressLoss : resilienceWaterfallData.etl;
-  const contribData = riskContribution.slice(0, topN).map(s => ({ name: s.name, value: -(s.contribution * 5) }));
-  const ownData = riskContribution.slice(0, topN).map(s => ({ name: s.name, value: -(s.ownTE * 1.5) }));
+  const contribBars = useMemo(() => buildBars(contribView), [contribView, topN]);
+  const ownBars = useMemo(() => buildBars(ownView), [ownView, topN]);
 
-  return (
-    <div className="grid grid-cols-2 gap-4">
-      <ChartCard id="pr-1" title="Stress Attribution" toolbar={
-        <ToggleBar options={['Stress Loss', 'Expected Tail Loss'] as const} value={mode} onChange={setMode} size="xs" />
-      }>
-        <WaterfallChart data={wfData} />
-      </ChartCard>
-      <ChartCard id="pr-2" title="Stress Attribution Over Time" toolbar={
-        <div className="flex gap-2 items-center">
-          <label className="text-[10px] text-muted-foreground">Period:</label>
-          <input type="range" min={3} max={12} value={sliderVal} onChange={e => setSliderVal(+e.target.value)} className="w-16 h-1" />
-        </div>
-      }>
-        <StackedTimeChart data={contributionTimeSeries.slice(0, sliderVal)} categories={['strategicPortfolio', 'mts', 'activeStrategies']} />
-      </ChartCard>
-      <ChartCard id="pr-3" title="Stress Contribution by Strategy" toolbar={
-        <div className="flex gap-2 items-center">
-          <ToggleBar options={factorBd} value={bd as any} onChange={setBd} size="xs" />
-          <ToggleBar options={['Stress Loss', 'Expected Tail Loss'] as const} value={mode} onChange={setMode} size="xs" />
-          <label className="text-[10px] text-muted-foreground">Top N:</label>
-          <input type="range" min={3} max={8} value={topN} onChange={e => setTopN(+e.target.value)} className="w-16 h-1" />
-        </div>
-      }>
-        <FinancialBarChart data={contribData} />
-      </ChartCard>
-      <ChartCard id="pr-4" title="Stress Contribution Over Time" toolbar={
-        <div className="flex gap-2 items-center">
-          <label className="text-[10px] text-muted-foreground">Period:</label>
-          <input type="range" min={3} max={12} value={sliderVal} onChange={e => setSliderVal(+e.target.value)} className="w-16 h-1" />
-        </div>
-      }>
-        <StackedTimeChart
-          data={contributionTimeSeries.slice(0, sliderVal)}
-          categories={riskContribution.slice(0, 6).map(s => s.name)}
-          overlayLine="Total Portfolio"
-        />
-      </ChartCard>
-      <ChartCard id="pr-5" title="Own-Based Stress Loss" toolbar={
-        <div className="flex gap-2 items-center">
-          <ToggleBar options={factorBd} value={bd as any} onChange={setBd} size="xs" />
-          <ToggleBar options={['Stress Loss', 'Expected Tail Loss'] as const} value={mode} onChange={setMode} size="xs" />
-          <label className="text-[10px] text-muted-foreground">Top N:</label>
-          <input type="range" min={3} max={8} value={topN} onChange={e => setTopN(+e.target.value)} className="w-16 h-1" />
-        </div>
-      }>
-        <FinancialBarChart data={ownData} />
-      </ChartCard>
-      <ChartCard id="pr-6" title="Strategy Stress Loss Trend" toolbar={
-        <div className="flex gap-2 items-center">
-          <label className="text-[10px] text-muted-foreground">Period:</label>
-          <input type="range" min={3} max={12} value={sliderVal} onChange={e => setSliderVal(+e.target.value)} className="w-16 h-1" />
-        </div>
-      }>
-        <TrendChart data={trackingErrorSeries.slice(0, sliderVal)} lines={riskContribution.slice(0, 4).map(s => s.name)} />
-      </ChartCard>
-    </div>
-  );
-}
+  // Trend data: scale trackingErrorSeries to vol levels
+  const volTrend = useMemo(() => trackingErrorSeries.map((d, i) => ({
+    month: d.month,
+    Portfolio: +(portfolioVol + Math.sin(i / 2) * 0.6 + (Math.random() - 0.5) * 0.2).toFixed(2),
+    Benchmark: +(benchmarkVol + Math.sin(i / 2.5) * 0.5 + (Math.random() - 0.5) * 0.2).toFixed(2),
+  })), []);
 
-function OperationalResilience() {
-  const totalInv = borrowingData.reduce((s, b) => ({
-    direct: s.direct + b.direct, sigIndirect: s.sigIndirect + b.sigIndirect,
-    otherIndirect: s.otherIndirect + b.otherIndirect, ltv: 0, leverage: 0,
-  }), { direct: 0, sigIndirect: 0, otherIndirect: 0, ltv: 0, leverage: 0 });
-  totalInv.ltv = +(totalInv.direct / (totalInv.direct + totalInv.sigIndirect + totalInv.otherIndirect + 50) * 100).toFixed(2) / 100;
-  totalInv.leverage = +(1 + (totalInv.direct + totalInv.sigIndirect + totalInv.otherIndirect) / 50).toFixed(2);
+  // Stacked contribution-over-time trend (chart iv)
+  const contribTrend = useMemo(() => {
+    const totals = contribBars.reduce((s, b) => s + b.contribution, 0);
+    const totalLine = contribView === 'Portfolio' ? portfolioVol : benchmarkVol;
+    return trackingErrorSeries.map((d, i) => {
+      const row: Record<string, string | number> = { month: d.month };
+      contribBars.forEach((b, j) => {
+        const wobble = 1 + Math.sin((i + j) / 2) * 0.15;
+        row[b.name] = +(b.contribution * wobble).toFixed(2);
+      });
+      row['Total'] = +(totalLine + Math.sin(i / 2) * 0.5).toFixed(2);
+      return row;
+    });
+  }, [contribBars, contribView]);
+
+  // Own-based trend (chart vi) - one line per component
+  const ownTrend = useMemo(() => trackingErrorSeries.map((d, i) => {
+    const row: Record<string, string | number> = { month: d.month };
+    ownBars.forEach((b, j) => {
+      row[b.name] = +(b.vol + Math.sin((i + j * 1.3) / 2) * 0.4).toFixed(2);
+    });
+    return row;
+  }), [ownBars]);
 
   return (
     <div className="space-y-4">
-      <ChartCard id="or-1" title="External Borrowing">
-        <div className="overflow-auto text-xs">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b text-muted-foreground">
-                <th className="text-left py-2 px-2 font-medium">Strategy</th>
-                <th className="text-right py-2 px-2 font-medium">Direct Borrowing (%)</th>
-                <th className="text-right py-2 px-2 font-medium">Sig. Indirect (%)</th>
-                <th className="text-right py-2 px-2 font-medium">Other Indirect (%)</th>
-                <th className="text-right py-2 px-2 font-medium">Loan-to-Value</th>
-                <th className="text-right py-2 px-2 font-medium">Leverage Ratio</th>
-              </tr>
-            </thead>
-            <tbody>
-              {borrowingData.map(b => (
-                <tr key={b.strategy} className="border-b border-border/50">
-                  <td className="py-1.5 px-2 font-medium">{b.strategy}</td>
-                  <td className="py-1.5 px-2 text-right">{b.direct.toFixed(1)}</td>
-                  <td className="py-1.5 px-2 text-right">{b.sigIndirect.toFixed(1)}</td>
-                  <td className="py-1.5 px-2 text-right">{b.otherIndirect.toFixed(1)}</td>
-                  <td className="py-1.5 px-2 text-right">{b.ltv.toFixed(2)}</td>
-                  <td className="py-1.5 px-2 text-right">{b.leverage.toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="font-semibold border-t-2">
-                <td className="py-1.5 px-2">Investment-Related Borrowings</td>
-                <td className="py-1.5 px-2 text-right">{totalInv.direct.toFixed(1)}</td>
-                <td className="py-1.5 px-2 text-right">{totalInv.sigIndirect.toFixed(1)}</td>
-                <td className="py-1.5 px-2 text-right">{totalInv.otherIndirect.toFixed(1)}</td>
-                <td className="py-1.5 px-2 text-right">{totalInv.ltv.toFixed(2)}</td>
-                <td className="py-1.5 px-2 text-right">{totalInv.leverage.toFixed(2)}</td>
-              </tr>
-              <tr className="font-semibold">
-                <td className="py-1.5 px-2">Operational Borrowings</td>
-                <td className="py-1.5 px-2 text-right">1.5</td>
-                <td className="py-1.5 px-2 text-right">0.0</td>
-                <td className="py-1.5 px-2 text-right">0.0</td>
-                <td className="py-1.5 px-2 text-right">0.05</td>
-                <td className="py-1.5 px-2 text-right">1.02</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </ChartCard>
+      {/* Period filter aligned with Performance/Exposure */}
+      <div className="flex items-center gap-3">
+        <span className="text-[11px] font-semibold text-foreground uppercase tracking-wider">Period</span>
+        <ToggleBar options={timespans as unknown as readonly string[]} value={period} onChange={setPeriod} size="xs" />
+      </div>
 
-      <ChartCard id="or-2" title="Liquidity Coverage Ratio">
-        <div className="overflow-auto text-xs">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b text-muted-foreground">
-                <th className="text-left py-2 px-2 font-medium">Category</th>
-                <th className="text-left py-2 px-2 font-medium">Item</th>
-                <th className="text-right py-2 px-2 font-medium">Current (%)</th>
-                <th className="text-right py-2 px-2 font-medium">GFC Stress (%)</th>
-                <th className="text-right py-2 px-2 font-medium">Stagflation (%)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {liquidityCoverageData.map((l, i) => (
-                <tr key={i} className="border-b border-border/50">
-                  <td className="py-1.5 px-2 font-medium">{l.category}</td>
-                  <td className="py-1.5 px-2">{l.item}</td>
-                  <td className={cn('py-1.5 px-2 text-right', l.current < 0 && 'text-destructive font-medium')}>{l.current.toFixed(1)}</td>
-                  <td className={cn('py-1.5 px-2 text-right', l.gfc < 0 && 'text-destructive font-medium')}>{l.gfc.toFixed(1)}</td>
-                  <td className={cn('py-1.5 px-2 text-right', l.stagflation < 0 && 'text-destructive font-medium')}>{l.stagflation.toFixed(1)}</td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="font-semibold border-t-2">
-                <td className="py-1.5 px-2" colSpan={2}>Net Liquidity Coverage</td>
-                <td className="py-1.5 px-2 text-right">{liquidityCoverageData.reduce((s, l) => s + l.current, 0).toFixed(1)}</td>
-                <td className={cn('py-1.5 px-2 text-right', liquidityCoverageData.reduce((s, l) => s + l.gfc, 0) < 0 && 'text-destructive')}>
-                  {liquidityCoverageData.reduce((s, l) => s + l.gfc, 0).toFixed(1)}
-                </td>
-                <td className="py-1.5 px-2 text-right">{liquidityCoverageData.reduce((s, l) => s + l.stagflation, 0).toFixed(1)}</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </ChartCard>
+      <div className="grid grid-cols-2 gap-4">
+        {/* i) Vol comparison */}
+        <ChartCard id="ar-1" title="Ex-Ante Volatility: Portfolio vs Benchmark" subtitle="Annualised, current snapshot">
+          <VolGaugeCompare portfolio={portfolioVol} benchmark={benchmarkVol} />
+        </ChartCard>
+
+        {/* ii) Vol trend */}
+        <ChartCard id="ar-2" title="Ex-Ante Volatility Trend" subtitle="Portfolio vs Benchmark, rolling">
+          <TrendChart
+            data={volTrend}
+            lines={['Portfolio', 'Benchmark']}
+            lineColors={{ Portfolio: 'hsl(212, 72%, 42%)', Benchmark: 'hsl(215, 15%, 55%)' }}
+          />
+        </ChartCard>
+
+        {/* iii) Contribution */}
+        <ChartCard
+          id="ar-3"
+          title="Volatility Contribution"
+          subtitle={contribView === 'Portfolio' ? 'Active strategies → Portfolio vol' : 'Asset classes → Benchmark vol'}
+          toolbar={
+            <div className="flex items-center gap-2">
+              <ToggleBar options={['Portfolio', 'Benchmark'] as const} value={contribView} onChange={setContribView} size="xs" />
+              <TopNSelect value={topN} onChange={setTopN} />
+            </div>
+          }
+        >
+          <FinancialBarChart
+            data={contribBars.map(b => ({ name: b.name, value: b.contribution }))}
+            colorByValue={false}
+            barColor="hsl(212, 72%, 42%)"
+          />
+        </ChartCard>
+
+        {/* iv) Contribution trend - stacked + total line */}
+        <ChartCard
+          id="ar-4"
+          title="Contribution to Volatility — Trend"
+          subtitle={`Stacked contributions with ${contribView} total vol overlay`}
+        >
+          <StackedTimeChart
+            data={contribTrend}
+            categories={contribBars.map(b => b.name)}
+            overlayLine="Total"
+          />
+        </ChartCard>
+
+        {/* v) Own-based vol */}
+        <ChartCard
+          id="ar-5"
+          title="Own-Based Volatility"
+          subtitle={ownView === 'Portfolio' ? 'Active strategies, standalone vol' : 'Asset classes, standalone vol'}
+          toolbar={
+            <div className="flex items-center gap-2">
+              <ToggleBar options={['Portfolio', 'Benchmark'] as const} value={ownView} onChange={setOwnView} size="xs" />
+              <TopNSelect value={topN} onChange={setTopN} />
+            </div>
+          }
+        >
+          <FinancialBarChart
+            data={ownBars.map(b => ({ name: b.name, value: b.vol }))}
+            colorByValue={false}
+            barColor="hsl(32, 80%, 50%)"
+          />
+        </ChartCard>
+
+        {/* vi) Own-based trend */}
+        <ChartCard
+          id="ar-6"
+          title="Own-Based Volatility — Trend"
+          subtitle={`Per-component standalone vol, ${ownView}`}
+        >
+          <TrendChart data={ownTrend} lines={ownBars.map(b => b.name)} />
+        </ChartCard>
+      </div>
     </div>
   );
 }
 
-function EnterpriseRiskMap() {
+// Creative comparison: side-by-side vertical "vol bars" with delta callout
+function VolGaugeCompare({ portfolio, benchmark }: { portfolio: number; benchmark: number }) {
+  const max = Math.max(portfolio, benchmark) * 1.25;
+  const pPct = (portfolio / max) * 100;
+  const bPct = (benchmark / max) * 100;
+  const delta = +(portfolio - benchmark).toFixed(2);
+  const deltaPositive = delta >= 0;
+
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <ChartCard id="erm-1" title="Enterprise Risk Map">
-        <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm border-2 border-dashed border-border rounded-lg">
-          Enterprise Risk Map — Placeholder
+    <div className="flex items-end justify-around h-[250px] gap-6 px-4 pb-2 relative">
+      {/* Portfolio column */}
+      <div className="flex flex-col items-center justify-end h-full flex-1 max-w-[120px]">
+        <div className="text-xs font-semibold text-foreground mb-1">{portfolio.toFixed(2)}%</div>
+        <div className="w-full bg-muted/40 rounded-md relative" style={{ height: '85%' }}>
+          <div
+            className="absolute bottom-0 left-0 right-0 rounded-md transition-all"
+            style={{
+              height: `${pPct}%`,
+              background: 'linear-gradient(180deg, hsl(212, 72%, 52%) 0%, hsl(212, 72%, 35%) 100%)',
+            }}
+          />
         </div>
-      </ChartCard>
+        <div className="mt-2 text-[10px] uppercase tracking-wider font-semibold text-foreground">Portfolio</div>
+      </div>
+
+      {/* Delta badge */}
+      <div className="flex flex-col items-center justify-center pb-12">
+        <div className={cn(
+          'px-3 py-1.5 rounded-full text-xs font-bold border',
+          deltaPositive
+            ? 'bg-accent/10 text-accent border-accent/30'
+            : 'bg-primary/10 text-primary border-primary/30'
+        )}>
+          {deltaPositive ? '+' : ''}{delta}%
+        </div>
+        <div className="text-[9px] uppercase tracking-wider text-muted-foreground mt-1">Δ vs BM</div>
+      </div>
+
+      {/* Benchmark column */}
+      <div className="flex flex-col items-center justify-end h-full flex-1 max-w-[120px]">
+        <div className="text-xs font-semibold text-foreground mb-1">{benchmark.toFixed(2)}%</div>
+        <div className="w-full bg-muted/40 rounded-md relative" style={{ height: '85%' }}>
+          <div
+            className="absolute bottom-0 left-0 right-0 rounded-md transition-all"
+            style={{
+              height: `${bPct}%`,
+              background: 'linear-gradient(180deg, hsl(215, 15%, 65%) 0%, hsl(215, 15%, 45%) 100%)',
+            }}
+          />
+        </div>
+        <div className="mt-2 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Benchmark</div>
+      </div>
     </div>
   );
 }
