@@ -213,21 +213,27 @@ function AbsoluteRiskSection() {
         </div>
       </div>
 
-      {/* Row 1: Vol comparison + trend */}
+      {/* Row 1: Comparison + trend */}
       <div className="grid grid-cols-2 gap-4">
         <ChartCard
           id="ar-1"
-          title="Ex-Ante Volatility: Portfolio vs Benchmark"
-          subtitle="Annualised, current snapshot"
+          title={`${riskMeasureLabels[measure]}: Portfolio vs Benchmark`}
+          subtitle={measure === 'Volatility' ? 'Annualised, current snapshot' : '1-day 97.5% ETL, current snapshot'}
+          footer={measurePill}
         >
-          <VolGaugeCompare portfolio={portfolioVol} benchmark={benchmarkVol} />
+          <VolGaugeCompare portfolio={portfolioMetric} benchmark={benchmarkMetric} measure={measure} />
         </ChartCard>
         <div className="border-l-2 border-muted-foreground/30 pl-3">
           <ChartCard
             id="ar-2"
-            title="Ex-Ante Volatility Trend"
+            title={`${riskMeasureLabels[measure]} Trend`}
             subtitle="Portfolio vs Benchmark"
-            footer={<FilterPill label="Period" value={`${period} (${periodDescriptions[period]})`} variant="period" />}
+            footer={
+              <>
+                {measurePill}
+                <FilterPill label="Period" value={`${period} (${periodDescriptions[period]})`} variant="period" />
+              </>
+            }
           >
             <TrendChart
               data={volTrend}
@@ -264,15 +270,18 @@ function AbsoluteRiskSection() {
         </div>
       </div>
 
-      {/* Rows 2 & 3: bordered accent (controls applied) + muted on right column trends */}
+      {/* Rows 2 & 3 */}
       <div className="grid grid-cols-2 gap-4 border-l-2 border-accent/30 pl-3 ml-1">
         {/* iii) Contribution */}
         <ChartCard
           id="ar-3"
-          title="Volatility Contribution"
-          subtitle={contribView === 'Portfolio' ? 'Active strategies → Portfolio vol' : 'Asset classes → Benchmark vol'}
+          title={`${riskMeasureLabels[measure]} Contribution`}
+          subtitle={contribView === 'Portfolio'
+            ? `Active strategies → Portfolio ${riskMeasureShort[measure]}`
+            : `Asset classes → Benchmark ${riskMeasureShort[measure]}`}
           footer={
             <>
+              {measurePill}
               <FilterPill label="View" value={contribView} variant="breakdown" />
               <FilterPill label="Top" value={String(topN)} variant="breakdown" />
             </>
@@ -289,10 +298,11 @@ function AbsoluteRiskSection() {
         <div className="border-l-2 border-muted-foreground/30 pl-3 -ml-3">
           <ChartCard
             id="ar-4"
-            title="Contribution to Volatility — Trend"
-            subtitle="Stacked contributions with total vol overlay"
+            title={`Contribution to ${riskMeasureLabels[measure]} — Trend`}
+            subtitle={`Stacked contributions with total ${riskMeasureShort[measure]} overlay`}
             footer={
               <>
+                {measurePill}
                 <FilterPill label="Period" value={`${period} (${periodDescriptions[period]})`} variant="period" />
                 <FilterPill label="View" value={contribView} variant="breakdown" />
                 <FilterPill label="Top" value={String(topN)} variant="breakdown" />
@@ -308,13 +318,16 @@ function AbsoluteRiskSection() {
           </ChartCard>
         </div>
 
-        {/* v) Own-based vol */}
+        {/* v) Own-based */}
         <ChartCard
           id="ar-5"
-          title="Own-Based Volatility"
-          subtitle={ownView === 'Portfolio' ? 'Active strategies, standalone vol' : 'Asset classes, standalone vol'}
+          title={`Own-Based ${riskMeasureLabels[measure]}`}
+          subtitle={ownView === 'Portfolio'
+            ? `Active strategies, standalone ${riskMeasureShort[measure]}`
+            : `Asset classes, standalone ${riskMeasureShort[measure]}`}
           footer={
             <>
+              {measurePill}
               <FilterPill label="View" value={ownView} variant="breakdown" />
               <FilterPill label="Top" value={String(topN)} variant="breakdown" />
             </>
@@ -331,10 +344,11 @@ function AbsoluteRiskSection() {
         <div className="border-l-2 border-muted-foreground/30 pl-3 -ml-3">
           <ChartCard
             id="ar-6"
-            title="Own-Based Volatility — Trend"
-            subtitle="Per-component standalone vol"
+            title={`Own-Based ${riskMeasureLabels[measure]} — Trend`}
+            subtitle={`Per-component standalone ${riskMeasureShort[measure]}`}
             footer={
               <>
+                {measurePill}
                 <FilterPill label="Period" value={`${period} (${periodDescriptions[period]})`} variant="period" />
                 <FilterPill label="View" value={ownView} variant="breakdown" />
                 <FilterPill label="Top" value={String(topN)} variant="breakdown" />
