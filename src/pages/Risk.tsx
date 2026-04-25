@@ -37,7 +37,7 @@ export default function Risk() {
 
   return (
     <div className="p-6 space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         {riskTabsConfig.map(t => (
           <button
             key={t.key}
