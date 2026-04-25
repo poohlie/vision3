@@ -173,7 +173,7 @@ function AbsoluteRiskSection() {
           subtitle={contribView === 'Portfolio' ? 'Active strategies → Portfolio vol' : 'Asset classes → Benchmark vol'}
           toolbar={
             <div className="flex items-center gap-2">
-              <ToggleBar options={['Portfolio', 'Benchmark'] as const} value={contribView} onChange={setContribView} size="xs" />
+              <ToggleBar options={['Portfolio', 'Benchmark'] as const} value={contribView} onChange={(v) => setContribView(v as View)} size="xs" />
               <TopNSelect value={topN} onChange={setTopN} />
             </div>
           }
@@ -205,7 +205,7 @@ function AbsoluteRiskSection() {
           subtitle={ownView === 'Portfolio' ? 'Active strategies, standalone vol' : 'Asset classes, standalone vol'}
           toolbar={
             <div className="flex items-center gap-2">
-              <ToggleBar options={['Portfolio', 'Benchmark'] as const} value={ownView} onChange={setOwnView} size="xs" />
+              <ToggleBar options={['Portfolio', 'Benchmark'] as const} value={ownView} onChange={(v) => setOwnView(v as View)} size="xs" />
               <TopNSelect value={topN} onChange={setTopN} />
             </div>
           }
