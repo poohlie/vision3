@@ -52,7 +52,7 @@ export default function Risk() {
         ))}
       </div>
       {tab === 'Absolute Risk' && <AbsoluteRiskSection />}
-      {tab === 'Active Risk' && <PlaceholderSection title="Active Risk" />}
+      {tab === 'Active Risk' && <ActiveRiskSection />}
       {tab === 'Other Risk Metrics' && <PlaceholderSection title="Other Risk Metrics" />}
     </div>
   );
