@@ -103,10 +103,10 @@ function OtherRiskMetricsSection() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <ChartCard id="orm-1" title="Equity Market Sensitivity (Beta)" subtitle="Portfolio beta to equity markets by asset class">
-          <FinancialBarChart data={equityBetaData} height={260} colorByValue={false} barColor="hsl(212, 72%, 42%)" valueFormatter={(v) => v.toFixed(2)} />
+          <FinancialBarChart data={equityBetaData} height={260} colorByValue={false} barColor="hsl(212, 72%, 42%)" />
         </ChartCard>
-        <ChartCard id="orm-2" title="Fixed Income Sensitivity (Duration)" subtitle="Effective duration in years by fixed income segment">
-          <FinancialBarChart data={durationData} height={260} colorByValue={false} barColor="hsl(212, 72%, 42%)" valueFormatter={(v) => `${v.toFixed(1)}y`} />
+        <ChartCard id="orm-2" title="Fixed Income Sensitivity (Duration, years)" subtitle="Effective duration in years by fixed income segment">
+          <FinancialBarChart data={durationData} height={260} colorByValue={false} barColor="hsl(212, 72%, 42%)" />
         </ChartCard>
       </div>
 
