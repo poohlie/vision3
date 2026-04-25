@@ -1,16 +1,15 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import RiskTriangleChart from '@/components/charts/RiskTriangleChart';
 import { cn } from '@/lib/utils';
 import ChartCard from '@/components/shared/ChartCard';
 import ToggleBar from '@/components/shared/ToggleBar';
-import WaterfallChart from '@/components/charts/WaterfallChart';
+import TopNSelect from '@/components/shared/TopNSelect';
 import FinancialBarChart from '@/components/charts/FinancialBarChart';
 import StackedTimeChart from '@/components/charts/StackedTimeChart';
 import TrendChart from '@/components/charts/TrendChart';
 import {
-  riskMetrics, riskContribution, trackingErrorSeries, resilienceWaterfallData,
-  borrowingData, liquidityCoverageData, contributionTimeSeries, activeStrategies, CHART_COLORS,
+  riskContribution, trackingErrorSeries, contributionTimeSeries,
+  assetClassExposureData, timespans,
 } from '@/data/mockData';
 
 const riskTabsConfig = [
