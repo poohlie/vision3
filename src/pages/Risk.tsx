@@ -13,7 +13,7 @@ import {
 } from '@/data/mockData';
 
 type RiskTabConfig = {
-  key: 'Absolute Risk' | 'Active Risk' | 'Other Risk Metrics';
+  key: 'Absolute Risk' | 'Active Risk' | 'Other Risk Metrics' | 'Enterprise Risk Map';
   metric: string;
   label: string;
   subtitle: string;
@@ -25,6 +25,7 @@ const riskTabsConfig: RiskTabConfig[] = [
   { key: 'Absolute Risk', metric: '11.5%', label: 'Total Vol (P)', subtitle: 'vs 10.2% Benchmark' },
   { key: 'Active Risk', metric: '2.8%', label: 'Tracking Error', subtitle: 'vs Benchmark' },
   { key: 'Other Risk Metrics', metric: '1.54x', label: 'Ext. Leverage', subtitle: '$26.9B borrowings', metric2: '2.19x', label2: 'Liquidity Coverage', subtitle2: 'Supply / Demand' },
+  { key: 'Enterprise Risk Map', metric: '—', label: 'Enterprise Risk Map', subtitle: 'Coming soon' },
 ];
 const riskTabs = riskTabsConfig.map(t => t.key);
 type RiskTab = typeof riskTabs[number];
@@ -36,7 +37,7 @@ export default function Risk() {
 
   return (
     <div className="p-6 space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         {riskTabsConfig.map(t => (
           <button
             key={t.key}
@@ -74,6 +75,12 @@ export default function Risk() {
       {tab === 'Absolute Risk' && <AbsoluteRiskSection />}
       {tab === 'Active Risk' && <ActiveRiskSection />}
       {tab === 'Other Risk Metrics' && <OtherRiskMetricsSection />}
+      {tab === 'Enterprise Risk Map' && (
+        <div className="rounded-lg border border-dashed border-border bg-card/50 p-12 text-center">
+          <p className="text-sm font-bold uppercase tracking-wider text-foreground">Enterprise Risk Map</p>
+          <p className="text-xs text-muted-foreground mt-2">Placeholder — coming soon</p>
+        </div>
+      )}
     </div>
   );
 }

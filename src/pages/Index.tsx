@@ -278,59 +278,55 @@ export default function Overview() {
           </div>
         </div>
 
-        {/* Risk column: 2x2 grid */}
+        {/* Risk column: 2x2 grid — mirrors Risk tab structure */}
         <div className="grid grid-cols-2 grid-rows-2 gap-2">
-          {/* ETL */}
-          <div className={tileRisk} onClick={() => nav('/risk?tab=ETL')}>
+          {/* Absolute Risk */}
+          <div className={tileRisk} onClick={() => nav('/risk?tab=Absolute Risk')}>
             <div className="flex items-start justify-between mb-1">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-foreground leading-tight">
-                  <span className="block">Expected</span><span className="block">Tail Loss</span>
+                  <span className="block">Absolute</span><span className="block">Risk</span>
                 </p>
-                <p className="text-[11px] text-muted-foreground">Portfolio ETL</p>
+                <p className="text-[11px] text-muted-foreground">Total Vol (P)</p>
               </div>
-              <AlertTriangle className="h-4 w-4 text-destructive" />
+              <Activity className="h-4 w-4 text-accent" />
             </div>
-            <p className="text-3xl font-bold tracking-tight mt-2 mb-1 text-destructive">-11.5<span className="text-base font-medium ml-0.5">%</span></p>
-            <p className="text-[11px] text-muted-foreground flex items-center gap-1"><TrendingDown className="h-3 w-3" />95th percentile</p>
+            <p className="text-3xl font-bold tracking-tight mt-2 mb-1 text-accent">11.5<span className="text-base font-medium ml-0.5">%</span></p>
+            <p className="text-[11px] text-muted-foreground">vs 10.2% Benchmark</p>
           </div>
-          {/* Liquidity & Leverage */}
-          <div className={tileRisk} onClick={() => nav('/risk?tab=Liquidity %26 Leverage')}>
+          {/* Active Risk */}
+          <div className={tileRisk} onClick={() => nav('/risk?tab=Active Risk')}>
             <div className="flex items-start justify-between mb-1">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-foreground leading-tight">
-                  <span className="block">Liquidity &</span><span className="block">Leverage</span>
+                  <span className="block">Active</span><span className="block">Risk</span>
                 </p>
-                <p className="text-[11px] text-muted-foreground">External Borrowing</p>
-              </div>
-              <Waves className="h-4 w-4 text-chart-positive" />
-            </div>
-            <p className="text-3xl font-bold tracking-tight mt-2 mb-1 text-chart-positive">{riskMetrics.externalBorrowing.value}<span className="text-base font-medium ml-0.5">%</span></p>
-            <p className="text-[11px] text-muted-foreground">of NAV — within limit</p>
-          </div>
-          {/* Beta & Duration */}
-          <div className={tileRisk} onClick={() => nav('/risk?tab=Beta %26 Duration')}>
-            <div className="flex items-start justify-between mb-1">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-foreground leading-tight">
-                  <span className="block">Beta &</span><span className="block">Duration</span>
-                </p>
-                <p className="text-[11px] text-muted-foreground">Market sensitivity</p>
+                <p className="text-[11px] text-muted-foreground">Tracking Error</p>
               </div>
               <GitBranch className="h-4 w-4 text-accent" />
             </div>
+            <p className="text-3xl font-bold tracking-tight mt-2 mb-1 text-accent">2.8<span className="text-base font-medium ml-0.5">%</span></p>
+            <p className="text-[11px] text-muted-foreground">vs Benchmark</p>
+          </div>
+          {/* Other Risk Metrics */}
+          <div className={tileRisk} onClick={() => nav('/risk?tab=Other Risk Metrics')}>
+            <div className="flex items-start justify-between mb-1">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-foreground leading-tight">
+                  <span className="block">Other Risk</span><span className="block">Metrics</span>
+                </p>
+                <p className="text-[11px] text-muted-foreground">Leverage & Liquidity</p>
+              </div>
+              <Waves className="h-4 w-4 text-chart-positive" />
+            </div>
             <div className="mt-2 space-y-1">
               <div className="flex items-baseline justify-between">
-                <span className="text-[10px] text-muted-foreground">Equity Beta</span>
-                <span className="text-base font-bold text-accent">0.70</span>
+                <span className="text-[10px] text-muted-foreground">Ext. Leverage</span>
+                <span className="text-base font-bold text-accent">1.54<span className="text-xs font-medium ml-0.5">x</span></span>
               </div>
               <div className="flex items-baseline justify-between">
-                <span className="text-[10px] text-muted-foreground">Inflation Beta</span>
-                <span className="text-base font-bold text-accent">0.35</span>
-              </div>
-              <div className="flex items-baseline justify-between">
-                <span className="text-[10px] text-muted-foreground">Duration</span>
-                <span className="text-base font-bold text-accent">4.2<span className="text-xs font-medium ml-0.5">yrs</span></span>
+                <span className="text-[10px] text-muted-foreground">Liquidity Cov.</span>
+                <span className="text-base font-bold text-accent">2.19<span className="text-xs font-medium ml-0.5">x</span></span>
               </div>
             </div>
           </div>
