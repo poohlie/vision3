@@ -14,7 +14,7 @@ import {
 
 const riskTabsConfig = [
   { key: 'Absolute Risk' as const, metric: '11.5%', label: 'Total Vol (P)', subtitle: 'vs 10.2% Benchmark' },
-  { key: 'Active Risk' as const, metric: '—', label: 'Active Risk', subtitle: 'Placeholder' },
+  { key: 'Active Risk' as const, metric: '2.8%', label: 'Tracking Error', subtitle: 'vs Benchmark' },
   { key: 'Other Risk Metrics' as const, metric: '—', label: 'Other Risk Metrics', subtitle: 'Placeholder' },
 ];
 const riskTabs = riskTabsConfig.map(t => t.key);
