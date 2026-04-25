@@ -13,7 +13,7 @@ import {
 } from '@/data/mockData';
 
 type RiskTabConfig = {
-  key: 'Absolute Risk' | 'Active Risk' | 'Other Risk Metrics';
+  key: 'Absolute Risk' | 'Active Risk' | 'Other Risk Metrics' | 'Enterprise Risk Map';
   metric: string;
   label: string;
   subtitle: string;
@@ -25,6 +25,7 @@ const riskTabsConfig: RiskTabConfig[] = [
   { key: 'Absolute Risk', metric: '11.5%', label: 'Total Vol (P)', subtitle: 'vs 10.2% Benchmark' },
   { key: 'Active Risk', metric: '2.8%', label: 'Tracking Error', subtitle: 'vs Benchmark' },
   { key: 'Other Risk Metrics', metric: '1.54x', label: 'Ext. Leverage', subtitle: '$26.9B borrowings', metric2: '2.19x', label2: 'Liquidity Coverage', subtitle2: 'Supply / Demand' },
+  { key: 'Enterprise Risk Map', metric: '—', label: 'Enterprise Risk Map', subtitle: 'Coming soon' },
 ];
 const riskTabs = riskTabsConfig.map(t => t.key);
 type RiskTab = typeof riskTabs[number];
