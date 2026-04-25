@@ -173,11 +173,20 @@ function AbsoluteRiskSection() {
 
       {/* Row 1: Vol comparison + trend */}
       <div className="grid grid-cols-2 gap-4">
-        <ChartCard id="ar-1" title="Ex-Ante Volatility: Portfolio vs Benchmark" subtitle="Annualised, current snapshot">
+        <ChartCard
+          id="ar-1"
+          title="Ex-Ante Volatility: Portfolio vs Benchmark"
+          subtitle="Annualised, current snapshot"
+        >
           <VolGaugeCompare portfolio={portfolioVol} benchmark={benchmarkVol} />
         </ChartCard>
         <div className="border-l-2 border-muted-foreground/30 pl-3">
-          <ChartCard id="ar-2" title="Ex-Ante Volatility Trend" subtitle={`Portfolio vs Benchmark · ${period} (${periodDescriptions[period]})`}>
+          <ChartCard
+            id="ar-2"
+            title="Ex-Ante Volatility Trend"
+            subtitle="Portfolio vs Benchmark"
+            footer={<FilterPill label="Period" value={`${period} (${periodDescriptions[period]})`} variant="period" />}
+          >
             <TrendChart
               data={volTrend}
               xKey={xKey}
@@ -220,6 +229,12 @@ function AbsoluteRiskSection() {
           id="ar-3"
           title="Volatility Contribution"
           subtitle={contribView === 'Portfolio' ? 'Active strategies → Portfolio vol' : 'Asset classes → Benchmark vol'}
+          footer={
+            <>
+              <FilterPill label="View" value={contribView} variant="breakdown" />
+              <FilterPill label="Top" value={String(topN)} variant="breakdown" />
+            </>
+          }
         >
           <FinancialBarChart
             data={contribBars.map(b => ({ name: b.name, value: b.contribution }))}
@@ -233,7 +248,14 @@ function AbsoluteRiskSection() {
           <ChartCard
             id="ar-4"
             title="Contribution to Volatility — Trend"
-            subtitle={`Stacked contributions · ${period} (${periodDescriptions[period]})`}
+            subtitle="Stacked contributions with total vol overlay"
+            footer={
+              <>
+                <FilterPill label="Period" value={`${period} (${periodDescriptions[period]})`} variant="period" />
+                <FilterPill label="View" value={contribView} variant="breakdown" />
+                <FilterPill label="Top" value={String(topN)} variant="breakdown" />
+              </>
+            }
           >
             <StackedTimeChart
               data={contribTrend}
@@ -249,6 +271,12 @@ function AbsoluteRiskSection() {
           id="ar-5"
           title="Own-Based Volatility"
           subtitle={ownView === 'Portfolio' ? 'Active strategies, standalone vol' : 'Asset classes, standalone vol'}
+          footer={
+            <>
+              <FilterPill label="View" value={ownView} variant="breakdown" />
+              <FilterPill label="Top" value={String(topN)} variant="breakdown" />
+            </>
+          }
         >
           <FinancialBarChart
             data={ownBars.map(b => ({ name: b.name, value: b.vol }))}
@@ -262,7 +290,14 @@ function AbsoluteRiskSection() {
           <ChartCard
             id="ar-6"
             title="Own-Based Volatility — Trend"
-            subtitle={`Per-component standalone vol · ${period} (${periodDescriptions[period]})`}
+            subtitle="Per-component standalone vol"
+            footer={
+              <>
+                <FilterPill label="Period" value={`${period} (${periodDescriptions[period]})`} variant="period" />
+                <FilterPill label="View" value={ownView} variant="breakdown" />
+                <FilterPill label="Top" value={String(topN)} variant="breakdown" />
+              </>
+            }
           >
             <TrendChart data={ownTrend} lines={ownBars.map(b => b.name)} xKey={xKey} />
           </ChartCard>
