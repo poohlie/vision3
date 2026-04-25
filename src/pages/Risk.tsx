@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import ChartCard from '@/components/shared/ChartCard';
+import FilterPill from '@/components/shared/FilterPill';
 import ToggleBar from '@/components/shared/ToggleBar';
 import TopNSelect from '@/components/shared/TopNSelect';
 import FinancialBarChart from '@/components/charts/FinancialBarChart';
