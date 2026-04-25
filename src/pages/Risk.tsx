@@ -90,14 +90,29 @@ const BENCHMARK_COMPONENTS = assetClassExposureData.map((a, i) => {
 const periodToggles = ['1Y', '5Y', '10Y'] as const;
 const periodDescriptions: Record<string, string> = { '1Y': 'Monthly', '5Y': 'Quarterly', '10Y': 'Yearly' };
 
+type RiskMeasure = 'Volatility' | 'ETL';
+const riskMeasureLabels: Record<RiskMeasure, string> = {
+  Volatility: 'Ex-Ante Volatility',
+  ETL: 'Expected Tail Loss',
+};
+const riskMeasureShort: Record<RiskMeasure, string> = {
+  Volatility: 'Vol',
+  ETL: 'ETL',
+};
+
 function AbsoluteRiskSection() {
+  const [measure, setMeasure] = useState<RiskMeasure>('Volatility');
   const [contribView, setContribView] = useState<View>('Portfolio');
   const [ownView, setOwnView] = useState<View>('Portfolio');
   const [topN, setTopN] = useState(5);
   const [period, setPeriod] = useState<string>('1Y');
 
-  const portfolioVol = 11.5;
-  const benchmarkVol = 10.2;
+  // Scale factor: ETL ≈ -1.4× vol (1-day 97.5%-ish), shown as negative loss
+  const measureScale = measure === 'Volatility' ? 1 : -1.4;
+  const portfolioBase = 11.5;
+  const benchmarkBase = 10.2;
+  const portfolioMetric = +(portfolioBase * Math.abs(measureScale)).toFixed(2) * (measure === 'ETL' ? -1 : 1);
+  const benchmarkMetric = +(benchmarkBase * Math.abs(measureScale)).toFixed(2) * (measure === 'ETL' ? -1 : 1);
 
   // Period labels: 1Y monthly, 5Y quarterly, 10Y yearly (matches Exposure)
   const xKey = 'label';
@@ -107,10 +122,15 @@ function AbsoluteRiskSection() {
     return ['2017','2018','2019','2020','2021','2022','2023','2024','2025','2026'];
   }, [period]);
 
-  // Source list, sorted desc, with Top N + Others
+  // Source list, sorted desc by abs contribution, with Top N + Others
   const buildBars = (view: View) => {
     const src = view === 'Portfolio' ? PORTFOLIO_COMPONENTS : BENCHMARK_COMPONENTS;
-    const sorted = [...src].sort((a, b) => b.contribution - a.contribution);
+    const scaled = src.map(s => ({
+      name: s.name,
+      vol: +(s.vol * measureScale).toFixed(2),
+      contribution: +(s.contribution * measureScale).toFixed(2),
+    }));
+    const sorted = [...scaled].sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
     const top = sorted.slice(0, topN);
     const rest = sorted.slice(topN);
     const restContrib = rest.reduce((s, r) => s + r.contribution, 0);
@@ -120,54 +140,76 @@ function AbsoluteRiskSection() {
     return items;
   };
 
-  const contribBars = useMemo(() => buildBars(contribView), [contribView, topN]);
-  const ownBars = useMemo(() => buildBars(ownView), [ownView, topN]);
+  const contribBars = useMemo(() => buildBars(contribView), [contribView, topN, measure]);
+  const ownBars = useMemo(() => buildBars(ownView), [ownView, topN, measure]);
 
-  // Trend: vol comparison (Portfolio vs Benchmark)
+  // Trend: P vs BM
   const volTrend = useMemo(() => labels.map((m, i) => ({
     [xKey]: m,
-    Portfolio: +(portfolioVol + Math.sin(i / 2) * 0.6 + ((i * 13) % 7) / 50).toFixed(2),
-    Benchmark: +(benchmarkVol + Math.sin(i / 2.5) * 0.5 + ((i * 7) % 5) / 50).toFixed(2),
-  })), [labels]);
+    Portfolio: +(portfolioMetric + Math.sin(i / 2) * 0.6 * Math.sign(measureScale) + ((i * 13) % 7) / 50).toFixed(2),
+    Benchmark: +(benchmarkMetric + Math.sin(i / 2.5) * 0.5 * Math.sign(measureScale) + ((i * 7) % 5) / 50).toFixed(2),
+  })), [labels, measure]);
 
   // Stacked contribution-over-time trend (chart iv)
   const contribTrend = useMemo(() => {
-    const totalLine = contribView === 'Portfolio' ? portfolioVol : benchmarkVol;
+    const totalLine = contribView === 'Portfolio' ? portfolioMetric : benchmarkMetric;
     return labels.map((m, i) => {
       const row: Record<string, string | number> = { [xKey]: m };
       contribBars.forEach((b, j) => {
         const wobble = 1 + Math.sin((i + j) / 2) * 0.15;
         row[b.name] = +(b.contribution * wobble).toFixed(2);
       });
-      row['Total'] = +(totalLine + Math.sin(i / 2) * 0.5).toFixed(2);
+      row['Total'] = +(totalLine + Math.sin(i / 2) * 0.5 * Math.sign(measureScale)).toFixed(2);
       return row;
     });
-  }, [contribBars, contribView, labels]);
+  }, [contribBars, contribView, labels, measure]);
 
   // Own-based trend (chart vi)
   const ownTrend = useMemo(() => labels.map((m, i) => {
     const row: Record<string, string | number> = { [xKey]: m };
     ownBars.forEach((b, j) => {
-      row[b.name] = +(b.vol + Math.sin((i + j * 1.3) / 2) * 0.4).toFixed(2);
+      row[b.name] = +(b.vol + Math.sin((i + j * 1.3) / 2) * 0.4 * Math.sign(measureScale)).toFixed(2);
     });
     return row;
-  }), [ownBars, labels]);
+  }), [ownBars, labels, measure]);
+
+  const measurePill = <FilterPill label="Risk" value={riskMeasureShort[measure]} variant="breakdown" />;
 
   return (
     <div className="space-y-4">
-      {/* Period control — muted, scoped to right-column trend charts (mirrors Exposure) */}
-      <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
-            <div>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Period</span>
-              <p className="text-[9px] text-muted-foreground">Trend charts only (right column) →</p>
+      {/* Top-level controls: Risk Measure (left, primary) + Period (right, muted) */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-lg border-2 border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-1 h-8 rounded-full bg-primary" />
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Risk Measure</span>
+                <p className="text-[9px] text-muted-foreground">All charts</p>
+              </div>
             </div>
+            <div className="h-8 w-px bg-border shrink-0" />
+            <ToggleBar
+              options={['Volatility', 'ETL'] as const}
+              value={measure}
+              onChange={setMeasure}
+              size="sm"
+            />
           </div>
-          <div className="h-8 w-px bg-border shrink-0" />
-          <ToggleBar options={periodToggles} value={period} onChange={setPeriod} size="sm" />
-          <span className="text-[9px] text-muted-foreground font-medium">({periodDescriptions[period]})</span>
+        </div>
+        <div className="rounded-lg border-2 border-muted-foreground/20 bg-muted/30 px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-1 h-8 rounded-full bg-muted-foreground/50" />
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Period</span>
+                <p className="text-[9px] text-muted-foreground">Trend charts only (right column) →</p>
+              </div>
+            </div>
+            <div className="h-8 w-px bg-border shrink-0" />
+            <ToggleBar options={periodToggles} value={period} onChange={setPeriod} size="sm" />
+            <span className="text-[9px] text-muted-foreground font-medium">({periodDescriptions[period]})</span>
+          </div>
         </div>
       </div>
 
