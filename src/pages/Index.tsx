@@ -110,7 +110,7 @@ export default function Overview() {
           </div>
         </div>
         <div className={`${tileRisk} flex flex-col`} onClick={() => nav('/risk')}>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-1">Risk Frontier</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-1">INTEGRATED RISK VIEW</p>
           <div className="flex-1 min-h-0">
             <RiskFrontierChart
               benchmarkRisk={10.2}
