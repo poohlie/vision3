@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart3, Shield, Triangle, ArrowRight, TrendingUp, TrendingDown, Activity, Globe, Zap, DollarSign, MapPin, LayoutGrid, User, AlertTriangle, Waves, GitBranch } from 'lucide-react';
 import WaterfallChart from '@/components/charts/WaterfallChart';
 import { perfWaterfallData } from '@/data/mockData';
-import RiskTriangleChart from '@/components/charts/RiskTriangleChart';
+import RiskFrontierChart from '@/components/charts/RiskFrontierChart';
 import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
 import { riskMetrics, countryExposureData, sectorExposureData, nameExposureData, currencyExposureData, assetClassExposureData, CHART_COLORS } from '@/data/mockData';
 
@@ -110,9 +110,15 @@ export default function Overview() {
           </div>
         </div>
         <div className={`${tileRisk} flex flex-col`} onClick={() => nav('/risk')}>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-1">Risk Geometry</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-1">Risk Frontier</p>
           <div className="flex-1 min-h-0">
-            <RiskTriangleChart volP={11.5} volB1={14.0} volB2={9.5} teP_B1={4.5} teP_B2={3.2} />
+            <RiskFrontierChart
+              benchmarkRisk={10.2}
+              portfolioTE={2.8}
+              rho={-0.01}
+              yLabel="Portfolio volatility (%)"
+              portfolioSymbol="σ_p"
+            />
           </div>
         </div>
       </div>
