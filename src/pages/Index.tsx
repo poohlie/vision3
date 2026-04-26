@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart3, Shield, Triangle, ArrowRight, TrendingUp, TrendingDown, Activity, Globe, Zap, DollarSign, MapPin, LayoutGrid, User, AlertTriangle, Waves, GitBranch } from 'lucide-react';
 import WaterfallChart from '@/components/charts/WaterfallChart';
 import { perfWaterfallData } from '@/data/mockData';
-import RiskTriangleChart from '@/components/charts/RiskTriangleChart';
+import RiskFrontierChart from '@/components/charts/RiskFrontierChart';
 import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
 import { riskMetrics, countryExposureData, sectorExposureData, nameExposureData, currencyExposureData, assetClassExposureData, CHART_COLORS } from '@/data/mockData';
 
