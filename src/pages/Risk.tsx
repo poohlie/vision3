@@ -364,11 +364,20 @@ function AbsoluteRiskSection() {
       <div className="grid grid-cols-2 gap-4">
         <ChartCard
           id="ar-1"
-          title={`${riskMeasureLabels[measure]}: Portfolio vs Benchmark`}
-          subtitle={measure === 'Volatility' ? 'Annualised, current snapshot' : '1-day 97.5% ETL, current snapshot'}
+          title={`${riskMeasureLabels[measure]}: Portfolio vs Tracking Error`}
+          subtitle={measure === 'Volatility'
+            ? 'Portfolio volatility frontier as a function of TE (ρ = corr. of active vs benchmark)'
+            : 'Portfolio ETL frontier as a function of TE (ρ = corr. of active vs benchmark)'}
           footer={measurePill}
         >
-          <VolGaugeCompare portfolio={portfolioMetric} benchmark={benchmarkMetric} measure={measure} />
+          <RiskFrontierChart
+            benchmarkRisk={Math.abs(benchmarkMetric)}
+            portfolioTE={2.8}
+            rho={-0.01}
+            yLabel={measure === 'Volatility' ? 'Portfolio volatility (%)' : 'Portfolio ETL (%)'}
+            portfolioSymbol={measure === 'Volatility' ? 'σ_p' : 'ETL_p'}
+            negative={measure === 'ETL'}
+          />
         </ChartCard>
         <div className="border-l-2 border-muted-foreground/30 pl-3">
           <ChartCard
