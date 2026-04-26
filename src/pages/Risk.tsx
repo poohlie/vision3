@@ -400,11 +400,12 @@ function AbsoluteRiskSection() {
             negative={measure === 'ETL'}
           />
         </ChartCard>
-        <div className="border-l-2 border-muted-foreground/30 pl-3">
+        <div className="border-l-2 border-muted-foreground/30 pl-3 flex">
           <ChartCard
             id="ar-2"
             title={`${riskMeasureLabels[measure]} Trend`}
             subtitle="Portfolio vs Benchmark"
+            className="flex-1"
             footer={
               <>
                 {measurePill}
@@ -417,6 +418,7 @@ function AbsoluteRiskSection() {
               xKey={xKey}
               lines={['Portfolio', 'Benchmark']}
               lineColors={{ Portfolio: 'hsl(212, 72%, 42%)', Benchmark: 'hsl(215, 15%, 55%)' }}
+              height={360}
             />
           </ChartCard>
         </div>
