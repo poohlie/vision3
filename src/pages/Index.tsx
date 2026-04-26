@@ -3,6 +3,7 @@ import { BarChart3, Shield, Triangle, ArrowRight, TrendingUp, TrendingDown, Acti
 import WaterfallChart from '@/components/charts/WaterfallChart';
 import { perfWaterfallData } from '@/data/mockData';
 import RiskFrontierChart from '@/components/charts/RiskFrontierChart';
+import EnterpriseRiskMap, { ENTERPRISE_RISK_SCENARIOS } from '@/components/charts/EnterpriseRiskMap';
 import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
 import { riskMetrics, countryExposureData, sectorExposureData, nameExposureData, currencyExposureData, assetClassExposureData, CHART_COLORS } from '@/data/mockData';
 
@@ -337,18 +338,18 @@ export default function Overview() {
             </div>
           </div>
           {/* Enterprise Risk Map */}
-          <div className={tileRisk} onClick={() => nav('/risk?tab=Enterprise Risk Map')}>
+          <div className={`${tileRisk} flex flex-col`} onClick={() => nav('/risk?tab=Enterprise Risk Map')}>
             <div className="flex items-start justify-between mb-1">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-foreground leading-tight">
                   <span className="block">Enterprise</span><span className="block">Risk Map</span>
                 </p>
-                <p className="text-[11px] text-muted-foreground">Operational risks</p>
+                <p className="text-[11px] text-muted-foreground">Likelihood × impact</p>
               </div>
-              <Shield className="h-4 w-4 text-muted-foreground" />
+              <Shield className="h-4 w-4 text-accent" />
             </div>
-            <div className="mt-3 flex items-center justify-center h-12">
-              <p className="text-[10px] text-muted-foreground italic text-center">Coming soon</p>
+            <div className="flex-1 min-h-0 -mx-1">
+              <EnterpriseRiskMap data={ENTERPRISE_RISK_SCENARIOS} compact height={120} />
             </div>
           </div>
         </div>
