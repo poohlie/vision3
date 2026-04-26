@@ -9,6 +9,7 @@ import FinancialBarChart from '@/components/charts/FinancialBarChart';
 import StackedTimeChart from '@/components/charts/StackedTimeChart';
 import TrendChart from '@/components/charts/TrendChart';
 import RiskFrontierChart from '@/components/charts/RiskFrontierChart';
+import EnterpriseRiskMap, { ENTERPRISE_RISK_SCENARIOS } from '@/components/charts/EnterpriseRiskMap';
 import {
   riskContribution, assetClassExposureData, getTimeLabels,
 } from '@/data/mockData';
