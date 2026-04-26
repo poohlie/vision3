@@ -78,10 +78,13 @@ export default function Risk() {
       {tab === 'Active Risk' && <ActiveRiskSection />}
       {tab === 'Other Risk Metrics' && <OtherRiskMetricsSection />}
       {tab === 'Enterprise Risk Map' && (
-        <div className="rounded-lg border border-dashed border-border bg-card/50 p-12 text-center">
-          <p className="text-sm font-bold uppercase tracking-wider text-foreground">Enterprise Risk Map</p>
-          <p className="text-xs text-muted-foreground mt-2">Placeholder — coming soon</p>
-        </div>
+        <ChartCard
+          id="erm-map"
+          title="Enterprise Risk Map"
+          subtitle="Scenario likelihood vs portfolio impact, coloured by imminence horizon"
+        >
+          <EnterpriseRiskMap data={ENTERPRISE_RISK_SCENARIOS} height={460} />
+        </ChartCard>
       )}
     </div>
   );
