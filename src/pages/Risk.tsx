@@ -52,11 +52,24 @@ export default function Risk() {
             <div className="flex items-start justify-between">
               <p className="text-[11px] font-bold uppercase tracking-wider">{t.key}</p>
             </div>
-            {t.key === 'Enterprise Risk Map' ? (
-              <div className="mt-2 -mx-1">
-                <EnterpriseRiskMap data={ENTERPRISE_RISK_SCENARIOS} compact height={90} />
-              </div>
-            ) : t.metric2 ? (
+            {t.key === 'Enterprise Risk Map' ? (() => {
+              const topImpact = [...ENTERPRISE_RISK_SCENARIOS].sort((a, b) => b.impact - a.impact)[0];
+              const topLikelihood = [...ENTERPRISE_RISK_SCENARIOS].sort((a, b) => b.likelihood - a.likelihood)[0];
+              return (
+                <div className="mt-2 space-y-1.5">
+                  <div>
+                    <p className={cn('text-[9px] uppercase tracking-wider', tab === t.key ? 'text-primary-foreground/70' : 'text-muted-foreground')}>Highest impact</p>
+                    <p className={cn('text-sm font-bold leading-tight', tab === t.key ? 'text-primary-foreground' : 'text-accent')}>{topImpact.name}</p>
+                    <p className={cn('text-[10px]', tab === t.key ? 'text-primary-foreground/60' : 'text-muted-foreground/80')}>{topImpact.impact} impact · {topImpact.imminence} imminence</p>
+                  </div>
+                  <div>
+                    <p className={cn('text-[9px] uppercase tracking-wider', tab === t.key ? 'text-primary-foreground/70' : 'text-muted-foreground')}>Highest likelihood</p>
+                    <p className={cn('text-sm font-bold leading-tight', tab === t.key ? 'text-primary-foreground' : 'text-accent')}>{topLikelihood.name}</p>
+                    <p className={cn('text-[10px]', tab === t.key ? 'text-primary-foreground/60' : 'text-muted-foreground/80')}>{topLikelihood.likelihood} likelihood · {topLikelihood.imminence} imminence</p>
+                  </div>
+                </div>
+              );
+            })() : t.metric2 ? (
               <div className="mt-2 grid grid-cols-2 gap-3">
                 <div>
                   <p className={cn('text-2xl font-bold tracking-tight', tab === t.key ? 'text-primary-foreground' : 'text-accent')}>{t.metric}</p>
