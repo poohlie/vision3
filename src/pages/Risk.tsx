@@ -65,7 +65,7 @@ export default function Risk() {
                   <div>
                     <p className={cn('text-[9px] uppercase tracking-wider', tab === t.key ? 'text-primary-foreground/70' : 'text-muted-foreground')}>Highest likelihood</p>
                     <p className={cn('text-sm font-bold leading-tight', tab === t.key ? 'text-primary-foreground' : 'text-accent')}>{topLikelihood.name}</p>
-                    <p className={cn('text-[10px]', tab === t.key ? 'text-primary-foreground/60' : 'text-muted-foreground/80')}>{topLikelihood.likelihood} likelihood · {topLikelihood.imminence} imminence</p>
+                    
                   </div>
                 </div>
               );
