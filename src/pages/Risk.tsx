@@ -8,6 +8,7 @@ import TopNSelect from '@/components/shared/TopNSelect';
 import FinancialBarChart from '@/components/charts/FinancialBarChart';
 import StackedTimeChart from '@/components/charts/StackedTimeChart';
 import TrendChart from '@/components/charts/TrendChart';
+import RiskFrontierChart from '@/components/charts/RiskFrontierChart';
 import {
   riskContribution, assetClassExposureData, getTimeLabels,
 } from '@/data/mockData';
