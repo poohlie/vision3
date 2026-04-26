@@ -27,7 +27,7 @@ const riskTabsConfig: RiskTabConfig[] = [
   { key: 'Absolute Risk', metric: '11.5%', label: 'Total Vol (P)', subtitle: 'vs 10.2% Benchmark' },
   { key: 'Active Risk', metric: '2.8%', label: 'Tracking Error', subtitle: 'vs Benchmark' },
   { key: 'Other Risk Metrics', metric: '1.54x', label: 'Ext. Leverage', subtitle: '$26.9B borrowings', metric2: '2.19x', label2: 'Liquidity Coverage', subtitle2: 'Supply / Demand' },
-  { key: 'Enterprise Risk Map', metric: '—', label: 'Enterprise Risk Map', subtitle: 'Coming soon' },
+  { key: 'Enterprise Risk Map', metric: '12', label: 'Tracked Scenarios', subtitle: 'Likelihood × impact' },
 ];
 const riskTabs = riskTabsConfig.map(t => t.key);
 type RiskTab = typeof riskTabs[number];
@@ -52,7 +52,11 @@ export default function Risk() {
             <div className="flex items-start justify-between">
               <p className="text-[11px] font-bold uppercase tracking-wider">{t.key}</p>
             </div>
-            {t.metric2 ? (
+            {t.key === 'Enterprise Risk Map' ? (
+              <div className="mt-2 -mx-1">
+                <EnterpriseRiskMap data={ENTERPRISE_RISK_SCENARIOS} compact height={90} />
+              </div>
+            ) : t.metric2 ? (
               <div className="mt-2 grid grid-cols-2 gap-3">
                 <div>
                   <p className={cn('text-2xl font-bold tracking-tight', tab === t.key ? 'text-primary-foreground' : 'text-accent')}>{t.metric}</p>
