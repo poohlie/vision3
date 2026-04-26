@@ -3,6 +3,7 @@ import { BarChart3, Shield, Triangle, ArrowRight, TrendingUp, TrendingDown, Acti
 import WaterfallChart from '@/components/charts/WaterfallChart';
 import { perfWaterfallData } from '@/data/mockData';
 import RiskFrontierChart from '@/components/charts/RiskFrontierChart';
+import EnterpriseRiskMap, { ENTERPRISE_RISK_SCENARIOS } from '@/components/charts/EnterpriseRiskMap';
 import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
 import { riskMetrics, countryExposureData, sectorExposureData, nameExposureData, currencyExposureData, assetClassExposureData, CHART_COLORS } from '@/data/mockData';
 
