@@ -331,20 +331,19 @@ export default function Overview() {
               </div>
             </div>
           </div>
-          {/* Enterprise Risk Map */}
-          <div className={`${tileRisk} flex flex-col`} onClick={() => nav('/risk?tab=Enterprise Risk Map')}>
+          {/* ETL — Expected Tail Loss */}
+          <div className={tileRisk} onClick={() => nav('/risk?tab=Absolute Risk')}>
             <div className="flex items-start justify-between mb-1">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-foreground leading-tight">
-                  <span className="block">Enterprise</span><span className="block">Risk Map</span>
+                  <span className="block">ETL</span><span className="block">(Tail Loss)</span>
                 </p>
-                <p className="text-[11px] text-muted-foreground">Likelihood × impact</p>
+                <p className="text-[11px] text-muted-foreground">95% Expected Tail Loss</p>
               </div>
-              <Shield className="h-4 w-4 text-accent" />
+              <AlertTriangle className="h-4 w-4 text-chart-negative" />
             </div>
-            <div className="flex-1 min-h-0 -mx-1">
-              <EnterpriseRiskMap data={ENTERPRISE_RISK_SCENARIOS} compact height={120} />
-            </div>
+            <p className="text-3xl font-bold tracking-tight mt-2 mb-1 text-chart-negative">-18.4<span className="text-base font-medium ml-0.5">%</span></p>
+            <p className="text-[11px] text-muted-foreground">vs -16.1% Benchmark</p>
           </div>
         </div>
       </div>
