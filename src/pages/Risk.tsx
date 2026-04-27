@@ -269,7 +269,7 @@ const riskMeasureShort: Record<RiskMeasure, string> = {
 };
 
 function AbsoluteRiskSection() {
-  const [measure, setMeasure] = useState<RiskMeasure>('Volatility');
+  const [measure, setMeasure] = useState<RiskMeasure>('ETL');
   const [contribView, setContribView] = useState<View>('Portfolio');
   const [ownView, setOwnView] = useState<View>('Portfolio');
   const [topN, setTopN] = useState(5);
