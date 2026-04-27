@@ -140,13 +140,54 @@ export default function EnterpriseRiskMap({ data, height = 360, compact = false 
           const cy = sy(d.impact);
           const r = rOf(d.weight);
           const color = IMMINENCE_COLOR[d.imminence];
+          const isHighlight = i === topImpactIdx || i === topLikIdx;
           return (
             <g key={`b-${i}`}>
               <circle cx={cx} cy={cy} r={r} fill={color} fillOpacity={0.25} />
               <circle cx={cx} cy={cy} r={r * 0.55} fill={color} stroke="white" strokeWidth={1.25} />
+              {isHighlight && (
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={r + (compact ? 3 : 5)}
+                  fill="none"
+                  stroke={COLORS.text}
+                  strokeWidth={1.25}
+                  strokeDasharray="2 2"
+                />
+              )}
             </g>
           );
         })}
+
+        {/* Compact-mode highlight labels for top impact & top likelihood */}
+        {compact && [topImpactIdx, topLikIdx]
+          .filter((v, i, a) => a.indexOf(v) === i)
+          .map((idx) => {
+            const d = data[idx];
+            const cx = sx(d.likelihood);
+            const cy = sy(d.impact);
+            const onRight = d.likelihood < 70;
+            const role = idx === topImpactIdx && idx === topLikIdx
+              ? `${d.name} (top impact & likelihood)`
+              : idx === topImpactIdx
+                ? `${d.name} (top impact)`
+                : `${d.name} (top likelihood)`;
+            return (
+              <text
+                key={`hl-${idx}`}
+                x={onRight ? cx + rOf(d.weight) + 5 : cx - rOf(d.weight) - 5}
+                y={cy + 3}
+                textAnchor={onRight ? 'start' : 'end'}
+                fontSize={9}
+                fontWeight={700}
+                fill={COLORS.text}
+                style={{ paintOrder: 'stroke', stroke: 'white', strokeWidth: 3, strokeLinejoin: 'round' }}
+              >
+                {role}
+              </text>
+            );
+          })}
 
         {/* Labels */}
         {!compact && labels.map(l => (
