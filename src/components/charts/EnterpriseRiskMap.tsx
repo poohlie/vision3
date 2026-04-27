@@ -54,6 +54,16 @@ export default function EnterpriseRiskMap({ data, height = 360, compact = false 
   const baseR = compact ? 6 : 12;
   const rOf = (w?: number) => baseR + (w ?? 0.5) * (compact ? 4 : 10);
 
+  // Identify highlight scenarios (top impact & top likelihood)
+  const { topImpactIdx, topLikIdx } = useMemo(() => {
+    let ti = 0, tl = 0;
+    data.forEach((d, i) => {
+      if (d.impact > data[ti].impact) ti = i;
+      if (d.likelihood > data[tl].likelihood) tl = i;
+    });
+    return { topImpactIdx: ti, topLikIdx: tl };
+  }, [data]);
+
   // Simple label de-overlap: nudge label vertically based on neighbors
   const labels = useMemo(() => {
     if (compact) return [];
