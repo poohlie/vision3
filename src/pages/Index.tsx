@@ -113,13 +113,7 @@ export default function Overview() {
         <div className={`${tileRisk} flex flex-col`} onClick={() => nav('/risk')}>
           <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-1">INTEGRATED RISK VIEW</p>
           <div className="flex-1 min-h-0">
-            <RiskFrontierChart
-              benchmarkRisk={10.2}
-              portfolioTE={2.8}
-              rho={-0.01}
-              yLabel="Portfolio volatility (%)"
-              portfolioSymbol="σ_p"
-            />
+            <EnterpriseRiskMap data={ENTERPRISE_RISK_SCENARIOS} compact height={220} />
           </div>
         </div>
       </div>
