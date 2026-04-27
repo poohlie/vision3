@@ -309,6 +309,20 @@ export default function Overview() {
             <p className="text-3xl font-bold tracking-tight mt-2 mb-1 text-accent">2.8<span className="text-base font-medium ml-0.5">%</span></p>
             <p className="text-[11px] text-muted-foreground">vs Benchmark</p>
           </div>
+          {/* ETL — Expected Tail Loss */}
+          <div className={tileRisk} onClick={() => nav('/risk?tab=Absolute Risk')}>
+            <div className="flex items-start justify-between mb-1">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-foreground leading-tight">
+                  <span className="block">ETL</span><span className="block">(Tail Loss)</span>
+                </p>
+                <p className="text-[11px] text-muted-foreground">95% Expected Tail Loss</p>
+              </div>
+              <AlertTriangle className="h-4 w-4 text-chart-negative" />
+            </div>
+            <p className="text-3xl font-bold tracking-tight mt-2 mb-1 text-chart-negative">-18.4<span className="text-base font-medium ml-0.5">%</span></p>
+            <p className="text-[11px] text-muted-foreground">vs -16.1% Benchmark</p>
+          </div>
           {/* Other Risk Metrics */}
           <div className={tileRisk} onClick={() => nav('/risk?tab=Other Risk Metrics')}>
             <div className="flex items-start justify-between mb-1">
@@ -330,20 +344,6 @@ export default function Overview() {
                 <span className="text-base font-bold text-accent">2.19<span className="text-xs font-medium ml-0.5">x</span></span>
               </div>
             </div>
-          </div>
-          {/* ETL — Expected Tail Loss */}
-          <div className={tileRisk} onClick={() => nav('/risk?tab=Absolute Risk')}>
-            <div className="flex items-start justify-between mb-1">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-foreground leading-tight">
-                  <span className="block">ETL</span><span className="block">(Tail Loss)</span>
-                </p>
-                <p className="text-[11px] text-muted-foreground">95% Expected Tail Loss</p>
-              </div>
-              <AlertTriangle className="h-4 w-4 text-chart-negative" />
-            </div>
-            <p className="text-3xl font-bold tracking-tight mt-2 mb-1 text-chart-negative">-18.4<span className="text-base font-medium ml-0.5">%</span></p>
-            <p className="text-[11px] text-muted-foreground">vs -16.1% Benchmark</p>
           </div>
         </div>
       </div>
