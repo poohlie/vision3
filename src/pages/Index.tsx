@@ -110,10 +110,29 @@ export default function Overview() {
             </ResponsiveContainer>
           </div>
         </div>
-        <div className={`${tileRisk} flex flex-col`} onClick={() => nav('/risk')}>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-1">INTEGRATED RISK VIEW</p>
-          <div className="flex-1 min-h-0">
-            <EnterpriseRiskMap data={ENTERPRISE_RISK_SCENARIOS} compact height={220} />
+        <div className={`${tileRisk} flex flex-col`} onClick={() => nav('/risk?tab=Other Risk Metrics')}>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-1">OTHER RISK METRICS</p>
+          <div className="flex-1 min-h-0 grid grid-cols-2 gap-3 content-center">
+            <div className="flex flex-col items-center justify-center p-2 rounded-md bg-background/40">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">External Leverage</span>
+              <span className="text-3xl font-bold text-accent mt-1">1.54<span className="text-base font-medium ml-0.5">x</span></span>
+              <span className="text-[10px] text-muted-foreground mt-0.5">vs 1.40x policy</span>
+            </div>
+            <div className="flex flex-col items-center justify-center p-2 rounded-md bg-background/40">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Liquidity Coverage</span>
+              <span className="text-3xl font-bold text-accent mt-1">2.19<span className="text-base font-medium ml-0.5">x</span></span>
+              <span className="text-[10px] text-muted-foreground mt-0.5">vs 1.50x minimum</span>
+            </div>
+            <div className="flex flex-col items-center justify-center p-2 rounded-md bg-background/40">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Concentration (HHI)</span>
+              <span className="text-3xl font-bold text-accent mt-1">0.18</span>
+              <span className="text-[10px] text-muted-foreground mt-0.5">low concentration</span>
+            </div>
+            <div className="flex flex-col items-center justify-center p-2 rounded-md bg-background/40">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Drawdown (12M)</span>
+              <span className="text-3xl font-bold text-accent mt-1">-6.4<span className="text-base font-medium ml-0.5">%</span></span>
+              <span className="text-[10px] text-muted-foreground mt-0.5">peak-to-trough</span>
+            </div>
           </div>
         </div>
       </div>
