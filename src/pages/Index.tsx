@@ -110,10 +110,29 @@ export default function Overview() {
             </ResponsiveContainer>
           </div>
         </div>
-        <div className={`${tileRisk} flex flex-col`} onClick={() => nav('/risk')}>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-1">INTEGRATED RISK VIEW</p>
-          <div className="flex-1 min-h-0">
-            <EnterpriseRiskMap data={ENTERPRISE_RISK_SCENARIOS} compact height={220} />
+        <div className={`${tileRisk} flex flex-col`} onClick={() => nav('/risk?tab=Other Risk Metrics')}>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-1">OTHER RISK METRICS</p>
+          <div className="flex-1 min-h-0 grid grid-cols-2 gap-3 content-center">
+            <div className="flex flex-col items-center justify-center p-2 rounded-md bg-background/40">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">External Leverage</span>
+              <span className="text-3xl font-bold text-accent mt-1">1.54<span className="text-base font-medium ml-0.5">x</span></span>
+              <span className="text-[10px] text-muted-foreground mt-0.5">vs 1.40x policy</span>
+            </div>
+            <div className="flex flex-col items-center justify-center p-2 rounded-md bg-background/40">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Liquidity Coverage</span>
+              <span className="text-3xl font-bold text-accent mt-1">2.19<span className="text-base font-medium ml-0.5">x</span></span>
+              <span className="text-[10px] text-muted-foreground mt-0.5">vs 1.50x minimum</span>
+            </div>
+            <div className="flex flex-col items-center justify-center p-2 rounded-md bg-background/40">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Concentration (HHI)</span>
+              <span className="text-3xl font-bold text-accent mt-1">0.18</span>
+              <span className="text-[10px] text-muted-foreground mt-0.5">low concentration</span>
+            </div>
+            <div className="flex flex-col items-center justify-center p-2 rounded-md bg-background/40">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Drawdown (12M)</span>
+              <span className="text-3xl font-bold text-accent mt-1">-6.4<span className="text-base font-medium ml-0.5">%</span></span>
+              <span className="text-[10px] text-muted-foreground mt-0.5">peak-to-trough</span>
+            </div>
           </div>
         </div>
       </div>
@@ -309,27 +328,19 @@ export default function Overview() {
             <p className="text-3xl font-bold tracking-tight mt-2 mb-1 text-accent">2.8<span className="text-base font-medium ml-0.5">%</span></p>
             <p className="text-[11px] text-muted-foreground">vs Benchmark</p>
           </div>
-          {/* Other Risk Metrics */}
-          <div className={tileRisk} onClick={() => nav('/risk?tab=Other Risk Metrics')}>
+          {/* Absolute Risk — ETL */}
+          <div className={tileRisk} onClick={() => nav('/risk?tab=Absolute Risk')}>
             <div className="flex items-start justify-between mb-1">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-foreground leading-tight">
-                  <span className="block">Other Risk</span><span className="block">Metrics</span>
+                  <span className="block">Absolute</span><span className="block">Risk (ETL)</span>
                 </p>
-                <p className="text-[11px] text-muted-foreground">Leverage & Liquidity</p>
+                <p className="text-[11px] text-muted-foreground">Expected Tail Loss</p>
               </div>
               <Waves className="h-4 w-4 text-chart-positive" />
             </div>
-            <div className="mt-2 space-y-1">
-              <div className="flex items-baseline justify-between">
-                <span className="text-[10px] text-muted-foreground">Ext. Leverage</span>
-                <span className="text-base font-bold text-accent">1.54<span className="text-xs font-medium ml-0.5">x</span></span>
-              </div>
-              <div className="flex items-baseline justify-between">
-                <span className="text-[10px] text-muted-foreground">Liquidity Cov.</span>
-                <span className="text-base font-bold text-accent">2.19<span className="text-xs font-medium ml-0.5">x</span></span>
-              </div>
-            </div>
+            <p className="text-3xl font-bold tracking-tight mt-2 mb-1 text-accent">-18.4<span className="text-base font-medium ml-0.5">%</span></p>
+            <p className="text-[11px] text-muted-foreground">95% CVaR, 1Y</p>
           </div>
           {/* Enterprise Risk Map */}
           <div className={`${tileRisk} flex flex-col`} onClick={() => nav('/risk?tab=Enterprise Risk Map')}>
