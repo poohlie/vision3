@@ -110,7 +110,7 @@ export default function Overview() {
             </ResponsiveContainer>
           </div>
         </div>
-        <div className={`${tileRisk} flex flex-col`} onClick={() => nav('/risk')}>
+        <div className={`${tileRisk} flex flex-col`} onClick={() => nav('/risk?tab=Enterprise Risk Map')}>
           <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-1">ENTERPRISE RISK MAP</p>
           <div className="flex-1 min-h-0">
             <EnterpriseRiskMap data={ENTERPRISE_RISK_SCENARIOS} compact height={220} />
