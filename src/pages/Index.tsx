@@ -110,10 +110,17 @@ export default function Overview() {
             </ResponsiveContainer>
           </div>
         </div>
-        <div className={`${tileRisk} flex flex-col`} onClick={() => nav('/risk')}>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-1">INTEGRATED RISK VIEW</p>
+        <div className={`${tileRisk} flex flex-col`} onClick={() => nav('/risk?tab=Absolute Risk')}>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-1">ABSOLUTE RISK · ETL</p>
           <div className="flex-1 min-h-0">
-            <EnterpriseRiskMap data={ENTERPRISE_RISK_SCENARIOS} compact height={220} />
+            <RiskFrontierChart
+              benchmarkRisk={14.28}
+              portfolioTE={2.8}
+              rho={-0.01}
+              yLabel="Portfolio ETL (%)"
+              portfolioSymbol="ETL_p"
+              negative
+            />
           </div>
         </div>
       </div>
