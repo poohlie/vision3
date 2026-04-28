@@ -7,13 +7,14 @@ const COMPARE_COLORS = [
 ];
 
 interface SingleProps {
-  data: { name: string; value: number }[];
+  data: { name: string; value: number; limit?: number }[];
   datasets?: never;
   height?: number;
   layout?: 'horizontal' | 'vertical';
   colorByValue?: boolean;
   barColor?: string;
   preserveOrder?: boolean;
+  showLimit?: boolean;
 }
 
 interface MultiProps {
@@ -24,11 +25,12 @@ interface MultiProps {
   colorByValue?: boolean;
   barColor?: string;
   preserveOrder?: boolean;
+  showLimit?: never;
 }
 
 type Props = SingleProps | MultiProps;
 
-export default function FinancialBarChart({ data: rawData, datasets, height = 250, layout = 'vertical', colorByValue = true, barColor, preserveOrder = false }: Props) {
+export default function FinancialBarChart({ data: rawData, datasets, height = 250, layout = 'vertical', colorByValue = true, barColor, preserveOrder = false, showLimit = false }: Props) {
   const tooltipStyle = {
     background: 'hsl(var(--card))',
     border: '1px solid hsl(var(--border))',
@@ -99,13 +101,34 @@ export default function FinancialBarChart({ data: rawData, datasets, height = 25
   };
 
   if (layout === 'vertical') {
+    // Custom shape for limit overlay: short vertical line at x=limit, spanning bar height
+    const LimitTick = (props: any) => {
+      const { x, y, width, height, payload } = props;
+      const limit = payload?.limit;
+      if (limit == null) return null;
+      // Bar starts at x (value=0). value width corresponds to payload.value.
+      const value = payload.value || 1;
+      const pxPerUnit = width / value;
+      const lx = x + limit * pxPerUnit;
+      const overhang = 4;
+      return (
+        <line
+          x1={lx} x2={lx}
+          y1={y - overhang} y2={y + height + overhang}
+          stroke="hsl(var(--foreground))"
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+      );
+    };
+
     return (
       <ResponsiveContainer width="100%" height={height}>
         <BarChart data={data} layout="vertical" margin={{ left: 10, right: 20 }}>
           <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
           <YAxis type="category" dataKey="name" interval={0} tick={totalSet.size > 0 ? <CustomYTick /> : { fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} width={120} />
           <ReferenceLine x={0} stroke="hsl(var(--border))" />
-          <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v > 0 ? '+' : ''}${v.toFixed(1)}%`, 'Value']} />
+          <Tooltip contentStyle={tooltipStyle} formatter={(v: number, name: string) => [`${v > 0 ? '+' : ''}${v.toFixed(1)}%`, name === 'limit' ? 'Limit' : 'Value']} />
           <Bar dataKey="value" radius={[0, 3, 3, 0]} barSize={14}>
             {data.map((d: any, i: number) => {
               const isTotal = totalSet.has(d.name);
@@ -113,6 +136,9 @@ export default function FinancialBarChart({ data: rawData, datasets, height = 25
               return <Cell key={i} fill={fill} fillOpacity={isTotal ? 1 : 0.65} stroke={isTotal ? fill : 'none'} strokeWidth={isTotal ? 1.5 : 0} />;
             })}
           </Bar>
+          {showLimit && (
+            <Bar dataKey="value" barSize={14} shape={<LimitTick />} isAnimationActive={false} legendType="none" />
+          )}
         </BarChart>
       </ResponsiveContainer>
     );
