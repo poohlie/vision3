@@ -258,14 +258,16 @@ const BENCHMARK_COMPONENTS = assetClassExposureData.map((a, i) => {
 const periodToggles = ['1Y', '5Y', '10Y'] as const;
 const periodDescriptions: Record<string, string> = { '1Y': 'Monthly', '5Y': 'Quarterly', '10Y': 'Yearly' };
 
-type RiskMeasure = 'Volatility' | 'ETL';
+type RiskMeasure = 'Volatility' | 'ETL' | '3YSL';
 const riskMeasureLabels: Record<RiskMeasure, string> = {
   Volatility: 'Ex-Ante Volatility',
   ETL: 'Expected Tail Loss',
+  '3YSL': 'Three-Year Stress Loss',
 };
 const riskMeasureShort: Record<RiskMeasure, string> = {
   Volatility: 'Vol',
   ETL: 'ETL',
+  '3YSL': '3YSL',
 };
 
 function AbsoluteRiskSection() {
@@ -275,12 +277,13 @@ function AbsoluteRiskSection() {
   const [topN, setTopN] = useState(5);
   const [period, setPeriod] = useState<string>('1Y');
 
-  // Scale factor: ETL ≈ -1.4× vol (1-day 97.5%-ish), shown as negative loss
-  const measureScale = measure === 'Volatility' ? 1 : -1.4;
+  // Scale factor: ETL ≈ -1.4× vol; 3YSL ≈ -2.5× vol (deeper stress loss, negative)
+  const measureScale = measure === 'Volatility' ? 1 : measure === 'ETL' ? -1.4 : -2.5;
+  const isNegative = measure !== 'Volatility';
   const portfolioBase = 11.5;
   const benchmarkBase = 10.2;
-  const portfolioMetric = +(portfolioBase * Math.abs(measureScale)).toFixed(2) * (measure === 'ETL' ? -1 : 1);
-  const benchmarkMetric = +(benchmarkBase * Math.abs(measureScale)).toFixed(2) * (measure === 'ETL' ? -1 : 1);
+  const portfolioMetric = +(portfolioBase * Math.abs(measureScale)).toFixed(2) * (isNegative ? -1 : 1);
+  const benchmarkMetric = +(benchmarkBase * Math.abs(measureScale)).toFixed(2) * (isNegative ? -1 : 1);
 
   // Period labels: 1Y monthly, 5Y quarterly, 10Y yearly (matches Exposure)
   const xKey = 'label';
@@ -358,7 +361,7 @@ function AbsoluteRiskSection() {
             </div>
             <div className="h-8 w-px bg-border shrink-0" />
             <ToggleBar
-              options={['Volatility', 'ETL'] as const}
+              options={['ETL', '3YSL', 'Volatility'] as const}
               value={measure}
               onChange={(v) => setMeasure(v)}
               size="sm"
@@ -388,16 +391,16 @@ function AbsoluteRiskSection() {
           title={`${riskMeasureLabels[measure]}: Portfolio vs Tracking Error`}
           subtitle={measure === 'Volatility'
             ? 'Portfolio volatility frontier as a function of TE (ρ = corr. of active vs benchmark)'
-            : 'Portfolio ETL frontier as a function of TE (ρ = corr. of active vs benchmark)'}
+            : `Portfolio ${riskMeasureShort[measure]} frontier as a function of TE (ρ = corr. of active vs benchmark)`}
           footer={measurePill}
         >
           <RiskFrontierChart
             benchmarkRisk={Math.abs(benchmarkMetric)}
             portfolioTE={2.8}
             rho={-0.01}
-            yLabel={measure === 'Volatility' ? 'Portfolio volatility (%)' : 'Portfolio ETL (%)'}
-            portfolioSymbol={measure === 'Volatility' ? 'σ_p' : 'ETL_p'}
-            negative={measure === 'ETL'}
+            yLabel={measure === 'Volatility' ? 'Portfolio volatility (%)' : `Portfolio ${riskMeasureShort[measure]} (%)`}
+            portfolioSymbol={measure === 'Volatility' ? 'σ_p' : `${riskMeasureShort[measure]}_p`}
+            negative={isNegative}
           />
         </ChartCard>
         <div className="border-l-2 border-muted-foreground/30 pl-3 flex">
