@@ -138,7 +138,7 @@ export default function FinancialBarChart({ data: rawData, datasets, height = 25
           <YAxis type="category" dataKey="name" interval={0} tick={totalSet.size > 0 ? <CustomYTick /> : { fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} width={120} />
           <ReferenceLine x={0} stroke="hsl(var(--border))" />
           <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v > 0 ? '+' : ''}${v.toFixed(1)}%`, 'Value']} />
-          <Bar dataKey="value" barSize={14} shape={<ValueBarWithLimit />} isAnimationActive={false}>
+          <Bar dataKey="value" barSize={14} radius={[0, 3, 3, 0]} shape={showLimit ? <ValueBarWithLimit /> : undefined} isAnimationActive={false}>
             {data.map((d: any, i: number) => {
               const isTotal = totalSet.has(d.name);
               const fill = colorByValue ? (d.value >= 0 ? 'hsl(var(--chart-1))' : 'hsl(var(--chart-negative))') : (barColor || 'hsl(var(--chart-1))');
