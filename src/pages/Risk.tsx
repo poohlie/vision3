@@ -258,14 +258,16 @@ const BENCHMARK_COMPONENTS = assetClassExposureData.map((a, i) => {
 const periodToggles = ['1Y', '5Y', '10Y'] as const;
 const periodDescriptions: Record<string, string> = { '1Y': 'Monthly', '5Y': 'Quarterly', '10Y': 'Yearly' };
 
-type RiskMeasure = 'Volatility' | 'ETL';
+type RiskMeasure = 'Volatility' | 'ETL' | '3YSL';
 const riskMeasureLabels: Record<RiskMeasure, string> = {
   Volatility: 'Ex-Ante Volatility',
   ETL: 'Expected Tail Loss',
+  '3YSL': 'Three-Year Stress Loss',
 };
 const riskMeasureShort: Record<RiskMeasure, string> = {
   Volatility: 'Vol',
   ETL: 'ETL',
+  '3YSL': '3YSL',
 };
 
 function AbsoluteRiskSection() {
