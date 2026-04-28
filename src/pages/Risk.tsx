@@ -766,7 +766,7 @@ function ActiveRiskSection() {
         <ChartCard
           id="acr-5"
           title="Own-Based Tracking Error"
-          subtitle="Active strategies, standalone TE"
+          subtitle="Active strategies, standalone TE with ARC"
           footer={<FilterPill label="Top" value={String(topN)} variant="breakdown" />}
         >
           <FinancialBarChart
