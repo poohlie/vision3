@@ -7,13 +7,14 @@ const COMPARE_COLORS = [
 ];
 
 interface SingleProps {
-  data: { name: string; value: number }[];
+  data: { name: string; value: number; limit?: number }[];
   datasets?: never;
   height?: number;
   layout?: 'horizontal' | 'vertical';
   colorByValue?: boolean;
   barColor?: string;
   preserveOrder?: boolean;
+  showLimit?: boolean;
 }
 
 interface MultiProps {
@@ -24,11 +25,12 @@ interface MultiProps {
   colorByValue?: boolean;
   barColor?: string;
   preserveOrder?: boolean;
+  showLimit?: never;
 }
 
 type Props = SingleProps | MultiProps;
 
-export default function FinancialBarChart({ data: rawData, datasets, height = 250, layout = 'vertical', colorByValue = true, barColor, preserveOrder = false }: Props) {
+export default function FinancialBarChart({ data: rawData, datasets, height = 250, layout = 'vertical', colorByValue = true, barColor, preserveOrder = false, showLimit = false }: Props) {
   const tooltipStyle = {
     background: 'hsl(var(--card))',
     border: '1px solid hsl(var(--border))',
