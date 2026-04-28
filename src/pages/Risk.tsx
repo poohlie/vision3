@@ -277,12 +277,13 @@ function AbsoluteRiskSection() {
   const [topN, setTopN] = useState(5);
   const [period, setPeriod] = useState<string>('1Y');
 
-  // Scale factor: ETL ≈ -1.4× vol (1-day 97.5%-ish), shown as negative loss
-  const measureScale = measure === 'Volatility' ? 1 : -1.4;
+  // Scale factor: ETL ≈ -1.4× vol; 3YSL ≈ -2.5× vol (deeper stress loss, negative)
+  const measureScale = measure === 'Volatility' ? 1 : measure === 'ETL' ? -1.4 : -2.5;
+  const isNegative = measure !== 'Volatility';
   const portfolioBase = 11.5;
   const benchmarkBase = 10.2;
-  const portfolioMetric = +(portfolioBase * Math.abs(measureScale)).toFixed(2) * (measure === 'ETL' ? -1 : 1);
-  const benchmarkMetric = +(benchmarkBase * Math.abs(measureScale)).toFixed(2) * (measure === 'ETL' ? -1 : 1);
+  const portfolioMetric = +(portfolioBase * Math.abs(measureScale)).toFixed(2) * (isNegative ? -1 : 1);
+  const benchmarkMetric = +(benchmarkBase * Math.abs(measureScale)).toFixed(2) * (isNegative ? -1 : 1);
 
   // Period labels: 1Y monthly, 5Y quarterly, 10Y yearly (matches Exposure)
   const xKey = 'label';
