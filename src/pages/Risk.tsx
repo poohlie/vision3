@@ -361,7 +361,7 @@ function AbsoluteRiskSection() {
             </div>
             <div className="h-8 w-px bg-border shrink-0" />
             <ToggleBar
-              options={['Volatility', 'ETL'] as const}
+              options={['ETL', '3YSL', 'Volatility'] as const}
               value={measure}
               onChange={(v) => setMeasure(v)}
               size="sm"
