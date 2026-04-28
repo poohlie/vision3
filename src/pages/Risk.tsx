@@ -770,9 +770,15 @@ function ActiveRiskSection() {
           footer={<FilterPill label="Top" value={String(topN)} variant="breakdown" />}
         >
           <FinancialBarChart
-            data={bars.map(b => ({ name: b.name, value: b.ownTE }))}
+            data={bars.map(b => ({
+              name: b.name,
+              value: b.ownTE,
+              // Allowed standalone TE budget per strategy (mock)
+              limit: b.name === 'Others' ? +(b.ownTE * 1.15).toFixed(2) : +(b.ownTE * (0.85 + ((b.name.length % 5) * 0.1))).toFixed(2),
+            }))}
             colorByValue={false}
             barColor="hsl(32, 80%, 50%)"
+            showLimit
           />
         </ChartCard>
 
