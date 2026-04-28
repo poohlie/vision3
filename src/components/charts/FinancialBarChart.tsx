@@ -101,24 +101,33 @@ export default function FinancialBarChart({ data: rawData, datasets, height = 25
   };
 
   if (layout === 'vertical') {
-    // Custom shape for limit overlay: short vertical line at x=limit, spanning bar height
-    const LimitTick = (props: any) => {
-      const { x, y, width, height, payload } = props;
+    // Custom shape: renders the value bar AND (optionally) a short vertical limit tick at the same y/height
+    const ValueBarWithLimit = (props: any) => {
+      const { x, y, width, height, payload, fill, fillOpacity, stroke, strokeWidth } = props;
+      const value = payload?.value ?? 0;
       const limit = payload?.limit;
-      if (limit == null) return null;
-      // Bar starts at x (value=0). value width corresponds to payload.value.
-      const value = payload.value || 1;
-      const pxPerUnit = width / value;
-      const lx = x + limit * pxPerUnit;
+      const pxPerUnit = value !== 0 ? width / value : 0;
+      const showTick = showLimit && limit != null && pxPerUnit > 0;
+      const lx = showTick ? x + limit * pxPerUnit : 0;
       const overhang = 4;
       return (
-        <line
-          x1={lx} x2={lx}
-          y1={y - overhang} y2={y + height + overhang}
-          stroke="hsl(var(--foreground))"
-          strokeWidth={2}
-          strokeLinecap="round"
-        />
+        <g>
+          <rect
+            x={x} y={y} width={width} height={height}
+            fill={fill} fillOpacity={fillOpacity}
+            stroke={stroke} strokeWidth={strokeWidth}
+            rx={3} ry={3}
+          />
+          {showTick && (
+            <line
+              x1={lx} x2={lx}
+              y1={y - overhang} y2={y + height + overhang}
+              stroke="hsl(var(--foreground))"
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
+          )}
+        </g>
       );
     };
 
@@ -128,17 +137,14 @@ export default function FinancialBarChart({ data: rawData, datasets, height = 25
           <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
           <YAxis type="category" dataKey="name" interval={0} tick={totalSet.size > 0 ? <CustomYTick /> : { fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} width={120} />
           <ReferenceLine x={0} stroke="hsl(var(--border))" />
-          <Tooltip contentStyle={tooltipStyle} formatter={(v: number, name: string) => [`${v > 0 ? '+' : ''}${v.toFixed(1)}%`, name === 'limit' ? 'Limit' : 'Value']} />
-          <Bar dataKey="value" radius={[0, 3, 3, 0]} barSize={14}>
+          <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v > 0 ? '+' : ''}${v.toFixed(1)}%`, 'Value']} />
+          <Bar dataKey="value" barSize={14} shape={<ValueBarWithLimit />} isAnimationActive={false}>
             {data.map((d: any, i: number) => {
               const isTotal = totalSet.has(d.name);
               const fill = colorByValue ? (d.value >= 0 ? 'hsl(var(--chart-1))' : 'hsl(var(--chart-negative))') : (barColor || 'hsl(var(--chart-1))');
               return <Cell key={i} fill={fill} fillOpacity={isTotal ? 1 : 0.65} stroke={isTotal ? fill : 'none'} strokeWidth={isTotal ? 1.5 : 0} />;
             })}
           </Bar>
-          {showLimit && (
-            <Bar dataKey="value" barSize={14} shape={<LimitTick />} isAnimationActive={false} legendType="none" />
-          )}
         </BarChart>
       </ResponsiveContainer>
     );
