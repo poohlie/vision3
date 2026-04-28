@@ -391,16 +391,16 @@ function AbsoluteRiskSection() {
           title={`${riskMeasureLabels[measure]}: Portfolio vs Tracking Error`}
           subtitle={measure === 'Volatility'
             ? 'Portfolio volatility frontier as a function of TE (ρ = corr. of active vs benchmark)'
-            : 'Portfolio ETL frontier as a function of TE (ρ = corr. of active vs benchmark)'}
+            : `Portfolio ${riskMeasureShort[measure]} frontier as a function of TE (ρ = corr. of active vs benchmark)`}
           footer={measurePill}
         >
           <RiskFrontierChart
             benchmarkRisk={Math.abs(benchmarkMetric)}
             portfolioTE={2.8}
             rho={-0.01}
-            yLabel={measure === 'Volatility' ? 'Portfolio volatility (%)' : 'Portfolio ETL (%)'}
-            portfolioSymbol={measure === 'Volatility' ? 'σ_p' : 'ETL_p'}
-            negative={measure === 'ETL'}
+            yLabel={measure === 'Volatility' ? 'Portfolio volatility (%)' : `Portfolio ${riskMeasureShort[measure]} (%)`}
+            portfolioSymbol={measure === 'Volatility' ? 'σ_p' : `${riskMeasureShort[measure]}_p`}
+            negative={isNegative}
           />
         </ChartCard>
         <div className="border-l-2 border-muted-foreground/30 pl-3 flex">
