@@ -161,7 +161,7 @@ const portfolioRiskRows = [
   {
     group: 'Downside Risk',
     rows: [
-      { label: '3Y real return VaR at 95%', strategic: '-14.2%', transition: '-10.6%', total: '-8.1%', isPill: true, pillTone: ['neg', 'warn', 'warn'] as const },
+      { label: '3Y real return VaR at 95%', strategic: '-14.2%', transition: '-10.6%', total: '-8.1%', isPill: false },
     ],
   },
   {
