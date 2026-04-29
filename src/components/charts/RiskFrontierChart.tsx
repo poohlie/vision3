@@ -114,10 +114,6 @@ export default function RiskFrontierChart({
         {/* Feasible band */}
         <path d={bandPath} fill={COLORS.bandFill} fillOpacity={0.15} stroke="none" />
 
-        {/* Bounding curves ρ=+1, ρ=-1 */}
-        <path d={toPath(upperPoints)} fill="none" stroke={COLORS.bandStroke} strokeWidth={1.2} />
-        <path d={toPath(lowerPoints)} fill="none" stroke={COLORS.bandStroke} strokeWidth={1.2} />
-
         {/* Intermediate ρ guides */}
         <path d={toPath(rhoHalfUp)} fill="none" stroke={COLORS.rhoLine} strokeWidth={0.8} />
         <path d={toPath(rhoHalfDn)} fill="none" stroke={COLORS.rhoLine} strokeWidth={0.8} />
@@ -125,13 +121,9 @@ export default function RiskFrontierChart({
         {/* Actual ρ curve (highlighted) */}
         <path d={toPath(actualPoints)} fill="none" stroke={COLORS.primary} strokeWidth={2.4} />
 
-        {/* Curve right-edge labels */}
-        <text x={W - pad.r + 6} y={sy(upperPoints[upperPoints.length - 1].y) + 3}
-              fontSize={10} fill={COLORS.axis}>ρ = +1</text>
+        {/* Curve right-edge label */}
         <text x={W - pad.r + 6} y={sy(actualPoints[actualPoints.length - 1].y) + 3}
               fontSize={10} fontWeight={700} fill={COLORS.primary}>ρ = {rho.toFixed(2)}</text>
-        <text x={W - pad.r + 6} y={sy(lowerPoints[lowerPoints.length - 1].y) + 3}
-              fontSize={10} fill={COLORS.axis}>ρ = −1</text>
 
         {/* Benchmark point at TE=0 */}
         <circle cx={sx(0)} cy={sy(benchmarkRisk)} r={5} fill={COLORS.bench} stroke="white" strokeWidth={1.5} />
