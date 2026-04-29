@@ -59,12 +59,16 @@ export default function Risk() {
                 <div className="mt-2 space-y-1.5">
                   <div>
                     <p className={cn('text-[9px] uppercase tracking-wider', tab === t.key ? 'text-primary-foreground/70' : 'text-muted-foreground')}>Highest impact</p>
-                    <p className={cn('text-sm font-bold leading-tight', tab === t.key ? 'text-primary-foreground' : 'text-accent')}>{topImpact.name}</p>
+                    <p className={cn('text-sm font-bold leading-tight', tab === t.key ? 'text-primary-foreground' : 'text-accent')}>
+                      {topImpact.name} <span className={cn('text-xs font-semibold', tab === t.key ? 'text-primary-foreground/80' : 'text-muted-foreground')}>· {topImpact.impact}</span>
+                    </p>
                     
                   </div>
                   <div>
                     <p className={cn('text-[9px] uppercase tracking-wider', tab === t.key ? 'text-primary-foreground/70' : 'text-muted-foreground')}>Highest likelihood</p>
-                    <p className={cn('text-sm font-bold leading-tight', tab === t.key ? 'text-primary-foreground' : 'text-accent')}>{topLikelihood.name}</p>
+                    <p className={cn('text-sm font-bold leading-tight', tab === t.key ? 'text-primary-foreground' : 'text-accent')}>
+                      {topLikelihood.name} <span className={cn('text-xs font-semibold', tab === t.key ? 'text-primary-foreground/80' : 'text-muted-foreground')}>· {topLikelihood.likelihood}</span>
+                    </p>
                     
                   </div>
                 </div>
