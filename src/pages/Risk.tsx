@@ -151,9 +151,89 @@ const liquidityData = [
 ];
 const liquidityNet = { current: 15.2, gfc: -7.5, stag: 1.0 };
 
+const portfolioRiskColumns = [
+  { key: 'strategic', name: 'Strategic Portfolio', subtitle: 'Equities · Fixed income · Real estate', color: 'hsl(212, 72%, 42%)', bg: 'hsl(212, 72%, 42% / 0.08)' },
+  { key: 'transition', name: 'Strategic Portfolio Transition', subtitle: '+ ILBs · Credit · Infrastructure', color: 'hsl(155, 50%, 35%)', bg: 'hsl(155, 50%, 35% / 0.08)' },
+  { key: 'total', name: 'Total Portfolio', subtitle: 'Broad multi-asset', color: 'hsl(258, 55%, 45%)', bg: 'hsl(258, 55%, 45% / 0.08)' },
+] as const;
+
+const portfolioRiskRows = [
+  {
+    group: 'Downside Risk',
+    rows: [
+      { label: '3Y real return VaR at 95%', strategic: '-14.2%', transition: '-10.6%', total: '-8.1%', isPill: true, pillTone: ['neg', 'warn', 'warn'] as const },
+    ],
+  },
+  {
+    group: 'Return Preservation — 10-year horizon',
+    rows: [
+      { label: 'Prob. of 10Y real return > 0%', strategic: '78%', transition: '83%', total: '87%', isPill: false },
+      { label: 'Prob. of 10Y real return > 3%', strategic: '44%', transition: '51%', total: '58%', isPill: false },
+    ],
+  },
+] as const;
+
+function PortfolioRiskTable() {
+  const pillClass = (tone: 'neg' | 'warn') =>
+    tone === 'neg'
+      ? 'bg-chart-negative/15 text-chart-negative'
+      : 'bg-amber-500/15 text-amber-700 dark:text-amber-400';
+
+  return (
+    <ChartCard id="orm-0" title="Downside Risk & Return Preservation" subtitle="Value-at-Risk and probability of meeting real return targets across portfolio constructions">
+      <div className="overflow-auto">
+        <table className="w-full text-xs border-separate border-spacing-0">
+          <thead>
+            <tr>
+              <th className="text-left py-3 px-3 font-medium bg-muted/30 border-b border-border w-[28%]"></th>
+              {portfolioRiskColumns.map(c => (
+                <th key={c.key} className="py-3 px-3 text-center align-top border-b-2" style={{ backgroundColor: c.bg, borderBottomColor: c.color }}>
+                  <div className="font-semibold text-sm" style={{ color: c.color }}>{c.name}</div>
+                  <div className="text-[10px] font-normal text-muted-foreground mt-0.5">{c.subtitle}</div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {portfolioRiskRows.map(group => (
+              <>
+                <tr key={`g-${group.group}`}>
+                  <td colSpan={4} className="py-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/20 border-b border-border/50">
+                    {group.group}
+                  </td>
+                </tr>
+                {group.rows.map(r => (
+                  <tr key={r.label} className="border-b border-border/30">
+                    <td className="py-3 px-3 text-foreground border-b border-border/30">{r.label}</td>
+                    {portfolioRiskColumns.map((c, i) => {
+                      const val = r[c.key as 'strategic' | 'transition' | 'total'];
+                      return (
+                        <td key={c.key} className="py-3 px-3 text-center align-middle border-b border-border/30" style={{ backgroundColor: c.bg }}>
+                          {r.isPill ? (
+                            <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold tabular-nums ${pillClass(r.pillTone![i])}`}>
+                              {val}
+                            </span>
+                          ) : (
+                            <span className="text-2xl font-semibold tabular-nums" style={{ color: c.color }}>{val}</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </ChartCard>
+  );
+}
+
 function OtherRiskMetricsSection() {
   return (
     <div className="space-y-4">
+      <PortfolioRiskTable />
       <div className="grid grid-cols-2 gap-4">
         <ChartCard id="orm-1" title="Equity Market Sensitivity (Beta)" subtitle="Portfolio beta to equity markets by asset class">
           <FinancialBarChart data={equityBetaData} height={260} colorByValue={false} barColor="hsl(212, 72%, 42%)" />
