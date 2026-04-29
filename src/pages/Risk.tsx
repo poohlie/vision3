@@ -174,11 +174,6 @@ const portfolioRiskRows = [
 ] as const;
 
 function PortfolioRiskTable() {
-  const pillClass = (tone: 'neg' | 'warn') =>
-    tone === 'neg'
-      ? 'bg-chart-negative/15 text-chart-negative'
-      : 'bg-amber-500/15 text-amber-700 dark:text-amber-400';
-
   return (
     <ChartCard id="orm-0" title="Downside Risk & Return Preservation" subtitle="Value-at-Risk and probability of meeting real return targets across portfolio constructions">
       <div className="overflow-auto">
