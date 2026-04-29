@@ -77,7 +77,7 @@ export default function EnterpriseRiskMap({ data, height = 360, compact = false 
         x: onRight ? cx + rOf(d.weight) + 4 : cx - rOf(d.weight) - 4,
         y: cy + 3,
         anchor: onRight ? 'start' : 'end',
-        text: d.name,
+        text: `${d.name} (I:${d.impact} · L:${d.likelihood})`,
       } as const;
     });
   }, [data, compact]);
