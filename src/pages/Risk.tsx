@@ -200,17 +200,12 @@ function PortfolioRiskTable() {
                 {group.rows.map(r => (
                   <tr key={r.label} className="border-b border-border/30">
                     <td className="py-3 px-3 text-foreground border-b border-border/30">{r.label}</td>
-                    {portfolioRiskColumns.map((c, i) => {
+                    {portfolioRiskColumns.map(c => {
                       const val = r[c.key as 'strategic' | 'transition' | 'total'];
                       return (
                         <td key={c.key} className="py-3 px-3 text-center align-middle border-b border-border/30" style={{ backgroundColor: c.bg }}>
-                          {r.isPill ? (
-                            <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold tabular-nums ${pillClass(r.pillTone![i])}`}>
-                              {val}
-                            </span>
-                          ) : (
-                            <span className="text-2xl font-semibold tabular-nums" style={{ color: c.color }}>{val}</span>
-                          )}
+                          <div className="text-2xl font-semibold tabular-nums leading-tight" style={{ color: c.color }}>{val}</div>
+                          <div className="text-[9px] uppercase tracking-wider text-muted-foreground mt-0.5">{r.valueLabel}</div>
                         </td>
                       );
                     })}
