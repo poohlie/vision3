@@ -161,24 +161,19 @@ const portfolioRiskRows = [
   {
     group: 'Downside Risk',
     rows: [
-      { label: '3Y real return VaR at 95%', strategic: '-14.2%', transition: '-10.6%', total: '-8.1%', isPill: false },
+      { label: '3Y real return VaR at 95%', valueLabel: 'VaR', strategic: '-14.2%', transition: '-10.6%', total: '-8.1%' },
     ],
   },
   {
     group: 'Real Return Preservation — 10-year horizon',
     rows: [
-      { label: 'Prob. of 10Y real return > 0%', strategic: '78%', transition: '83%', total: '87%', isPill: false },
-      { label: 'Prob. of 10Y real return > 3%', strategic: '44%', transition: '51%', total: '58%', isPill: false },
+      { label: 'Prob. of 10Y real return > 0%', valueLabel: 'Likelihood', strategic: '78%', transition: '83%', total: '87%' },
+      { label: 'Prob. of 10Y real return > 3%', valueLabel: 'Likelihood', strategic: '44%', transition: '51%', total: '58%' },
     ],
   },
 ] as const;
 
 function PortfolioRiskTable() {
-  const pillClass = (tone: 'neg' | 'warn') =>
-    tone === 'neg'
-      ? 'bg-chart-negative/15 text-chart-negative'
-      : 'bg-amber-500/15 text-amber-700 dark:text-amber-400';
-
   return (
     <ChartCard id="orm-0" title="Downside Risk & Return Preservation" subtitle="Value-at-Risk and probability of meeting real return targets across portfolio constructions">
       <div className="overflow-auto">
@@ -205,17 +200,12 @@ function PortfolioRiskTable() {
                 {group.rows.map(r => (
                   <tr key={r.label} className="border-b border-border/30">
                     <td className="py-3 px-3 text-foreground border-b border-border/30">{r.label}</td>
-                    {portfolioRiskColumns.map((c, i) => {
+                    {portfolioRiskColumns.map(c => {
                       const val = r[c.key as 'strategic' | 'transition' | 'total'];
                       return (
                         <td key={c.key} className="py-3 px-3 text-center align-middle border-b border-border/30" style={{ backgroundColor: c.bg }}>
-                          {r.isPill ? (
-                            <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold tabular-nums ${pillClass(r.pillTone![i])}`}>
-                              {val}
-                            </span>
-                          ) : (
-                            <span className="text-2xl font-semibold tabular-nums" style={{ color: c.color }}>{val}</span>
-                          )}
+                          <div className="text-2xl font-semibold tabular-nums leading-tight" style={{ color: c.color }}>{val}</div>
+                          <div className="text-[9px] uppercase tracking-wider text-muted-foreground mt-0.5">{r.valueLabel}</div>
                         </td>
                       );
                     })}
