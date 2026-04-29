@@ -60,7 +60,7 @@ export default function Risk() {
                   <div>
                     <p className={cn('text-[9px] uppercase tracking-wider', tab === t.key ? 'text-primary-foreground/70' : 'text-muted-foreground')}>Highest impact</p>
                     <p className={cn('text-sm font-bold leading-tight', tab === t.key ? 'text-primary-foreground' : 'text-accent')}>
-                      {topImpact.name} <span className={cn('text-xs font-semibold', tab === t.key ? 'text-primary-foreground/80' : 'text-muted-foreground')}>· {topImpact.impact}</span>
+                      {topImpact.name} <span className={cn('text-xs font-semibold', tab === t.key ? 'text-primary-foreground/80' : 'text-muted-foreground')}>· impact {topImpact.impact}</span>
                     </p>
                     
                   </div>
