@@ -165,7 +165,7 @@ const portfolioRiskRows = [
     ],
   },
   {
-    group: 'Return Preservation — 10-year horizon',
+    group: 'Real Return Preservation — 10-year horizon',
     rows: [
       { label: 'Prob. of 10Y real return > 0%', strategic: '78%', transition: '83%', total: '87%', isPill: false },
       { label: 'Prob. of 10Y real return > 3%', strategic: '44%', transition: '51%', total: '58%', isPill: false },
