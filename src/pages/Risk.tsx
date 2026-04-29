@@ -161,14 +161,14 @@ const portfolioRiskRows = [
   {
     group: 'Downside Risk',
     rows: [
-      { label: '3Y real return VaR at 95%', strategic: '-14.2%', transition: '-10.6%', total: '-8.1%', isPill: false },
+      { label: '3Y real return VaR at 95%', valueLabel: 'VaR', strategic: '-14.2%', transition: '-10.6%', total: '-8.1%' },
     ],
   },
   {
     group: 'Real Return Preservation — 10-year horizon',
     rows: [
-      { label: 'Prob. of 10Y real return > 0%', strategic: '78%', transition: '83%', total: '87%', isPill: false },
-      { label: 'Prob. of 10Y real return > 3%', strategic: '44%', transition: '51%', total: '58%', isPill: false },
+      { label: 'Prob. of 10Y real return > 0%', valueLabel: 'Likelihood', strategic: '78%', transition: '83%', total: '87%' },
+      { label: 'Prob. of 10Y real return > 3%', valueLabel: 'Likelihood', strategic: '44%', transition: '51%', total: '58%' },
     ],
   },
 ] as const;
