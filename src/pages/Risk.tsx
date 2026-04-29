@@ -198,7 +198,7 @@ function PortfolioRiskTable() {
             {portfolioRiskRows.map(group => (
               <>
                 <tr key={`g-${group.group}`}>
-                  <td colSpan={4} className="py-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/20 border-b border-border/50">
+                  <td colSpan={4} className="py-2.5 px-3 text-[11px] font-bold uppercase tracking-wider text-foreground bg-muted/70 border-y border-border">
                     {group.group}
                   </td>
                 </tr>
